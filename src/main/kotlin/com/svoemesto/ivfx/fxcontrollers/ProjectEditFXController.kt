@@ -775,7 +775,7 @@ class ProjectEditFXController {
         tblFileProperties?.setOnMouseClicked { mouseEvent ->
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
-                    if (hostServices != null && currentFileProperty != null && currentFileProperty?.key?.lowercase() == "url") {
+                    if (hostServices != null && currentFileProperty != null && currentFileProperty?.key?.startsWith("url_", ignoreCase = true) == true) {
                         hostServices!!.showDocument(currentFileProperty?.value)
                     }
                 }
@@ -798,7 +798,7 @@ class ProjectEditFXController {
         tblProjectProperties?.setOnMouseClicked { mouseEvent ->
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
-                    if (hostServices != null && currentProjectProperty != null && currentProjectProperty?.key?.lowercase() == "url") {
+                    if (hostServices != null && currentProjectProperty != null && currentProjectProperty?.key?.startsWith("url_", ignoreCase = true) == true) {
                         hostServices!!.showDocument(currentProjectProperty?.value)
                     }
                 }
