@@ -1,7 +1,6 @@
 package com.svoemesto.ivfx.fxcontrollers
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.SpringConfig
 import com.svoemesto.ivfx.controllers.FileCdfController
 import com.svoemesto.ivfx.controllers.FileController
@@ -11,7 +10,13 @@ import com.svoemesto.ivfx.controllers.ProjectController
 import com.svoemesto.ivfx.controllers.PropertyCdfController
 import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.controllers.TrackController
+import com.svoemesto.ivfx.enums.AudioCodecs
 import com.svoemesto.ivfx.enums.Folders
+import com.svoemesto.ivfx.enums.LosslessContainers
+import com.svoemesto.ivfx.enums.LosslessVideoCodecs
+import com.svoemesto.ivfx.enums.ReorderTypes
+import com.svoemesto.ivfx.enums.VideoCodecs
+import com.svoemesto.ivfx.enums.VideoContainers
 import com.svoemesto.ivfx.getCurrentDatabase
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
@@ -39,11 +44,11 @@ import javafx.scene.Scene
 import javafx.scene.control.Alert
 import javafx.scene.control.Button
 import javafx.scene.control.ButtonType
+import javafx.scene.control.ComboBox
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Control
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
-import javafx.scene.control.SelectionMode
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
@@ -61,6 +66,7 @@ import javafx.stage.Stage
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import java.io.IOException
 import java.io.File as IOFile
+
 
 class ProjectEditFXController {
 
@@ -103,6 +109,39 @@ class ProjectEditFXController {
 
     @FXML
     private var btnSelectProjectFolder: Button? = null
+
+    @FXML
+    private var fldProjectWidth: TextField? = null
+
+    @FXML
+    private var fldProjectHeight: TextField? = null
+
+    @FXML
+    private var fldProjectFps: TextField? = null
+
+    @FXML
+    private var fldProjectVideoBitrate: TextField? = null
+
+    @FXML
+    private var cbProjectVideoCodec: ComboBox<String>? = null
+
+    @FXML
+    private var fldProjectAudioBitrate: TextField? = null
+
+    @FXML
+    private var fldProjectAudioFrequency: TextField? = null
+
+    @FXML
+    private var cbProjectAudioCodec: ComboBox<String>? = null
+
+    @FXML
+    private var cbProjectContainer: ComboBox<String>? = null
+
+    @FXML
+    private var cbProjectLosslessCodec: ComboBox<String>? = null
+
+    @FXML
+    private var cbProjectLosslessContainer: ComboBox<String>? = null
 
     // PROJECT FILES
 
@@ -363,6 +402,12 @@ class ProjectEditFXController {
         private var currentTrackProperty: Property? = null
         private var listTrackProperties: ObservableList<Property> = FXCollections.observableArrayList()
 
+        private var listVideoCodecs: ObservableList<String> = FXCollections.observableArrayList()
+        private var listLosslessVideoCodecs: ObservableList<String> = FXCollections.observableArrayList()
+        private var listAudioCodecs: ObservableList<String> = FXCollections.observableArrayList()
+        private var listVideoContainers: ObservableList<String> = FXCollections.observableArrayList()
+        private var listLosslessContainers: ObservableList<String> = FXCollections.observableArrayList()
+
         fun editProject(project: Project? = null, hostServices: HostServices? = null): Project? {
             if (project == null) {
                 currentProject = projectController.getListProjects().firstOrNull()
@@ -399,6 +444,9 @@ class ProjectEditFXController {
         }
 
         println("Инициализация ProjectEditFXController.")
+
+
+
         menuDatabase?.text = getCurrentDatabase()?.name
         mainStage?.setTitle(if (currentProject?.name == null) "Откройте или создайте проект." else "Проект: ${currentProject?.name}")
         menuDeleteProject?.isDisable = currentProject == null
@@ -407,7 +455,27 @@ class ProjectEditFXController {
 
         if (currentProject == null) return
 
-        tblFiles?.selectionModel?.selectionMode = SelectionMode.MULTIPLE
+//        tblFiles?.selectionModel?.selectionMode = SelectionMode.MULTIPLE
+
+        listVideoContainers.clear()
+        VideoContainers.values().forEach{ listVideoContainers.add(it.name) }
+        cbProjectContainer?.items = listVideoContainers
+
+        listLosslessContainers.clear()
+        LosslessContainers.values().forEach{ listLosslessContainers.add(it.name) }
+        cbProjectLosslessContainer?.items = listLosslessContainers
+
+        listVideoCodecs.clear()
+        VideoCodecs.values().forEach{ listVideoCodecs.add(it.name) }
+        cbProjectVideoCodec?.items = listVideoCodecs
+
+        listLosslessVideoCodecs.clear()
+        LosslessVideoCodecs.values().forEach{ listLosslessVideoCodecs.add(it.name) }
+        cbProjectLosslessCodec?.items = listLosslessVideoCodecs
+
+        listAudioCodecs.clear()
+        AudioCodecs.values().forEach{ listAudioCodecs.add(it.name) }
+        cbProjectAudioCodec?.items = listAudioCodecs
 
         listProjectProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
         tblProjectProperties?.items = listProjectProperties
@@ -451,6 +519,19 @@ class ProjectEditFXController {
         fldProjectName?.text = currentProject?.name
         fldProjectShortName?.text = currentProject?.shortName
         fldProjectFolder?.text = currentProject?.folder
+        fldProjectWidth?.text = currentProject?.width.toString()
+        fldProjectHeight?.text = currentProject?.height.toString()
+        fldProjectFps?.text = currentProject?.fps.toString()
+        fldProjectVideoBitrate?.text = currentProject?.videoBitrate.toString()
+        fldProjectAudioBitrate?.text = currentProject?.audioBitrate.toString()
+        fldProjectAudioFrequency?.text = currentProject?.audioFrequency.toString()
+
+        cbProjectVideoCodec?.selectionModel?.select(currentProject?.videoCodec)
+        cbProjectAudioCodec?.selectionModel?.select(currentProject?.audioCodec)
+        cbProjectContainer?.selectionModel?.select(currentProject?.container)
+        cbProjectLosslessCodec?.selectionModel?.select(currentProject?.lossLessCodec)
+        cbProjectLosslessContainer?.selectionModel?.select(currentProject?.lossLessContainer)
+
 
         listFiles = FXCollections.observableArrayList(fileController.getListFiles(currentProject!!))
 
@@ -982,6 +1063,72 @@ class ProjectEditFXController {
             tmp = fldProjectFolder?.text ?: ""
             if (tmp != currentProject?.folder) {
                 currentProject?.folder = tmp
+                needToSave = true
+            }
+
+            tmp = fldProjectWidth?.text ?: ""
+            if (tmp != currentProject?.width.toString()) {
+                currentProject?.width = (tmp.toIntOrNull() ?: currentProject?.width) as Int
+                needToSave = true
+            }
+
+            tmp = fldProjectHeight?.text ?: ""
+            if (tmp != currentProject?.height.toString()) {
+                currentProject?.height = (tmp.toIntOrNull() ?: currentProject?.height) as Int
+                needToSave = true
+            }
+
+            tmp = fldProjectFps?.text ?: ""
+            if (tmp != currentProject?.fps.toString()) {
+                currentProject?.fps = (tmp.toDoubleOrNull() ?: currentProject?.fps) as Double
+                needToSave = true
+            }
+
+            tmp = fldProjectVideoBitrate?.text ?: ""
+            if (tmp != currentProject?.videoBitrate.toString()) {
+                currentProject?.videoBitrate = (tmp.toIntOrNull() ?: currentProject?.videoBitrate) as Int
+                needToSave = true
+            }
+
+            tmp = fldProjectAudioBitrate?.text ?: ""
+            if (tmp != currentProject?.audioBitrate.toString()) {
+                currentProject?.audioBitrate = (tmp.toIntOrNull() ?: currentProject?.audioBitrate) as Int
+                needToSave = true
+            }
+
+            tmp = fldProjectAudioFrequency?.text ?: ""
+            if (tmp != currentProject?.audioFrequency.toString()) {
+                currentProject?.audioFrequency = (tmp.toIntOrNull() ?: currentProject?.audioFrequency) as Int
+                needToSave = true
+            }
+
+            tmp = cbProjectVideoCodec?.selectionModel?.selectedItem ?: ""
+            if (tmp != currentProject?.videoCodec) {
+                currentProject?.videoCodec = tmp
+                needToSave = true
+            }
+
+            tmp = cbProjectAudioCodec?.selectionModel?.selectedItem ?: ""
+            if (tmp != currentProject?.audioCodec) {
+                currentProject?.audioCodec = tmp
+                needToSave = true
+            }
+
+            tmp = cbProjectContainer?.selectionModel?.selectedItem ?: ""
+            if (tmp != currentProject?.container) {
+                currentProject?.container = tmp
+                needToSave = true
+            }
+
+            tmp = cbProjectLosslessCodec?.selectionModel?.selectedItem ?: ""
+            if (tmp != currentProject?.lossLessCodec) {
+                currentProject?.lossLessCodec = tmp
+                needToSave = true
+            }
+
+            tmp = cbProjectLosslessContainer?.selectionModel?.selectedItem ?: ""
+            if (tmp != currentProject?.lossLessContainer) {
+                currentProject?.lossLessContainer = tmp
                 needToSave = true
             }
 
