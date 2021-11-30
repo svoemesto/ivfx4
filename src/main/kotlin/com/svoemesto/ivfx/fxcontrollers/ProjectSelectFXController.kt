@@ -1,7 +1,6 @@
 package com.svoemesto.ivfx.fxcontrollers
 
-import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.ReorderTypes
+import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.SpringConfig
 import com.svoemesto.ivfx.controllers.FileCdfController
 import com.svoemesto.ivfx.controllers.FileController
@@ -90,7 +89,7 @@ class ProjectSelectFXController {
 
         private val projectController = ProjectController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo)
         private val projectCdfController = ProjectCdfController(projectCdfRepo)
-        private val fileController = FileController(fileRepo, propertyRepo, propertyCdfRepo, fileCdfRepo, trackRepo, frameRepo)
+        private val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo)
         private val fileCdfController = FileCdfController(fileCdfRepo)
         private val trackController = TrackController(trackRepo, propertyRepo, propertyCdfRepo)
         private val frameController = FrameController(frameRepo, propertyRepo, propertyCdfRepo)
