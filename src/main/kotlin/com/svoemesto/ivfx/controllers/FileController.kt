@@ -13,6 +13,9 @@ import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.TrackRepo
+import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
+import net.bramp.ffmpeg.FFprobe
+import net.bramp.ffmpeg.probe.FFmpegProbeResult
 import org.springframework.stereotype.Controller
 import java.io.IOException
 import java.io.File as IOFile
@@ -38,6 +41,19 @@ class FileController(val projectRepo: ProjectRepo,
             e.printStackTrace()
         }
         return fld
+    }
+
+    fun getFFmpegProbeResult(file: File): FFmpegProbeResult {
+        return FFprobe(IvfxFFmpegUtils.FFPROBE_PATH).probe(file.path)
+    }
+
+    fun hasLossless(file: File): Boolean {
+        return IOFile(getLossless(file)).exists()
+    }
+
+    fun getLossless(file: File): String {
+        val folder = getCdfFolder(file, Folders.LOSSLESS)
+        return if (folder == "") "" else folder + IOFile.separator + file.shortName + "_lossless.mkv"
     }
 
     fun getListFiles(project: Project): List<File> {

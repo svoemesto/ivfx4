@@ -708,8 +708,7 @@ class ProjectEditFXController {
         
         // делаем поле colFilePropertyValue таблицы tblFileProperties с переносом по словам и расширяемым по высоте
         colFilePropertyValue?.setCellFactory { param: TableColumn<Property?, String?>? ->
-            val cell: TableCell<Property, String> =
-                TableCell<Property, String>()
+            val cell: TableCell<Property, String> = TableCell<Property, String>()
             val text = Text()
             text.style = ""
             cell.setGraphic(text)
@@ -721,8 +720,7 @@ class ProjectEditFXController {
 
         // делаем поле colFilePropertyCdfValue таблицы tblFilePropertiesCdf с переносом по словам и расширяемым по высоте
         colFilePropertyCdfValue?.setCellFactory { param: TableColumn<PropertyCdf?, String?>? ->
-            val cell: TableCell<PropertyCdf, String> =
-                TableCell<PropertyCdf, String>()
+            val cell: TableCell<PropertyCdf, String> = TableCell<PropertyCdf, String>()
             val text = Text()
             text.style = ""
             cell.setGraphic(text)
@@ -734,8 +732,7 @@ class ProjectEditFXController {
 
         // делаем поле colProjectPropertyValue таблицы tblProjectProperties с переносом по словам и расширяемым по высоте
         colProjectPropertyValue?.setCellFactory { param: TableColumn<Property?, String?>? ->
-            val cell: TableCell<Property, String> =
-                TableCell<Property, String>()
+            val cell: TableCell<Property, String> = TableCell<Property, String>()
             val text = Text()
             text.style = ""
             cell.setGraphic(text)
@@ -747,8 +744,7 @@ class ProjectEditFXController {
         
         // делаем поле colProjectPropertyCdfValue таблицы tblProjectPropertiesCdf с переносом по словам и расширяемым по высоте
         colProjectPropertyCdfValue?.setCellFactory { param: TableColumn<PropertyCdf?, String?>? ->
-            val cell: TableCell<PropertyCdf, String> =
-                TableCell<PropertyCdf, String>()
+            val cell: TableCell<PropertyCdf, String> = TableCell<PropertyCdf, String>()
             val text = Text()
             text.style = ""
             cell.setGraphic(text)
@@ -760,8 +756,7 @@ class ProjectEditFXController {
 
         // делаем поле colTrackPropertyValue таблицы tblTrackProperties с переносом по словам и расширяемым по высоте
         colTrackPropertyValue?.setCellFactory { param: TableColumn<Property?, String?>? ->
-            val cell: TableCell<Property, String> =
-                TableCell<Property, String>()
+            val cell: TableCell<Property, String> = TableCell<Property, String>()
             val text = Text()
             text.style = ""
             cell.setGraphic(text)
