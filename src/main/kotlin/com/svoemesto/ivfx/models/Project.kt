@@ -1,6 +1,11 @@
 package com.svoemesto.ivfx.models
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.enums.AudioCodecs
+import com.svoemesto.ivfx.enums.LosslessContainers
+import com.svoemesto.ivfx.enums.LosslessVideoCodecs
+import com.svoemesto.ivfx.enums.VideoCodecs
+import com.svoemesto.ivfx.enums.VideoContainers
 import com.svoemesto.ivfx.getCurrentComputerId
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
@@ -41,6 +46,39 @@ class Project {
     @NotNull(message = "Короткое имя проекта не может быть NULL")
     @Column(name = "short_name", length = 45)
     var shortName: String = ""
+
+    @Column(name = "lossless_codec")
+    var lossLessCodec: String = LosslessVideoCodecs.values().firstOrNull{it.default}?.name ?: ""
+
+    @Column(name = "lossless_container")
+    var lossLessContainer: String = LosslessContainers.values().firstOrNull{it.default}?.name ?: ""
+
+    @Column(name = "container")
+    var container: String = VideoContainers.values().firstOrNull{it.default}?.name ?: ""
+
+    @Column(name = "video_codec")
+    var videoCodec: String = VideoCodecs.values().firstOrNull{it.default}?.name ?: ""
+
+    @Column(name = "audio_codec")
+    var audioCodec: String = AudioCodecs.values().firstOrNull{it.default}?.name ?: ""
+
+    @Column(name = "width")
+    var width: Int = 1920
+
+    @Column(name = "height")
+    var height: Int = 1080
+
+    @Column(name = "fps")
+    var fps: Double = 23.976
+
+    @Column(name = "video_bitrate")
+    var videoBitrate: Int = 10_000_000
+
+    @Column(name = "audio_bitrate")
+    var audioBitrate: Int = 320_000
+
+    @Column(name = "audio_frequency")
+    var audioFrequency: Int = 48_000
 
     @OneToMany(mappedBy = "project", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
