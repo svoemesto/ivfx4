@@ -1,27 +1,44 @@
 package com.svoemesto.ivfx.controllers
 
-import com.svoemesto.ivfx.ReorderTypes
+import com.svoemesto.ivfx.enums.Folders
+import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.repos.FileCdfRepo
 import com.svoemesto.ivfx.repos.FileRepo
 import com.svoemesto.ivfx.repos.FrameRepo
+import com.svoemesto.ivfx.repos.ProjectCdfRepo
+import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.TrackRepo
-import org.hibernate.LazyInitializationException
 import org.springframework.stereotype.Controller
-import org.springframework.transaction.annotation.Transactional
+import java.io.IOException
+import java.io.File as IOFile
 
 @Controller
 //@Scope("prototype")
-class FileController(val fileRepo: FileRepo,
+class FileController(val projectRepo: ProjectRepo,
                      val propertyRepo: PropertyRepo,
                      val propertyCdfRepo: PropertyCdfRepo,
+                     val projectCdfRepo: ProjectCdfRepo,
+                     val fileRepo: FileRepo,
                      val fileCdfRepo: FileCdfRepo,
-                     val trackRepo: TrackRepo,
-                     val frameRepo: FrameRepo) {
+                     val frameRepo: FrameRepo,
+                     val trackRepo: TrackRepo) {
+
+    fun getCdfFolder(file: File, folder: Folders, createIfNotExist: Boolean = false): String {
+        val propertyValue = getPropertyValue(file, folder.propertyCdfKey)
+        val projectCdfFolder = ProjectController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo).getCdfFolder(file.project, folder, createIfNotExist)
+        val fld = if (propertyValue == "") projectCdfFolder  + IOFile.separator + file.shortName else propertyValue
+        try {
+            if (createIfNotExist && !IOFile(fld).exists()) IOFile(fld).mkdir()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return fld
+    }
 
     fun getListFiles(project: Project): List<File> {
         val list = fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toList()

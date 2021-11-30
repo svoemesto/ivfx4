@@ -1,7 +1,7 @@
 package com.svoemesto.ivfx.controllers
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.ReorderTypes
+import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.PropertyCdf
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import org.springframework.stereotype.Controller

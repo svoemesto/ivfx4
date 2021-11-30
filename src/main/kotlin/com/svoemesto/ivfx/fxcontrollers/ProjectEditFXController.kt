@@ -1,7 +1,7 @@
 package com.svoemesto.ivfx.fxcontrollers
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.ReorderTypes
+import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.SpringConfig
 import com.svoemesto.ivfx.controllers.FileCdfController
 import com.svoemesto.ivfx.controllers.FileController
@@ -11,6 +11,7 @@ import com.svoemesto.ivfx.controllers.ProjectController
 import com.svoemesto.ivfx.controllers.PropertyCdfController
 import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.controllers.TrackController
+import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.getCurrentDatabase
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
@@ -338,7 +339,7 @@ class ProjectEditFXController {
 
         private val projectController = ProjectController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo)
         private val projectCdfController = ProjectCdfController(projectCdfRepo)
-        private val fileController = FileController(fileRepo, propertyRepo, propertyCdfRepo, fileCdfRepo, trackRepo, frameRepo)
+        private val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo)
         private val fileCdfController = FileCdfController(fileCdfRepo)
         private val trackController = TrackController(trackRepo, propertyRepo, propertyCdfRepo)
         private val frameController = FrameController(frameRepo, propertyRepo, propertyCdfRepo)
@@ -786,7 +787,8 @@ class ProjectEditFXController {
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
                     if (hostServices != null && currentFilePropertyCdf != null && currentFilePropertyCdf?.key?.startsWith("folder_", ignoreCase = true) == true) {
-                        hostServices!!.showDocument(currentFilePropertyCdf?.value)
+                        val fld = Folders.values().filter { it.propertyCdfKey == currentFilePropertyCdf?.key }.firstOrNull()
+                        hostServices!!.showDocument(if (fld == null || currentFilePropertyCdf?.value != "") currentFilePropertyCdf?.value else fileController.getCdfFolder(currentFile!!, fld, true))
                     }
                 }
             }
@@ -808,7 +810,8 @@ class ProjectEditFXController {
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
                     if (hostServices != null && currentProjectPropertyCdf != null && currentProjectPropertyCdf?.key?.startsWith("folder_", ignoreCase = true) == true) {
-                        hostServices!!.showDocument(currentProjectPropertyCdf?.value)
+                        val fld = Folders.values().filter { it.propertyCdfKey == currentProjectPropertyCdf?.key }.firstOrNull()
+                        hostServices!!.showDocument(if (fld == null || currentProjectPropertyCdf?.value != "") currentProjectPropertyCdf?.value else projectController.getCdfFolder(currentProject!!, fld, true))
                     }
                 }
             }

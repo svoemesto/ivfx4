@@ -1,9 +1,8 @@
 package com.svoemesto.ivfx.controllers
 
-import com.svoemesto.ivfx.ReorderTypes
+import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.repos.PropertyRepo
-import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Controller
 
 @Controller

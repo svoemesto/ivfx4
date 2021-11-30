@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.controllers
 
-import com.svoemesto.ivfx.ReorderTypes
+import com.svoemesto.ivfx.enums.Folders
+import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.repos.FileCdfRepo
@@ -11,8 +12,9 @@ import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.TrackRepo
-import org.hibernate.LazyInitializationException
 import org.springframework.stereotype.Controller
+import java.io.IOException
+import java.io.File as IOFile
 
 @Controller
 //@Scope("prototype")
@@ -24,6 +26,17 @@ class ProjectController(val projectRepo: ProjectRepo,
                         val fileCdfRepo: FileCdfRepo,
                         val frameRepo: FrameRepo,
                         val trackRepo: TrackRepo) {
+
+    fun getCdfFolder(project: Project, folder: Folders, createIfNotExist: Boolean = false): String {
+        val propertyValue = getPropertyValue(project, folder.propertyCdfKey)
+        val fld = if (propertyValue == "") project.folder + IOFile.separator + folder.folderName else propertyValue
+        try {
+            if (createIfNotExist && !IOFile(fld).exists()) IOFile(fld).mkdir()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return fld
+    }
 
     fun getListProjects(): List<Project> {
         val list = projectRepo.findByOrderGreaterThanOrderByOrder(0).toList()

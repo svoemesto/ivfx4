@@ -1,9 +1,8 @@
 package com.svoemesto.ivfx.controllers
 
 import com.google.gson.internal.LinkedTreeMap
-import com.svoemesto.ivfx.ReorderTypes
+import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.File
-import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.models.Track
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
