@@ -82,10 +82,13 @@ class FileController(val projectRepo: ProjectRepo,
         val countFrames = getFFmpegProbeResult(file).streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
             .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
         val fld = getCdfFolder(file, Folders.FRAMES_SMALL)
+        val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
+        val FRAME_FILENAME_REGEXP: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
+
         if (!IOFile(fld).exists()) {
             return false
         } else {
-            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.startsWith(file.shortName) && name.endsWith(".jpg") }).size
+            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(FRAME_FILENAME_REGEXP) }).size
         }
     }
 
