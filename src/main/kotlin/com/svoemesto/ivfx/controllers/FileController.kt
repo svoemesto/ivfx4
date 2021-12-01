@@ -16,7 +16,9 @@ import com.svoemesto.ivfx.repos.TrackRepo
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
 import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
+import net.bramp.ffmpeg.probe.FFmpegStream
 import org.springframework.stereotype.Controller
+import java.io.FilenameFilter
 import java.io.IOException
 import java.io.File as IOFile
 
@@ -30,6 +32,17 @@ class FileController(val projectRepo: ProjectRepo,
                      val fileCdfRepo: FileCdfRepo,
                      val frameRepo: FrameRepo,
                      val trackRepo: TrackRepo) {
+
+    class FileExt(val file: File) {
+        var hasPreview: Boolean = false
+        var hasPreviewString: String = ""
+        var hasLossless: Boolean = false
+        var hasLosslessString: String = ""
+        var hasFramesSmall: Boolean = false
+        var hasFramesSmallString: String = ""
+        val order = file.order
+        val name = file.name
+    }
 
     fun getCdfFolder(file: File, folder: Folders, createIfNotExist: Boolean = false): String {
         val propertyValue = getPropertyValue(file, folder.propertyCdfKey)
@@ -51,9 +64,45 @@ class FileController(val projectRepo: ProjectRepo,
         return IOFile(getLossless(file)).exists()
     }
 
+    fun hasPreview(file: File): Boolean {
+        return IOFile(getPreview(file)).exists()
+    }
+
     fun getLossless(file: File): String {
         val folder = getCdfFolder(file, Folders.LOSSLESS)
         return if (folder == "") "" else folder + IOFile.separator + file.shortName + "_lossless.mkv"
+    }
+
+    fun getPreview(file: File): String {
+        val folder = getCdfFolder(file, Folders.PREVIEW)
+        return if (folder == "") "" else folder + IOFile.separator + file.shortName + "_preview.mp4"
+    }
+
+    fun hasFramesSmall(file: File): Boolean {
+        val countFrames = getFFmpegProbeResult(file).streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
+            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
+        val fld = getCdfFolder(file, Folders.FRAMES_SMALL)
+        if (!IOFile(fld).exists()) {
+            return false
+        } else {
+            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.startsWith(file.shortName) && name.endsWith(".jpg") }).size
+        }
+    }
+
+    fun getListFilesExt(project: Project): List<FileExt> {
+        val list = fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toList()
+        var resultedList: MutableList<FileExt> = mutableListOf()
+        list.forEach { file ->
+            var fileExt = FileExt(file)
+            fileExt.hasPreview = hasPreview(file)
+            fileExt.hasPreviewString = if (fileExt.hasPreview) "✓" else "✗"
+            fileExt.hasLossless = hasLossless(file)
+            fileExt.hasLosslessString = if (fileExt.hasLossless) "✓" else "✗"
+            fileExt.hasFramesSmall = hasFramesSmall(file)
+            fileExt.hasFramesSmallString = if (fileExt.hasFramesSmall) "✓" else "✗"
+            resultedList.add(fileExt)
+        }
+        return resultedList
     }
 
     fun getListFiles(project: Project): List<File> {

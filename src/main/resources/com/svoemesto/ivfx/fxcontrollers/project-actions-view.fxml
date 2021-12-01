@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.ProjectActionsFXController">
+   <children>
+      <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox>
+               <children>
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="10000.0" prefWidth="10000.0">
+                     <children>
+                        <TableView fx:id="tblFilesExt" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="400.0">
+                          <columns>
+                            <TableColumn fx:id="colFileExtOrder" minWidth="30.0" prefWidth="30.0" text="#" />
+                            <TableColumn fx:id="colFileExtName" prefWidth="200.0" text="Файл" />
+                              <TableColumn fx:id="colFileExtPW" minWidth="0.0" prefWidth="29.0" text="PW" />
+                              <TableColumn fx:id="colFileExtLL" minWidth="30.0" prefWidth="30.0" text="LL" />
+                              <TableColumn fx:id="colFileExtFS" minWidth="30.0" prefWidth="30.0" text="FS" />
+                              <TableColumn fx:id="colFileExtFM" minWidth="30.0" prefWidth="30.0" text="FM" />
+                              <TableColumn fx:id="colFileExtFF" minWidth="30.0" prefWidth="30.0" text="FF" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="10000.0" prefWidth="10000.0" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

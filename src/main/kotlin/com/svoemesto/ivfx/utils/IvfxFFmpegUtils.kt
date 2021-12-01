@@ -6,6 +6,7 @@ import net.bramp.ffmpeg.FFmpegUtils
 import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
+import net.bramp.ffmpeg.probe.FFmpegStream
 import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
 import java.util.concurrent.TimeUnit
@@ -22,8 +23,8 @@ class IvfxFFmpegUtils {
 fun main() {
 
     val fileInput = "E:/GOT/GOT.S01/GOT.S01E01.BDRip.1080p.mkv"
-//    val fileOutput = "F:/ivfxGOT/TestOutput/GOT.S1.E1.%06d.jpg"
-    val fileOutput = "F:/ivfxGOT/TestOutput/GOT.S1.E1.mp4"
+    val fileOutput = "F:/ivfxGOT/TestOutput/GOT.S1.E1/GOT.S1.E1.%06d.jpg"
+//    val fileOutput = "F:/ivfxGOT/TestOutput/GOT.S1.E1.mp4"
 
 
 
@@ -34,48 +35,54 @@ fun main() {
     val ffmpegFormat = fFmpegProbeResult.getFormat()
     val ffmpegStream = fFmpegProbeResult.getStreams().get(0)
 
-
-//    var builder = FFmpegBuilder()
-//        .setInput(fileInput)
-//        .overrideOutputFiles(true)
-//        .addOutput(fileOutput)
-////        .setFrames(88643)
-//        .setFrames(10000)
-//            .setVideoResolution(135,75)
-//        .done()
-    val w = 720
-    val h = 400
-
-    val fileWidth: Int = 1920
-    val fileHeight: Int = 1080
-    val fileAspect = fileWidth.toDouble() / fileHeight.toDouble()
-    val frameAspect = w.toDouble() / h.toDouble()
-    var filter = ""
-
-    filter = if (fileAspect > frameAspect) {
-        val frameHeight = (w.toDouble() / fileAspect).toInt()
-        "\"scale=" + w + ":" + frameHeight + ",pad=" + w + ":" + h + ":0:" + ((h - frameHeight) / 2.0).toInt() + ":black\""
-    } else {
-        val frameWidth = (h.toDouble() * fileAspect).toInt()
-        "\"scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black\""
-    }
+    val countFrames = fFmpegProbeResult.streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
+        .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
 
     var builder = FFmpegBuilder()
         .setInput(fileInput)
         .overrideOutputFiles(true)
         .addOutput(fileOutput)
-        .setVideoResolution(720,400)
-        .setVideoBitRate(500000)
-        .setVideoCodec("libx264")
-        .setAudioCodec("aac")
-        .setAudioBitRate(128492)
-        .setAudioSampleRate(48000)
-        .setAudioChannels(2)
-        .setVideoFilter(filter)
+        .setFrames(countFrames?:1)
+//        .setFrames(10000)
+            .setVideoResolution(135,75)
         .done()
 
+
+//    val w = 720
+//    val h = 400
+//
+//    val fileWidth: Int = 1920
+//    val fileHeight: Int = 1080
+//    val fileAspect = fileWidth.toDouble() / fileHeight.toDouble()
+//    val frameAspect = w.toDouble() / h.toDouble()
+//    var filter = ""
+//
+//    filter = if (fileAspect > frameAspect) {
+//        val frameHeight = (w.toDouble() / fileAspect).toInt()
+//        "\"scale=" + w + ":" + frameHeight + ",pad=" + w + ":" + h + ":0:" + ((h - frameHeight) / 2.0).toInt() + ":black\""
+//    } else {
+//        val frameWidth = (h.toDouble() * fileAspect).toInt()
+//        "\"scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black\""
+//    }
+//
+//    var builder = FFmpegBuilder()
+//        .setInput(fileInput)
+//        .overrideOutputFiles(true)
+//        .addOutput(fileOutput)
+//        .setVideoResolution(720,400)
+//        .setVideoBitRate(500000)
+//        .setVideoCodec("libx264")
+//        .setAudioCodec("aac")
+//        .setAudioBitRate(128492)
+//        .setAudioSampleRate(48000)
+//        .setAudioChannels(2)
+//        .setVideoFilter(filter)
+//        .done()
+
+
+
     var executor = FFmpegExecutor(ffmpeg, ffprobe)
-//    executor.createJob(builder).run()
+
 
 
     val job = executor.createJob(builder, object : ProgressListener {
