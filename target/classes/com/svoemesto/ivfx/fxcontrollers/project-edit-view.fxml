@@ -176,6 +176,9 @@
                                                       <Label alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="40.0" text="Container:" />
                                                       <ComboBox fx:id="cbProjectContainer" maxWidth="1.7976931348623157E308" prefWidth="10000.0" />
                                                    </children>
+                                                   <opaqueInsets>
+                                                      <Insets top="50.0" />
+                                                   </opaqueInsets>
                                                 </VBox>
                                                 <VBox>
                                                    <children>
@@ -190,6 +193,9 @@
                                                    </children>
                                                 </VBox>
                                              </children>
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
                                           </HBox>
                                           <VBox prefHeight="200.0" prefWidth="100.0">
                                              <children>
