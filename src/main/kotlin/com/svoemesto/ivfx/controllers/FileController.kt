@@ -40,16 +40,20 @@ class FileController(val projectRepo: ProjectRepo,
         var hasLosslessString: String = ""
         var hasFramesSmall: Boolean = false
         var hasFramesSmallString: String = ""
+        var hasFramesMedium: Boolean = false
+        var hasFramesMediumString: String = ""
+        var hasFramesFull: Boolean = false
+        var hasFramesFullString: String = ""
         val order = file.order
         val name = file.name
     }
 
-    fun getCdfFolder(file: File, folder: Folders, createIfNotExist: Boolean = false): String {
+    fun getCdfFolder(file: File, folder: Folders, createFolderIfNotExist: Boolean = false): String {
         val propertyValue = getPropertyValue(file, folder.propertyCdfKey)
-        val projectCdfFolder = ProjectController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo).getCdfFolder(file.project, folder, createIfNotExist)
+        val projectCdfFolder = ProjectController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo).getCdfFolder(file.project, folder, createFolderIfNotExist)
         val fld = if (propertyValue == "") projectCdfFolder  + IOFile.separator + file.shortName else propertyValue
         try {
-            if (createIfNotExist && !IOFile(fld).exists()) IOFile(fld).mkdir()
+            if (createFolderIfNotExist && !IOFile(fld).exists()) IOFile(fld).mkdir()
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -68,13 +72,13 @@ class FileController(val projectRepo: ProjectRepo,
         return IOFile(getPreview(file)).exists()
     }
 
-    fun getLossless(file: File): String {
-        val folder = getCdfFolder(file, Folders.LOSSLESS)
+    fun getLossless(file: File, createFolderIfNotExist: Boolean = false): String {
+        val folder = getCdfFolder(file, Folders.LOSSLESS, createFolderIfNotExist)
         return if (folder == "") "" else folder + IOFile.separator + file.shortName + "_lossless.mkv"
     }
 
-    fun getPreview(file: File): String {
-        val folder = getCdfFolder(file, Folders.PREVIEW)
+    fun getPreview(file: File, createFolderIfNotExist: Boolean = false): String {
+        val folder = getCdfFolder(file, Folders.PREVIEW, createFolderIfNotExist)
         return if (folder == "") "" else folder + IOFile.separator + file.shortName + "_preview.mp4"
     }
 
@@ -83,12 +87,40 @@ class FileController(val projectRepo: ProjectRepo,
             .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
         val fld = getCdfFolder(file, Folders.FRAMES_SMALL)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
-        val FRAME_FILENAME_REGEXP: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
+        val frameFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
 
         if (!IOFile(fld).exists()) {
             return false
         } else {
-            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(FRAME_FILENAME_REGEXP) }).size
+            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(frameFilenameRegex) }).size
+        }
+    }
+
+    fun hasFramesMedium(file: File): Boolean {
+        val countFrames = getFFmpegProbeResult(file).streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
+            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
+        val fld = getCdfFolder(file, Folders.FRAMES_MEDIUM)
+        val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
+        val frameFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
+
+        if (!IOFile(fld).exists()) {
+            return false
+        } else {
+            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(frameFilenameRegex) }).size
+        }
+    }
+
+    fun hasFramesFull(file: File): Boolean {
+        val countFrames = getFFmpegProbeResult(file).streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
+            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
+        val fld = getCdfFolder(file, Folders.FRAMES_FULL)
+        val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
+        val frameFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
+
+        if (!IOFile(fld).exists()) {
+            return false
+        } else {
+            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(frameFilenameRegex) }).size
         }
     }
 
@@ -103,6 +135,10 @@ class FileController(val projectRepo: ProjectRepo,
             fileExt.hasLosslessString = if (fileExt.hasLossless) "✓" else "✗"
             fileExt.hasFramesSmall = hasFramesSmall(file)
             fileExt.hasFramesSmallString = if (fileExt.hasFramesSmall) "✓" else "✗"
+            fileExt.hasFramesMedium = hasFramesMedium(file)
+            fileExt.hasFramesMediumString = if (fileExt.hasFramesMedium) "✓" else "✗"
+            fileExt.hasFramesFull = hasFramesFull(file)
+            fileExt.hasFramesFullString = if (fileExt.hasFramesFull) "✓" else "✗"
             resultedList.add(fileExt)
         }
         return resultedList

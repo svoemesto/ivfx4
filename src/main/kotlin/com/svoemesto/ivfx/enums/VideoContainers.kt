@@ -25,5 +25,6 @@ enum class LosslessVideoCodecs(val codec: String, val default: Boolean) {
 enum class AudioCodecs(val codec: String, val default: Boolean) {
     AAC("aac", true),
     AC3("ac3", false),
-    MP3("mp3", false)
+    MP3("mp3", false),
+    PMC("pcm_s16le", false)
 }

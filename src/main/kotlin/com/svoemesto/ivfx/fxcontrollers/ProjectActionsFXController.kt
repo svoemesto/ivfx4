@@ -10,11 +10,7 @@ import com.svoemesto.ivfx.controllers.ProjectController
 import com.svoemesto.ivfx.controllers.PropertyCdfController
 import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.controllers.TrackController
-import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
-import com.svoemesto.ivfx.models.Property
-import com.svoemesto.ivfx.models.PropertyCdf
-import com.svoemesto.ivfx.models.Track
 import com.svoemesto.ivfx.repos.FileCdfRepo
 import com.svoemesto.ivfx.repos.FileRepo
 import com.svoemesto.ivfx.repos.FrameRepo
@@ -23,13 +19,24 @@ import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.TrackRepo
+import com.svoemesto.ivfx.threads.CreateFramesFull
+import com.svoemesto.ivfx.threads.CreateFramesMedium
+import com.svoemesto.ivfx.threads.CreateFramesSmall
+import com.svoemesto.ivfx.threads.CreateLossless
+import com.svoemesto.ivfx.threads.CreatePreview
+import com.svoemesto.ivfx.threads.RunListThreads
 import javafx.application.HostServices
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import javafx.event.ActionEvent
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.control.Button
+import javafx.scene.control.CheckBox
+import javafx.scene.control.Label
+import javafx.scene.control.ProgressBar
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
@@ -64,6 +71,40 @@ class ProjectActionsFXController {
 
     @FXML
     private var colFileExtFF: TableColumn<FileExt, String>? = null
+
+    @FXML
+    private var checkReCreateIfExists: CheckBox? = null
+
+    @FXML
+    private var btnDoActions: Button? = null
+
+    @FXML
+    private var checkCreatePreview: CheckBox? = null
+
+    @FXML
+    private var checkCreateLossless: CheckBox? = null
+
+    @FXML
+    private var checkCreateFramesSmall: CheckBox? = null
+
+    @FXML
+    private var checkCreateFramesMedium: CheckBox? = null
+
+    @FXML
+    private var checkCreateFramesFull: CheckBox? = null
+
+    @FXML
+    private var pb1: ProgressBar? = null
+
+    @FXML
+    private var lblPb1: Label? = null
+
+    @FXML
+    private var pb2: ProgressBar? = null
+
+    @FXML
+    private var lblPb2: Label? = null
+
 
     companion object {
 
@@ -130,7 +171,87 @@ class ProjectActionsFXController {
         colFileExtPW?.setCellValueFactory(PropertyValueFactory("hasPreviewString"))
         colFileExtLL?.setCellValueFactory(PropertyValueFactory("hasLosslessString"))
         colFileExtFS?.setCellValueFactory(PropertyValueFactory("hasFramesSmallString"))
+        colFileExtFM?.setCellValueFactory(PropertyValueFactory("hasFramesMediumString"))
+        colFileExtFF?.setCellValueFactory(PropertyValueFactory("hasFramesFullString"))
         tblFilesExt?.items = listFilesExt
 
     }
+
+    @FXML
+    fun doActions(event: ActionEvent?) {
+
+        val countSelectedCheckboxes: Int = (if (checkCreatePreview?.isSelected == true) 1 else 0) +
+                (if (checkCreateLossless?.isSelected == true) 1 else 0) +
+                (if (checkCreateFramesSmall?.isSelected == true) 1 else 0) +
+                (if (checkCreateFramesMedium?.isSelected == true) 1 else 0) +
+                (if (checkCreateFramesFull?.isSelected == true) 1 else 0)
+        val countSelectedFiles: Int = tblFilesExt?.selectionModel?.selectedItems?.size?:0
+        var countActions = 0
+
+        tblFilesExt?.selectionModel?.selectedItems?.forEach { fileExt ->
+            if (checkCreatePreview?.isSelected == true && (!fileExt.hasPreview || (fileExt.hasPreview && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateLossless?.isSelected == true && (!fileExt.hasLossless || (fileExt.hasLossless && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall || (fileExt.hasFramesSmall && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium || (fileExt.hasFramesMedium && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull || (fileExt.hasFramesFull && checkReCreateIfExists?.isSelected!!))) countActions++
+        }
+        var counterPb1 = 0
+
+        var listThreads: MutableList<Thread> = mutableListOf()
+
+        tblFilesExt?.selectionModel?.selectedItems?.forEach { fileExt ->
+
+            if (checkCreatePreview?.isSelected == true && (!fileExt.hasPreview || (fileExt.hasPreview && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreatePreview(fileExt!!, fileController, tblFilesExt!!,
+                    "File: ${fileExt.name}, Action: Create Preview, Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateLossless?.isSelected == true && (!fileExt.hasLossless || (fileExt.hasLossless && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateLossless(fileExt!!, fileController, propertyController, tblFilesExt!!,
+                        "File: ${fileExt.name}, Action: Create Lossless, Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall || (fileExt.hasFramesSmall && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateFramesSmall(fileExt!!, fileController, tblFilesExt!!,
+                        "File: ${fileExt.name}, Action: Create Frames (small size 175x35), Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium || (fileExt.hasFramesMedium && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateFramesMedium(fileExt!!, fileController, tblFilesExt!!,
+                        "File: ${fileExt.name}, Action: Create Frames (medium size 720x400), Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull || (fileExt.hasFramesFull && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateFramesFull(fileExt!!, fileController, tblFilesExt!!,
+                        "File: ${fileExt.name}, Action: Create Frames (full size 1920x1080), Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+
+        }
+
+        RunListThreads(listThreads).start()
+
+    }
+
+
 }
