@@ -88,6 +88,12 @@ class ProjectEditFXController {
     private var menuExit: MenuItem? = null
 
     @FXML
+    private var menuActions: Menu? = null
+
+    @FXML
+    private var menuProjectActions: MenuItem? = null
+
+    @FXML
     private var menuDatabase: Menu? = null
 
     @FXML
@@ -445,11 +451,10 @@ class ProjectEditFXController {
 
         println("Инициализация ProjectEditFXController.")
 
-
-
         menuDatabase?.text = getCurrentDatabase()?.name
         mainStage?.setTitle(if (currentProject?.name == null) "Откройте или создайте проект." else "Проект: ${currentProject?.name}")
         menuDeleteProject?.isDisable = currentProject == null
+        menuActions?.isDisable = currentProject == null
         paneMain?.isVisible = currentProject != null
         paneFile?.isVisible = currentFile != null
 
@@ -1184,6 +1189,13 @@ class ProjectEditFXController {
         saveCurrentProject()
         currentProject = ProjectSelectFXController.getProject(currentProject)
         initialize()
+    }
+
+    @FXML
+    fun doMenuProjectActions(event: ActionEvent?) {
+        if (currentProject != null) {
+            ProjectActionsFXController.actionsProject(currentProject!!, hostServices)
+        }
     }
 
     @FXML

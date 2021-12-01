@@ -31,6 +31,11 @@
                   <MenuItem fx:id="menuExit" mnemonicParsing="false" onAction="#doMenuExit" text="Close" />
             </items>
           </Menu>
+            <Menu fx:id="menuActions" mnemonicParsing="false" text="Actions">
+               <items>
+                  <MenuItem fx:id="menuProjectActions" mnemonicParsing="false" onAction="#doMenuProjectActions" text="Project Actions..." />
+               </items>
+            </Menu>
             <Menu fx:id="menuDatabase" mnemonicParsing="false" text="Database">
                <items>
                   <MenuItem fx:id="menuSelectDatabase" mnemonicParsing="false" onAction="#doSelectDatabase" text="Выбрать базу данных" />
