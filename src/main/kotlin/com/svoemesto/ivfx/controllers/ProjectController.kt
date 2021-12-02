@@ -11,6 +11,7 @@ import com.svoemesto.ivfx.repos.ProjectCdfRepo
 import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
+import com.svoemesto.ivfx.repos.ShotRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.stereotype.Controller
 import java.io.IOException
@@ -25,7 +26,8 @@ class ProjectController(val projectRepo: ProjectRepo,
                         val fileRepo: FileRepo,
                         val fileCdfRepo: FileCdfRepo,
                         val frameRepo: FrameRepo,
-                        val trackRepo: TrackRepo) {
+                        val trackRepo: TrackRepo,
+                        val shotRepo: ShotRepo) {
 
     fun getCdfFolder(project: Project, folder: Folders, createIfNotExist: Boolean = false): String {
         val propertyValue = getPropertyValue(project, folder.propertyCdfKey)

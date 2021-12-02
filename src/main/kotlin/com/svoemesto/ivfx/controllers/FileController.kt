@@ -13,6 +13,7 @@ import com.svoemesto.ivfx.repos.ProjectCdfRepo
 import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
+import com.svoemesto.ivfx.repos.ShotRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
 import com.svoemesto.ivfx.utils.getListIFrames
@@ -37,7 +38,8 @@ class FileController(val projectRepo: ProjectRepo,
                      val fileRepo: FileRepo,
                      val fileCdfRepo: FileCdfRepo,
                      val frameRepo: FrameRepo,
-                     val trackRepo: TrackRepo) {
+                     val trackRepo: TrackRepo,
+                     val shotRepo: ShotRepo) {
 
     class FileExt(val file: File) {
         var hasPreview: Boolean = false
@@ -58,7 +60,7 @@ class FileController(val projectRepo: ProjectRepo,
 
     fun getCdfFolder(file: File, folder: Folders, createFolderIfNotExist: Boolean = false): String {
         val propertyValue = getPropertyValue(file, folder.propertyCdfKey)
-        val projectCdfFolder = ProjectController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo).getCdfFolder(file.project, folder, createFolderIfNotExist)
+        val projectCdfFolder = ProjectController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo, shotRepo).getCdfFolder(file.project, folder, createFolderIfNotExist)
         val fld = if (propertyValue == "") projectCdfFolder  + IOFile.separator + file.shortName else propertyValue
         try {
             if (createFolderIfNotExist && !IOFile(fld).exists()) IOFile(fld).mkdir()
@@ -265,27 +267,27 @@ class FileController(val projectRepo: ProjectRepo,
 
     fun analizeFrames(file: File) {
 
-        val frameController = FrameController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo)
+        val frameController = FrameController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo, shotRepo)
         val mediaFile: String = file.path
         val fps: Double = getFps(file)
         val framesCount: Int = getFramesCount(file)
         Settings.MinSimilarity = 0.0
         var simScore: Double
 
-        // получаем список IFrame-ов
+        // 1. получаем список IFrame-ов
         val listIFrames = getListIFrames(mediaFile, fps)
 
-        // создаем список кадров и заполяем его номером, файлом и признаком isIFrame
+        // 2. создаем список кадров и заполяем его номером, файлом и признаком isIFrame
         val listFrames: MutableList<Frame> = mutableListOf()
         for (frameNumber in 1..framesCount) {
             val percent = (frameNumber.toDouble() / framesCount.toDouble() * 100).toInt()
             val frame: Frame = frameController.getOrCreate(file, frameNumber)
             frame.isIFrame = listIFrames.contains(frameNumber)
-            frameRepo.save(frame)
+//            frameRepo.save(frame)
             listFrames.add(frame)
         }
 
-        // заполняем simScore's
+        // 3. заполняем simScore's
         for (i in 0 until listFrames.size - 1) {
             println("Analize frame #" + i + "/" + (listFrames.size - 1))
             val percent = (i.toDouble() / (listFrames.size - 1).toDouble() * 100).toInt()
@@ -330,7 +332,7 @@ class FileController(val projectRepo: ProjectRepo,
             currentFrame.simScoreNext3 = simScore
         }
 
-        // заполняем diff's
+        // 4. заполняем diff's
         for (i in 0 until listFrames.size - 1) {
             val percent = (i.toDouble() / (listFrames.size - 1).toDouble() * 100).toInt()
             val currentFrame: Frame = listFrames[i]
@@ -365,6 +367,7 @@ class FileController(val projectRepo: ProjectRepo,
             currentFrame.diffPrev2 = diffNext
         }
 
+        // 5. находим переходы
         val diff1 = 0.4 //Порог обнаружения перехода
         val diff2 = 0.42 //Вторичный порог
         for (frame in listFrames) {
@@ -391,9 +394,13 @@ class FileController(val projectRepo: ProjectRepo,
                 frame.isManualCancel = false
                 frame.isFinalFind = false
             }
+
+        }
+
+        // 6. сохраняем фреймы
+        for (frame in listFrames) {
             frameRepo.save(frame)
         }
-        
 //        IVFXShots.createListShotsByFrames(file)
         
     }

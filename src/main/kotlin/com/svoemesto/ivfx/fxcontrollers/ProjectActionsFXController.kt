@@ -18,6 +18,7 @@ import com.svoemesto.ivfx.repos.ProjectCdfRepo
 import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
+import com.svoemesto.ivfx.repos.ShotRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import com.svoemesto.ivfx.threads.CreateFramesFull
 import com.svoemesto.ivfx.threads.CreateFramesMedium
@@ -126,13 +127,14 @@ class ProjectActionsFXController {
         private val fileCdfRepo = context.getBean("fileCdfRepo", FileCdfRepo::class.java)
         private val trackRepo = context.getBean("trackRepo", TrackRepo::class.java)
         private val frameRepo = context.getBean("frameRepo", FrameRepo::class.java)
+        private val shotRepo = context.getBean("shotRepo", ShotRepo::class.java)
 
-        private val projectController = ProjectController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo)
+        private val projectController = ProjectController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
         private val projectCdfController = ProjectCdfController(projectCdfRepo)
-        private val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo)
+        private val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
         private val fileCdfController = FileCdfController(fileCdfRepo)
         private val trackController = TrackController(trackRepo, propertyRepo, propertyCdfRepo)
-        private val frameController = FrameController(frameRepo, propertyRepo, propertyCdfRepo)
+        private val frameController = FrameController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
         private val propertyController = PropertyController(propertyRepo)
         private val propertyCdfController = PropertyCdfController(propertyCdfRepo)
 
@@ -207,7 +209,7 @@ class ProjectActionsFXController {
         }
         var counterPb1 = 0
 
-        var listThreads: MutableList<Thread> = mutableListOf()
+        val listThreads: MutableList<Thread> = mutableListOf()
 
         tblFilesExt?.selectionModel?.selectedItems?.forEach { fileExt ->
 
