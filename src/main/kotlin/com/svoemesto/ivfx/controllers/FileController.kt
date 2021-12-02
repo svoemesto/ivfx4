@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.File
+import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.repos.FileCdfRepo
@@ -14,9 +15,14 @@ import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
+import com.svoemesto.ivfx.utils.getListIFrames
 import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
 import net.bramp.ffmpeg.probe.FFmpegStream
+import org.sikuli.basics.Settings
+import org.sikuli.script.Finder
+import org.sikuli.script.Match
+import org.sikuli.script.Pattern
 import org.springframework.stereotype.Controller
 import java.io.FilenameFilter
 import java.io.IOException
@@ -85,8 +91,7 @@ class FileController(val projectRepo: ProjectRepo,
     }
 
     fun hasFramesSmall(file: File): Boolean {
-        val countFrames = getFFmpegProbeResult(file).streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
-            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
+        val countFrames = getFramesCount(file)
         val fld = getCdfFolder(file, Folders.FRAMES_SMALL)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
         val frameFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
@@ -99,8 +104,7 @@ class FileController(val projectRepo: ProjectRepo,
     }
 
     fun hasFramesMedium(file: File): Boolean {
-        val countFrames = getFFmpegProbeResult(file).streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
-            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
+        val countFrames = getFramesCount(file)
         val fld = getCdfFolder(file, Folders.FRAMES_MEDIUM)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
         val frameFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
@@ -113,8 +117,7 @@ class FileController(val projectRepo: ProjectRepo,
     }
 
     fun hasFramesFull(file: File): Boolean {
-        val countFrames = getFFmpegProbeResult(file).streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
-            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
+        val countFrames = getFramesCount(file)
         val fld = getCdfFolder(file, Folders.FRAMES_FULL)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
         val frameFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
@@ -248,6 +251,151 @@ class FileController(val projectRepo: ProjectRepo,
                 }
             }
         }
+    }
+
+    fun getFps(file: File): Double {
+        return getFFmpegProbeResult(file).streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
+            .firstOrNull()?.r_frame_rate?.toDouble()?:0.0
+    }
+
+    fun getFramesCount(file: File): Int {
+        return getFFmpegProbeResult(file).streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
+            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()?:0
+    }
+
+    fun analizeFrames(file: File) {
+
+        val frameController = FrameController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo)
+        val mediaFile: String = file.path
+        val fps: Double = getFps(file)
+        val framesCount: Int = getFramesCount(file)
+        Settings.MinSimilarity = 0.0
+        var simScore: Double
+
+        // получаем список IFrame-ов
+        val listIFrames = getListIFrames(mediaFile, fps)
+
+        // создаем список кадров и заполяем его номером, файлом и признаком isIFrame
+        val listFrames: MutableList<Frame> = mutableListOf()
+        for (frameNumber in 1..framesCount) {
+            val percent = (frameNumber.toDouble() / framesCount.toDouble() * 100).toInt()
+            val frame: Frame = frameController.getOrCreate(file, frameNumber)
+            frame.isIFrame = listIFrames.contains(frameNumber)
+            frameRepo.save(frame)
+            listFrames.add(frame)
+        }
+
+        // заполняем simScore's
+        for (i in 0 until listFrames.size - 1) {
+            println("Analize frame #" + i + "/" + (listFrames.size - 1))
+            val percent = (i.toDouble() / (listFrames.size - 1).toDouble() * 100).toInt()
+            val currentFrame: Frame = listFrames[i]
+            val frameNext1: Frame? = if (i < listFrames.size - 1) listFrames[i + 1] else null
+            val frameNext2: Frame? = if (i < listFrames.size - 2) listFrames[i + 2] else null
+            val frameNext3: Frame? = if (i < listFrames.size - 3) listFrames[i + 3] else null
+            simScore = 0.9999
+            if (frameNext1 != null) {
+                simScore = 0.0
+                val fileName1: String = frameController.getFileNameFrameSmall(currentFrame)
+                val fileName2: String = frameController.getFileNameFrameSmall(frameNext1)
+                val f = Finder(fileName1)
+                val targetImage = Pattern(fileName2)
+                f.find(targetImage)
+                val match: Match = f.next()
+                simScore = match.getScore()
+                frameNext1.simScorePrev1 = simScore
+            }
+            currentFrame.simScoreNext1 = simScore
+            simScore = 0.9999
+            if (frameNext2 != null) {
+                simScore = 0.0
+                val f = Finder(frameController.getFileNameFrameSmall(currentFrame))
+                val targetImage = Pattern(frameController.getFileNameFrameSmall(frameNext2))
+                f.find(targetImage)
+                val match: Match = f.next()
+                simScore = match.getScore()
+                frameNext2.simScorePrev2 = simScore
+            }
+            currentFrame.simScoreNext2 = simScore
+            simScore = 0.9999
+            if (frameNext3 != null) {
+                simScore = 0.0
+                val f = Finder(frameController.getFileNameFrameSmall(currentFrame))
+                val targetImage = Pattern(frameController.getFileNameFrameSmall(frameNext3))
+                f.find(targetImage)
+                val match: Match = f.next()
+                simScore = match.getScore()
+                frameNext3.simScorePrev3 = simScore
+            }
+            currentFrame.simScoreNext3 = simScore
+        }
+
+        // заполняем diff's
+        for (i in 0 until listFrames.size - 1) {
+            val percent = (i.toDouble() / (listFrames.size - 1).toDouble() * 100).toInt()
+            val currentFrame: Frame = listFrames[i]
+            val framePrev1: Frame? = if (i > 0) listFrames[i - 1] else null
+            val framePrev2: Frame? = if (i > 1) listFrames[i - 2] else null
+            val frameNext1: Frame? = if (i < listFrames.size - 1) listFrames[i + 1] else null
+            val frameNext2: Frame? = if (i < listFrames.size - 2) listFrames[i + 2] else null
+            var diffNext: Double
+            diffNext = 0.0
+            if (frameNext1 != null) {
+                diffNext = currentFrame.simScoreNext1 - frameNext1.simScoreNext1
+                if (diffNext < 0) diffNext = -diffNext
+            }
+            currentFrame.diffNext1 = diffNext
+            diffNext = 0.0
+            if (frameNext1 != null && frameNext2 != null) {
+                diffNext = frameNext1.simScoreNext1 - frameNext2.simScoreNext1
+                if (diffNext < 0) diffNext = -diffNext
+            }
+            currentFrame.diffNext2 = diffNext
+            diffNext = 0.0
+            if (framePrev1 != null) {
+                diffNext = framePrev1.simScoreNext1 - currentFrame.simScoreNext1
+                if (diffNext < 0) diffNext = -diffNext
+            }
+            currentFrame.diffPrev1 = diffNext
+            diffNext = 0.0
+            if (framePrev1 != null && framePrev2 != null) {
+                diffNext = framePrev2.simScoreNext1 - framePrev1.simScoreNext1
+                if (diffNext < 0) diffNext = -diffNext
+            }
+            currentFrame.diffPrev2 = diffNext
+        }
+
+        val diff1 = 0.4 //Порог обнаружения перехода
+        val diff2 = 0.42 //Вторичный порог
+        for (frame in listFrames) {
+            if (frame.simScorePrev1 < diff1) {
+                if (frame.diffPrev1 > diff2 || frame.diffPrev2 > diff2) {
+                    frame.isFind = true
+                    frame.isManualAdd = false
+                    frame.isManualCancel = false
+                    frame.isFinalFind = false
+                } else {
+                    frame.isFind = false
+                    frame.isManualAdd = false
+                    frame.isManualCancel = false
+                    frame.isFinalFind = false
+                }
+            } else if (frame.diffPrev1 > diff2 && frame.diffPrev2 > diff2 && frame.simScoreNext1 > diff1) {
+                frame.isFind = true
+                frame.isManualAdd = false
+                frame.isManualCancel = false
+                frame.isFinalFind = false
+            } else {
+                frame.isFind = false
+                frame.isManualAdd = false
+                frame.isManualCancel = false
+                frame.isFinalFind = false
+            }
+            frameRepo.save(frame)
+        }
+        
+//        IVFXShots.createListShotsByFrames(file)
+        
     }
 
 

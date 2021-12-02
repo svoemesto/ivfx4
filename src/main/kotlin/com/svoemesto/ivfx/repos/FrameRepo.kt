@@ -21,4 +21,7 @@ interface FrameRepo : CrudRepository<Frame, Long> {
     @Query(value = "DELETE FROM tbl_frames WHERE id = ?", nativeQuery = true)
     fun delete(frameId:Long)
 
+    fun findByFileIdAndFrameNumberGreaterThanOrderByFrameNumber(fileId: Long, frameNumber: Int): Iterable<Frame>
+    fun findByFileIdAndFrameNumber(fileId: Long, frameNumber: Int): Iterable<Frame>
+
 }

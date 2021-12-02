@@ -78,7 +78,6 @@ class CreatePreview(var fileExt: FileExt,
         var executor = FFmpegExecutor(ffmpeg, ffprobe)
 
         val job = executor.createJob(builder, object : ProgressListener {
-            // Using the FFmpegProbeResult determine the duration of the input
             val duration_ns: Double = fFmpegProbeResult.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
 
             override fun progress(progress: Progress) {
