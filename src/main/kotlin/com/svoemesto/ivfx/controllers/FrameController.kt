@@ -3,7 +3,6 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Frame
-import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.repos.FileCdfRepo
 import com.svoemesto.ivfx.repos.FileRepo
@@ -12,6 +11,7 @@ import com.svoemesto.ivfx.repos.ProjectCdfRepo
 import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
+import com.svoemesto.ivfx.repos.ShotRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.stereotype.Controller
 import java.io.File as IOFile
@@ -25,7 +25,8 @@ class FrameController(val projectRepo: ProjectRepo,
                       val fileRepo: FileRepo,
                       val fileCdfRepo: FileCdfRepo,
                       val frameRepo: FrameRepo,
-                      val trackRepo: TrackRepo) {
+                      val trackRepo: TrackRepo,
+                      val shotRepo: ShotRepo) {
 
     fun getProperties(frame: Frame) : List<Property> {
         return propertyRepo.findByParentClassAndParentId(frame::class.simpleName!!, frame.id).toList()
@@ -64,19 +65,19 @@ class FrameController(val projectRepo: ProjectRepo,
     }
 
     fun getFileNameFrameSmall(frame: Frame): String {
-        val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo)
+        val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
         val fld = fileController.getCdfFolder(frame.file, Folders.FRAMES_SMALL)
         return "$fld${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     }
 
     fun getFileNameFrameMedium(frame: Frame): String {
-        val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo)
+        val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
         val fld = fileController.getCdfFolder(frame.file, Folders.FRAMES_MEDIUM)
         return "$fld${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     }
 
     fun getFileNameFrameFull(frame: Frame): String {
-        val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo)
+        val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
         val fld = fileController.getCdfFolder(frame.file, Folders.FRAMES_FULL)
         return "$fld${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     }
