@@ -25,7 +25,6 @@ import org.sikuli.script.Finder
 import org.sikuli.script.Match
 import org.sikuli.script.Pattern
 import org.springframework.stereotype.Controller
-import java.io.FilenameFilter
 import java.io.IOException
 import java.io.File as IOFile
 
@@ -52,6 +51,8 @@ class FileController(val projectRepo: ProjectRepo,
         var hasFramesMediumString: String = ""
         var hasFramesFull: Boolean = false
         var hasFramesFullString: String = ""
+        var hasAnalyzedFrames: Boolean = false
+        var hasAnalyzedFramesString: String = ""
         var hasFaces: Boolean = false
         var hasFacesString: String = ""
         val order = file.order
@@ -96,12 +97,12 @@ class FileController(val projectRepo: ProjectRepo,
         val countFrames = getFramesCount(file)
         val fld = getCdfFolder(file, Folders.FRAMES_SMALL)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
-        val frameFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
+        val frameFilenameRegex = Regex("^\\b${fileNameRegexp}_frame_\\b\\d{6}\\.\\bjpg\\b\$")
 
-        if (!IOFile(fld).exists()) {
-            return false
+        return if (!IOFile(fld).exists()) {
+            false
         } else {
-            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(frameFilenameRegex) }).size
+            countFrames == (IOFile(fld).listFiles { _, name -> name.contains(frameFilenameRegex) }?.size ?: 0)
         }
     }
 
@@ -109,12 +110,12 @@ class FileController(val projectRepo: ProjectRepo,
         val countFrames = getFramesCount(file)
         val fld = getCdfFolder(file, Folders.FRAMES_MEDIUM)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
-        val frameFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
+        val frameFilenameRegex = Regex("^\\b${fileNameRegexp}_frame_\\b\\d{6}\\.\\bjpg\\b\$")
 
-        if (!IOFile(fld).exists()) {
-            return false
+        return if (!IOFile(fld).exists()) {
+            false
         } else {
-            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(frameFilenameRegex) }).size
+            countFrames == (IOFile(fld).listFiles { _, name -> name.contains(frameFilenameRegex) }?.size ?: 0)
         }
     }
 
@@ -122,13 +123,27 @@ class FileController(val projectRepo: ProjectRepo,
         val countFrames = getFramesCount(file)
         val fld = getCdfFolder(file, Folders.FRAMES_FULL)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
-        val frameFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}\\.\\bjpg\\b\$")
+        val frameFilenameRegex = Regex("^\\b${fileNameRegexp}_frame_\\b\\d{6}\\.\\bjpg\\b\$")
 
-        if (!IOFile(fld).exists()) {
-            return false
+        return if (!IOFile(fld).exists()) {
+            false
         } else {
-            return countFrames == IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(frameFilenameRegex) }).size
+            countFrames == (IOFile(fld).listFiles { _, name -> name.contains(frameFilenameRegex) }?.size ?: 0)
         }
+    }
+
+    fun hasAnalyzedFrames(file: File): Boolean {
+        return ShotController(
+            projectRepo,
+            propertyRepo,
+            propertyCdfRepo,
+            projectCdfRepo,
+            fileRepo,
+            fileCdfRepo,
+            frameRepo,
+            trackRepo,
+            shotRepo
+        ).getListShots(file).isNotEmpty()
     }
 
     fun hasFaces(file: File): Boolean {
@@ -136,8 +151,8 @@ class FileController(val projectRepo: ProjectRepo,
             val fld = IOFile(getCdfFolder(file, Folders.FRAMES_FULL)).parent
             if (IOFile(fld).exists()) {
                 val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
-                val faceFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}_face_\\d{2}\\.\\bjpg\\b\$")
-                return IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(faceFilenameRegex) }).size > 0
+                val faceFilenameRegex = Regex("^\\b${fileNameRegexp}_frame_\\b\\d{6}_face_\\d{2}\\.\\bjpg\\b\$")
+                return (IOFile(fld).listFiles { _, name -> name.contains(faceFilenameRegex) }?.size ?: 0) > 0
             }
         }
         return false
@@ -145,9 +160,9 @@ class FileController(val projectRepo: ProjectRepo,
 
     fun getListFilesExt(project: Project): List<FileExt> {
         val list = fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toList()
-        var resultedList: MutableList<FileExt> = mutableListOf()
+        val resultedList: MutableList<FileExt> = mutableListOf()
         list.forEach { file ->
-            var fileExt = FileExt(file)
+            val fileExt = FileExt(file)
             fileExt.hasPreview = hasPreview(file)
             fileExt.hasPreviewString = if (fileExt.hasPreview) "✓" else "✗"
             fileExt.hasLossless = hasLossless(file)
@@ -158,6 +173,8 @@ class FileController(val projectRepo: ProjectRepo,
             fileExt.hasFramesMediumString = if (fileExt.hasFramesMedium) "✓" else "✗"
             fileExt.hasFramesFull = hasFramesFull(file)
             fileExt.hasFramesFullString = if (fileExt.hasFramesFull) "✓" else "✗"
+            fileExt.hasAnalyzedFrames = hasAnalyzedFrames(file)
+            fileExt.hasAnalyzedFramesString = if (fileExt.hasAnalyzedFrames) "✓" else "✗"
             fileExt.hasFaces = hasFaces(file)
             fileExt.hasFacesString = if (fileExt.hasFaces) "✓" else "✗"
             resultedList.add(fileExt)
@@ -297,7 +314,6 @@ class FileController(val projectRepo: ProjectRepo,
             val frameNext3: Frame? = if (i < listFrames.size - 3) listFrames[i + 3] else null
             simScore = 0.9999
             if (frameNext1 != null) {
-                simScore = 0.0
                 val fileName1: String = frameController.getFileNameFrameSmall(currentFrame)
                 val fileName2: String = frameController.getFileNameFrameSmall(frameNext1)
                 val f = Finder(fileName1)
@@ -310,7 +326,6 @@ class FileController(val projectRepo: ProjectRepo,
             currentFrame.simScoreNext1 = simScore
             simScore = 0.9999
             if (frameNext2 != null) {
-                simScore = 0.0
                 val f = Finder(frameController.getFileNameFrameSmall(currentFrame))
                 val targetImage = Pattern(frameController.getFileNameFrameSmall(frameNext2))
                 f.find(targetImage)
@@ -321,7 +336,6 @@ class FileController(val projectRepo: ProjectRepo,
             currentFrame.simScoreNext2 = simScore
             simScore = 0.9999
             if (frameNext3 != null) {
-                simScore = 0.0
                 val f = Finder(frameController.getFileNameFrameSmall(currentFrame))
                 val targetImage = Pattern(frameController.getFileNameFrameSmall(frameNext3))
                 f.find(targetImage)

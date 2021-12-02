@@ -37,7 +37,7 @@ class CreateFramesSmall(var fileExt: FileExt,
 
         val fileInput = fileExt.file.path
         val fileOutput = fileController.getCdfFolder(fileExt.file, Folders.FRAMES_SMALL,  true) + IOFile.separator +
-                fileExt.file.shortName + ".%06d.jpg"
+                fileExt.file.shortName + "_frame_%06d.jpg"
 
         var ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
         var ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
