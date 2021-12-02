@@ -34,29 +34,6 @@ class TrackController(val trackRepo: TrackRepo, val propertyRepo: PropertyRepo, 
         return propertyRepo.findByParentClassAndParentIdAndKey(track::class.simpleName!!, track.id, key).any()
     }
 
-//    fun createTracksFromMediaInfo(file: File) {
-//        val json = MediaInfo.executeMediaInfo(file.path, "--Output=JSON")
-//        val om = ObjectMapper()
-//        val mi = om.readValue(json, MediaInfoFromJson::class.java)
-//
-//        try {
-//            file.tracks.forEach{
-//                propertyRepo.deleteAll(it::class.java.simpleName, it.id)
-//                trackRepo.deleteAll(it.id)
-//            }
-//        } catch (e: LazyInitializationException) {
-//        }
-//
-//        mi.media?.track?.forEach { miTrack ->
-//                var track = create(file)
-//                track.type = miTrack.type.toString()
-//                track.name = miTrack.type.toString()
-//                track.use = true
-//                trackRepo.save(track)
-//        }
-//
-//    }
-
     fun createTracksFromMediaInfo(file: File) {
         val json = MediaInfo.executeMediaInfo(file.path, "--Output=JSON")
         val listJsonTracks =  getFromMediaInfoTracks(json)
@@ -71,7 +48,7 @@ class TrackController(val trackRepo: TrackRepo, val propertyRepo: PropertyRepo, 
             listJsonTracks.forEach { jsonTrack ->
                 val trackType = jsonTrack["@type"].toString()
                 val trackName = trackType
-                var track = create(file)
+                val track = create(file)
                 track.type = trackType
                 track.name = trackName
                 track.use = true
@@ -80,11 +57,11 @@ class TrackController(val trackRepo: TrackRepo, val propertyRepo: PropertyRepo, 
                 jsonTrack.entries.forEach { entry ->
                     println("entry1.value = " + entry.value)
                     if (entry.value is LinkedTreeMap<*, *>) {
-                        val jsonTrack2 =  entry.value as Map<String, Object>
+                        val jsonTrack2 =  entry.value as Map<*, *>
                         jsonTrack2.entries.forEach { entry2 ->
                             println("entry2.value = " + entry2.value)
                             PropertyController(propertyRepo).editOrCreate(track::class.java.simpleName,
-                                track.id, entry2.key, entry2.value.toString())
+                                track.id, entry2.key as String, entry2.value.toString())
                         }
                     } else {
                         PropertyController(propertyRepo).editOrCreate(track::class.java.simpleName,

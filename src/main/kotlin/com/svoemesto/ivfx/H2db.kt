@@ -3,6 +3,7 @@ package com.svoemesto.ivfx
 import com.svoemesto.ivfx.fxcontrollers.DatabaseSelectFXController
 import com.svoemesto.ivfx.utils.ComputerIdentifier
 import org.h2.jdbc.JdbcSQLSyntaxErrorException
+import org.springframework.boot.autoconfigure.SpringBootApplication
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet

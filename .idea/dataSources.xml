@@ -5,7 +5,7 @@
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:3306/ivfx_test?useSSL=true</jdbc-url>
+      <jdbc-url>jdbc:mysql://localhost:3306/?useSSL=true</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
     <data-source source="LOCAL" name="POSTGRES ivfx@localhost" uuid="5751df58-25aa-4600-9ab9-7617aaa95871">

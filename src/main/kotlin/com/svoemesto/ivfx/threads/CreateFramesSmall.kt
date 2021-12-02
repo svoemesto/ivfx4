@@ -39,18 +39,17 @@ class CreateFramesSmall(var fileExt: FileExt,
         val fileOutput = fileController.getCdfFolder(fileExt.file, Folders.FRAMES_SMALL,  true) + IOFile.separator +
                 fileExt.file.shortName + "_frame_%06d.jpg"
 
-        var ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
-        var ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
+        val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
+        val ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
 
         val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(fileInput)
 
-        val countFrames = fFmpegProbeResult.streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
-            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
+        val countFrames = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
 
         val w = 135
         val h = 75
 
-        var builder = FFmpegBuilder()
+        val builder = FFmpegBuilder()
             .setInput(fileInput)
             .overrideOutputFiles(true)
             .addOutput(fileOutput)
@@ -59,7 +58,7 @@ class CreateFramesSmall(var fileExt: FileExt,
             .setVideoResolution(w,h)
             .done()
 
-        var executor = FFmpegExecutor(ffmpeg, ffprobe)
+        val executor = FFmpegExecutor(ffmpeg, ffprobe)
 
         val job = executor.createJob(builder, object : ProgressListener {
             val duration_ns: Double = fFmpegProbeResult.getFormat().duration * TimeUnit.SECONDS.toNanos(1)

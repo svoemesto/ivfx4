@@ -3,7 +3,6 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.Project
-import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.repos.FileCdfRepo
 import com.svoemesto.ivfx.repos.FileRepo
 import com.svoemesto.ivfx.repos.FrameRepo
@@ -46,9 +45,9 @@ class ProjectController(val projectRepo: ProjectRepo,
         return projectRepo.findByOrderGreaterThanOrderByOrder(0).toList()
     }
 
-    fun getProperties(project: Project) : List<Property> {
-        return propertyRepo.findByParentClassAndParentId(project::class.simpleName!!, project.id).toList()
-    }
+//    fun getProperties(project: Project) : List<Property> {
+//        return propertyRepo.findByParentClassAndParentId(project::class.simpleName!!, project.id).toList()
+//    }
 
     fun getPropertyValue(project: Project, key: String) : String {
         val property = propertyRepo.findByParentClassAndParentIdAndKey(project::class.simpleName!!, project.id, key).firstOrNull()
@@ -75,7 +74,7 @@ class ProjectController(val projectRepo: ProjectRepo,
         propertyRepo.deleteAll(project::class.java.simpleName, project.id)
         propertyCdfRepo.deleteAll(project::class.java.simpleName, project.id)
 
-        project.projectFiles.forEach { file ->
+        project.files.forEach { file ->
             propertyRepo.deleteAll(file::class.java.simpleName, file.id)
             propertyCdfRepo.deleteAll(file::class.java.simpleName, file.id)
             fileCdfRepo.deleteAll(file.id)

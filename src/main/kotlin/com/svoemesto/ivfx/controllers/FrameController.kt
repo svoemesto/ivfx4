@@ -49,7 +49,7 @@ class FrameController(val projectRepo: ProjectRepo,
 
     fun getPropertyValue(frame: Frame, key: String) : String {
         val property = propertyRepo.findByParentClassAndParentIdAndKey(frame::class.simpleName!!, frame.id, key).firstOrNull()
-        return if (property != null) property.value else ""
+        return property?.value ?: ""
     }
 
     fun isPropertyPresent(frame: Frame, key: String) : Boolean {

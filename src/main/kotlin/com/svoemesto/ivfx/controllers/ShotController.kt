@@ -1,6 +1,5 @@
 package com.svoemesto.ivfx.controllers
 
-import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Property
@@ -15,7 +14,6 @@ import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.ShotRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.stereotype.Controller
-import java.io.File as IOFile
 
 @Controller
 //@Scope("prototype")
@@ -33,9 +31,8 @@ class ShotController(val projectRepo: ProjectRepo,
         return propertyRepo.findByParentClassAndParentId(frame::class.simpleName!!, frame.id).toList()
     }
 
-
     fun getListShots(file: File): List<Shot> {
-        return shotRepo.findByFileIdOrderByFirstFrameNumber(file.id,0).toList()
+        return shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(file.id,0).toList()
     }
 
     fun getPropertyValue(shot: Shot, key: String) : String {

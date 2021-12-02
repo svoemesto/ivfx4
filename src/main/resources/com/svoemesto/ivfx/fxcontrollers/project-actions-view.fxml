@@ -43,7 +43,7 @@
                         <CheckBox fx:id="checkCreateFramesSmall" mnemonicParsing="false" text="Create frames small" />
                         <CheckBox fx:id="checkCreateFramesMedium" mnemonicParsing="false" text="Create frames medium" />
                         <CheckBox fx:id="checkCreateFramesFull" mnemonicParsing="false" text="Create frames full" />
-                        <CheckBox fx:id="checkAnalyzeFrames" mnemonicParsing="false" text="Analyze Frames" />
+                        <CheckBox fx:id="checkAnalyzeFrames" mnemonicParsing="false" text="Analyze frames and create shots" />
                         <CheckBox fx:id="checkDetectFaces" mnemonicParsing="false" text="Detect faces" />
                      </children>
                   </VBox>

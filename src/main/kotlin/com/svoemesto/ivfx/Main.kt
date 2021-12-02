@@ -17,7 +17,9 @@ import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Scope
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean
 
 @SpringBootApplication
 //@Scope("singleton")
@@ -43,4 +45,5 @@ class Main {
 //        val propertyController = PropertyController(propertyRepo)
 
     }
+
 }

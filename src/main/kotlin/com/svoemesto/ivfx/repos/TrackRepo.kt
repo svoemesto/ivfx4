@@ -1,6 +1,5 @@
 package com.svoemesto.ivfx.repos
 
-import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Track
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query

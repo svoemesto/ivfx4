@@ -36,24 +36,20 @@ class CreatePreview(var fileExt: FileExt,
         val fileInput = fileExt.file.path
         val fileOutput = fileController.getPreview(fileExt.file, true)
 
-        var ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
-        var ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
+        val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
+        val ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
 
         val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(fileInput)
-
-        val countFrames = fFmpegProbeResult.streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
-            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
 
         val w = 720
         val h = 400
 
-        val fileWidth: Int = fFmpegProbeResult.streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }.firstOrNull()?.width!!
-        val fileHeight: Int = fFmpegProbeResult.streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }.firstOrNull()?.height!!
+        val fileWidth: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.width!!
+        val fileHeight: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.height!!
         val fileAspect = fileWidth.toDouble() / fileHeight.toDouble()
         val frameAspect = w.toDouble() / h.toDouble()
-        var filter = ""
 
-        filter = if (fileAspect > frameAspect) {
+        val filter: String = if (fileAspect > frameAspect) {
             val frameHeight = (w.toDouble() / fileAspect).toInt()
             "\"scale=" + w + ":" + frameHeight + ",pad=" + w + ":" + h + ":0:" + ((h - frameHeight) / 2.0).toInt() + ":black\""
         } else {
@@ -61,7 +57,7 @@ class CreatePreview(var fileExt: FileExt,
             "\"scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black\""
         }
 
-        var builder = FFmpegBuilder()
+        val builder = FFmpegBuilder()
             .setInput(fileInput)
             .overrideOutputFiles(true)
             .addOutput(fileOutput)
@@ -75,7 +71,7 @@ class CreatePreview(var fileExt: FileExt,
             .setVideoFilter(filter)
             .done()
 
-        var executor = FFmpegExecutor(ffmpeg, ffprobe)
+        val executor = FFmpegExecutor(ffmpeg, ffprobe)
 
         val job = executor.createJob(builder, object : ProgressListener {
             val duration_ns: Double = fFmpegProbeResult.getFormat().duration * TimeUnit.SECONDS.toNanos(1)

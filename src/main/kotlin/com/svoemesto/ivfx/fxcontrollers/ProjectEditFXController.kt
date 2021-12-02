@@ -918,10 +918,9 @@ class ProjectEditFXController {
     fun saveCurrentFileProperty() {
 
         if (currentFileProperty != null) {
-            var needToSave: Boolean = false
-            var tmp = ""
+            var needToSave = false
 
-            tmp = fldFilePropertyKey?.text ?: ""
+            var tmp: String = fldFilePropertyKey?.text ?: ""
             if (tmp != currentFileProperty?.key) {
                 currentFileProperty?.key = tmp
                 needToSave = true
@@ -944,10 +943,9 @@ class ProjectEditFXController {
     fun saveCurrentFilePropertyCdf() {
 
         if (currentFilePropertyCdf != null) {
-            var needToSave: Boolean = false
-            var tmp = ""
+            var needToSave = false
 
-            tmp = fldFilePropertyCdfKey?.text ?: ""
+            var tmp: String = fldFilePropertyCdfKey?.text ?: ""
             if (tmp != currentFilePropertyCdf?.key) {
                 currentFilePropertyCdf?.key = tmp
                 needToSave = true
@@ -970,10 +968,9 @@ class ProjectEditFXController {
     fun saveCurrentProjectProperty() {
 
         if (currentProjectProperty != null) {
-            var needToSave: Boolean = false
-            var tmp = ""
+            var needToSave = false
 
-            tmp = fldProjectPropertyKey?.text ?: ""
+            var tmp: String = fldProjectPropertyKey?.text ?: ""
             if (tmp != currentProjectProperty?.key) {
                 currentProjectProperty?.key = tmp
                 needToSave = true
@@ -996,10 +993,9 @@ class ProjectEditFXController {
     fun saveCurrentProjectPropertyCdf() {
 
         if (currentProjectPropertyCdf != null) {
-            var needToSave: Boolean = false
-            var tmp = ""
+            var needToSave = false
 
-            tmp = fldProjectPropertyCdfKey?.text ?: ""
+            var tmp: String = fldProjectPropertyCdfKey?.text ?: ""
             if (tmp != currentProjectPropertyCdf?.key) {
                 currentProjectPropertyCdf?.key = tmp
                 needToSave = true
@@ -1021,10 +1017,9 @@ class ProjectEditFXController {
     
     fun saveCurrentFile() {
         if (currentFile != null) {
-            var needToSave: Boolean = false
-            var tmp = ""
+            var needToSave = false
 
-            tmp = fldFileName?.text ?: ""
+            var tmp: String = fldFileName?.text ?: ""
             if (tmp != currentFile?.name) {
                 currentFile?.name = tmp
                 needToSave = true
@@ -1052,10 +1047,9 @@ class ProjectEditFXController {
 
     fun saveCurrentProject() {
         if (currentProject != null) {
-            var needToSave: Boolean = false
-            var tmp = ""
+            var needToSave = false
 
-            tmp = fldProjectName?.text ?: ""
+            var tmp: String = fldProjectName?.text ?: ""
             if (tmp != currentProject?.name) {
                 currentProject?.name = tmp
                 needToSave = true
@@ -1248,11 +1242,11 @@ class ProjectEditFXController {
         if (IOFile(initialDirectory).exists()) fileChooser.initialDirectory = IOFile(initialDirectory)
         val ioFile = fileChooser.showOpenDialog(Stage())
         if (ioFile != null) {
-            var findedFile = fileController.getListFiles(currentProject!!).filter { it.path == ioFile.absolutePath }.firstOrNull()
-            if (findedFile != null) {
-                tblFiles?.selectionModel?.select(findedFile)
+            val foundFile = fileController.getListFiles(currentProject!!).firstOrNull { it.path == ioFile.absolutePath }
+            if (foundFile != null) {
+                tblFiles?.selectionModel?.select(foundFile)
             } else {
-                var file = fileController.create(currentProject!!)
+                val file = fileController.create(currentProject!!)
                 file.path = ioFile.absolutePath
                 file.name = ioFile.nameWithoutExtension
                 fileRepo.save(file)
@@ -1276,9 +1270,9 @@ class ProjectEditFXController {
         if (IOFile(initialDirectory).exists()) directoryChooser.initialDirectory = IOFile(initialDirectory)
         val directorySelected = directoryChooser.showDialog(Stage())
         if (directorySelected != null) {
-            directorySelected.listFiles().forEach { ioFile ->
+            directorySelected.listFiles()?.forEach { ioFile ->
                 if (fileController.getListFiles(currentProject!!).filter { it.path == ioFile.absolutePath }.count() == 0) {
-                    var file = fileController.create(currentProject!!)
+                    val file = fileController.create(currentProject!!)
                     file.path = ioFile.absolutePath
                     file.name = ioFile.nameWithoutExtension
                     fileRepo.save(file)
@@ -1348,9 +1342,9 @@ class ProjectEditFXController {
     @FXML
     fun doFilePropertyAdd(event: ActionEvent?) {
         if (currentFile!=null) {
-            var menu: ContextMenu = ContextMenu()
+            val menu = ContextMenu()
 
-            var menuItem: MenuItem = MenuItem()
+            var menuItem = MenuItem()
 
             menuItem.text = "Добавить новое свойство файла"
             menuItem.onAction = EventHandler { e: ActionEvent? ->
@@ -1372,7 +1366,7 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            var listKeys = propertyRepo.getKeys(currentFile!!::class.java.simpleName)
+            val listKeys = propertyRepo.getKeys(currentFile!!::class.java.simpleName)
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -1401,7 +1395,7 @@ class ProjectEditFXController {
                     saveCurrentFileProperty()
                     listKeys.forEach { key ->
                         if (listFileProperties.filter { it.key == key }.isEmpty()) {
-                            val id = propertyController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key).id
+                            propertyController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key)
                         }
                     }
                     listFileProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
@@ -1420,9 +1414,9 @@ class ProjectEditFXController {
     @FXML
     fun doFilePropertyCdfAdd(event: ActionEvent?) {
         if (currentFile!=null) {
-            var menu: ContextMenu = ContextMenu()
+            val menu = ContextMenu()
 
-            var menuItem: MenuItem = MenuItem()
+            var menuItem = MenuItem()
 
             menuItem.text = "Добавить новое свойство файла"
             menuItem.onAction = EventHandler { e: ActionEvent? ->
@@ -1444,7 +1438,7 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            var listKeys = propertyCdfRepo.getKeys(currentFile!!::class.java.simpleName, Main.ccid)
+            val listKeys = propertyCdfRepo.getKeys(currentFile!!::class.java.simpleName, Main.ccid)
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -1473,7 +1467,7 @@ class ProjectEditFXController {
                     saveCurrentFilePropertyCdf()
                     listKeys.forEach { key ->
                         if (listFilePropertiesCdf.filter { it.key == key }.isEmpty()) {
-                            val id = propertyCdfController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key).id
+                            propertyCdfController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key)
                         }
                     }
                     listFilePropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
@@ -1492,9 +1486,9 @@ class ProjectEditFXController {
     @FXML
     fun doProjectPropertyAdd(event: ActionEvent?) {
         if (currentProject!=null) {
-            var menu: ContextMenu = ContextMenu()
+            val menu = ContextMenu()
 
-            var menuItem: MenuItem = MenuItem()
+            var menuItem = MenuItem()
 
             menuItem.text = "Добавить новое свойство проекта"
             menuItem.onAction = EventHandler { e: ActionEvent? ->
@@ -1516,7 +1510,7 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            var listKeys = propertyRepo.getKeys(currentProject!!::class.java.simpleName)
+            val listKeys = propertyRepo.getKeys(currentProject!!::class.java.simpleName)
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -1545,7 +1539,7 @@ class ProjectEditFXController {
                     saveCurrentProjectProperty()
                     listKeys.forEach { key ->
                         if (listProjectProperties.filter { it.key == key }.isEmpty()) {
-                            val id = propertyController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key).id
+                            propertyController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key)
                         }
                     }
                     listProjectProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
@@ -1564,9 +1558,9 @@ class ProjectEditFXController {
     @FXML
     fun doProjectPropertyCdfAdd(event: ActionEvent?) {
         if (currentProject!=null) {
-            var menu: ContextMenu = ContextMenu()
+            val menu = ContextMenu()
 
-            var menuItem: MenuItem = MenuItem()
+            var menuItem = MenuItem()
 
             menuItem.text = "Добавить новое свойство проекта"
             menuItem.onAction = EventHandler { e: ActionEvent? ->
@@ -1588,7 +1582,7 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            var listKeys = propertyCdfRepo.getKeys(currentProject!!::class.java.simpleName, Main.ccid)
+            val listKeys = propertyCdfRepo.getKeys(currentProject!!::class.java.simpleName, Main.ccid)
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -1617,7 +1611,7 @@ class ProjectEditFXController {
                     saveCurrentProjectPropertyCdf()
                     listKeys.forEach { key ->
                         if (listProjectPropertiesCdf.filter { it.key == key }.isEmpty()) {
-                            val id = propertyCdfController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key).id
+                            propertyCdfController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key)
                         }
                     }
                     listProjectPropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))

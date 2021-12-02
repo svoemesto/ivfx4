@@ -1,8 +1,6 @@
 package com.svoemesto.ivfx
 
-import com.svoemesto.ivfx.repos.FileRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
-import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 //@SpringBootApplication

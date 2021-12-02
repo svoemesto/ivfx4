@@ -21,7 +21,7 @@ interface ShotRepo : CrudRepository<Shot, Long> {
     @Query(value = "DELETE FROM tbl_shots WHERE id = ?", nativeQuery = true)
     fun delete(frameId:Long)
 
-    fun findByFileIdOrderByFirstFrameNumber(fileId: Long, firstFrameNumber: Int): Iterable<Shot>
+    fun findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(fileId: Long, firstFrameNumber: Int): Iterable<Shot>
 
     fun findByFileIdAndFirstFrameNumberAndLastFrameNumber(
         fileId: Long,
