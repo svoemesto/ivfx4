@@ -11,11 +11,11 @@ import javax.sql.DataSource
 @Configuration
 @ComponentScan("com.svoemesto.ivfx")
 @PropertySource("/application.properties")
-class SpringConfig() {
+class SpringConfig {
 
-    @Bean
+
     fun dataSource(): DataSource {
-        var dataSource: DriverManagerDataSource = DriverManagerDataSource()
+        val dataSource = DriverManagerDataSource()
         val currDb = getCurrentDatabase()
         if (currDb != null) {
             currDb.driver?.let { dataSource.setDriverClassName(it) }

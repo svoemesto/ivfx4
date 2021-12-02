@@ -4,7 +4,6 @@ import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.FileCdf
 import com.svoemesto.ivfx.repos.FileCdfRepo
-import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Controller
 
 @Controller

@@ -1,16 +1,14 @@
 package com.svoemesto.ivfx.utils
 
-import net.bramp.ffmpeg.FFmpeg
-import java.io.IOException
 import java.util.regex.Pattern
 import kotlin.math.roundToInt
 
 
 class IvfxFFmpegUtils {
     companion object {
-        val FFMPEG_PATH = IvfxFFmpegUtils::class.java.getResource("ffmpeg-shared/bin/ffmpeg.exe").path
-        val FFPROBE_PATH = IvfxFFmpegUtils::class.java.getResource("ffmpeg-shared/bin/ffprobe.exe").path
-        val FFPLAY_PATH = IvfxFFmpegUtils::class.java.getResource("ffmpeg-shared/bin/ffplay.exe").path
+        val FFMPEG_PATH = IvfxFFmpegUtils::class.java.getResource("ffmpeg-shared/bin/ffmpeg.exe")?.path?:""
+        val FFPROBE_PATH = IvfxFFmpegUtils::class.java.getResource("ffmpeg-shared/bin/ffprobe.exe")?.path?:""
+        val FFPLAY_PATH = IvfxFFmpegUtils::class.java.getResource("ffmpeg-shared/bin/ffplay.exe")?.path?:""
     }
 }
 
@@ -41,7 +39,7 @@ fun getListIFrames(mediaFile: String, fps: Double): List<Int> {
                     try {
                         val findedResult = line[1].toInt()
                         list.add(getFrameNumberByDuration(findedResult, fps))
-                    } catch (ex: NumberFormatException) {
+                    } catch (_: NumberFormatException) {
                     }
                 }
             }

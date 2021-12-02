@@ -22,26 +22,26 @@ class Shot {
     @NotNull(message = "ID плана не может быть NULL")
     @Id
     @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "file_id")
     lateinit var file: File
 
-    @Column(name = "shot_type_size")
+    @Column(name = "shot_type_size", columnDefinition = "varchar(255) default 'NONE'")
     var typeSize: ShotTypeSize = ShotTypeSize.NONE
 
-    @Column(name = "shot_type_person")
+    @Column(name = "shot_type_person", columnDefinition = "varchar(255) default 'NONE'")
     var typePerson: ShotTypePerson = ShotTypePerson.NONE
 
-    @Column(name = "first_frame_number", nullable = false)
+    @Column(name = "first_frame_number", nullable = false, columnDefinition = "int default 0")
     var firstFrameNumber: Int = 0
 
-    @Column(name = "last_frame_number", nullable = false)
+    @Column(name = "last_frame_number", nullable = false, columnDefinition = "int default 0")
     var lastFrameNumber: Int = 0
 
-    @Column(name = "nearest_i_frame", nullable = false)
+    @Column(name = "nearest_i_frame", nullable = false, columnDefinition = "int default 0")
     var nearestIFrame: Int = 0
 
 

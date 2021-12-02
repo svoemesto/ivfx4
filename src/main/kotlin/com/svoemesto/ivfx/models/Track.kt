@@ -10,7 +10,6 @@ import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 import javax.persistence.Table
-import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
 
 @Component
@@ -21,23 +20,23 @@ class Track {
     @NotNull(message = "ID трека файла не может быть NULL")
     @Id
     @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "file_id")
     lateinit var file: File
 
-    @Column(name = "order_file_track", nullable = false)
+    @Column(name = "order_file_track", nullable = false, columnDefinition = "int default 0")
     var order: Int = 0
 
-    @Column(name = "name")
+    @Column(name = "name", columnDefinition = "varchar(255) default ''")
     var name: String = ""
 
-    @Column(name = "type")
+    @Column(name = "type", columnDefinition = "varchar(255) default ''")
     var type: String = ""
 
-    @Column(name = "use_track")
+    @Column(name = "use_track", columnDefinition = "boolean default true")
     var use: Boolean = true
 
 }

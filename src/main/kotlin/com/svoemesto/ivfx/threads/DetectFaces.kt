@@ -1,16 +1,13 @@
 package com.svoemesto.ivfx.threads
 
-import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.FileController.FileExt
-import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.utils.FaceDetection
 import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TableView
-import java.io.File as IOFile
 
 class DetectFaces(var fileExt: FileExt,
                   val fileController: FileController,

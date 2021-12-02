@@ -4,7 +4,7 @@ import java.io.BufferedWriter
 import java.io.FileWriter
 import java.io.File as IOFile
 
-class RunCmd(val cmdText: String): Thread(), Runnable {
+class RunCmd(private val cmdText: String): Thread(), Runnable {
     override fun run() {
         val cmdFile = IOFile.createTempFile("ivfx", ".cmd")
         val writer = BufferedWriter(FileWriter(cmdFile))

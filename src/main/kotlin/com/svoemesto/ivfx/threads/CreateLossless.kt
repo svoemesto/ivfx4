@@ -6,7 +6,6 @@ import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.enums.AudioCodecs
 import com.svoemesto.ivfx.enums.LosslessContainers
 import com.svoemesto.ivfx.enums.LosslessVideoCodecs
-import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
 import javafx.application.Platform
 import javafx.scene.control.Label
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeUnit
 
 class CreateLossless(var fileExt: FileExt,
                      val fileController: FileController,
-                     var propertyController: PropertyController,
+                     private var propertyController: PropertyController,
                      val table: TableView<FileExt>,
                      val textLbl1: String,
                      val numCurrentThread: Int,
@@ -44,24 +43,20 @@ class CreateLossless(var fileExt: FileExt,
         val fileInput = fileExt.file.path
         val fileOutput = fileController.getLossless(fileExt.file, true)
 
-        var ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
-        var ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
+        val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
+        val ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
 
         val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(fileInput)
-
-        val countFrames = fFmpegProbeResult.streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
-            .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
 
         val w = fileExt.file.project.width
         val h = fileExt.file.project.height
 
-        val fileWidth: Int = fFmpegProbeResult.streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }.firstOrNull()?.width!!
-        val fileHeight: Int = fFmpegProbeResult.streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }.firstOrNull()?.height!!
+        val fileWidth: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.width!!
+        val fileHeight: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.height!!
         val fileAspect = fileWidth.toDouble() / fileHeight.toDouble()
         val frameAspect = w.toDouble() / h.toDouble()
-        var filter = ""
 
-        filter = if (fileAspect > frameAspect) {
+        val filter: String = if (fileAspect > frameAspect) {
             val frameHeight = (w.toDouble() / fileAspect).toInt()
             "\"scale=" + w + ":" + frameHeight + ",pad=" + w + ":" + h + ":0:" + ((h - frameHeight) / 2.0).toInt() + ":black\""
         } else {
@@ -69,9 +64,9 @@ class CreateLossless(var fileExt: FileExt,
             "\"scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black\""
         }
 
-        var builderOutput = FFmpegOutputBuilder()
+        val builderOutput = FFmpegOutputBuilder()
 
-        var builder = FFmpegBuilder()
+        val builder = FFmpegBuilder()
             .setInput(fileInput)
             .overrideOutputFiles(true)
             .addOutput(builderOutput)
@@ -79,7 +74,7 @@ class CreateLossless(var fileExt: FileExt,
         builderOutput.setFilename(fileOutput)
         builderOutput.addExtraArgs("-map", "0:v:0")
 
-        fileExt.file.tracks.filter { it.type == "Audio" && it.use == true }.forEach { track ->
+        fileExt.file.tracks.filter { it.type == "Audio" && it.use }.forEach { track ->
             var typeOrder = propertyController.getOrCreate(track::class.java.simpleName, track.id, "@typeorder")
             if (typeOrder == "") typeOrder = "1"
             builderOutput.addExtraArgs("-map", "0:a:${(typeOrder.toInt())-1}")
@@ -108,7 +103,7 @@ class CreateLossless(var fileExt: FileExt,
         builderOutput.setVideoFilter(filter)
 
 
-        var executor = FFmpegExecutor(ffmpeg, ffprobe)
+        val executor = FFmpegExecutor(ffmpeg, ffprobe)
 
         val job = executor.createJob(builder, object : ProgressListener {
             val duration_ns: Double = fFmpegProbeResult.getFormat().duration * TimeUnit.SECONDS.toNanos(1)

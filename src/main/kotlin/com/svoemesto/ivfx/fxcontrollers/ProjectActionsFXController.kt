@@ -9,6 +9,7 @@ import com.svoemesto.ivfx.controllers.ProjectCdfController
 import com.svoemesto.ivfx.controllers.ProjectController
 import com.svoemesto.ivfx.controllers.PropertyCdfController
 import com.svoemesto.ivfx.controllers.PropertyController
+import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.controllers.TrackController
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.repos.FileCdfRepo
@@ -142,6 +143,7 @@ class ProjectActionsFXController {
         private val fileCdfController = FileCdfController(fileCdfRepo)
         private val trackController = TrackController(trackRepo, propertyRepo, propertyCdfRepo)
         private val frameController = FrameController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
+        private val shotController = ShotController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
         private val propertyController = PropertyController(propertyRepo)
         private val propertyCdfController = PropertyCdfController(propertyCdfRepo)
 
@@ -190,7 +192,7 @@ class ProjectActionsFXController {
         colFileExtFM?.setCellValueFactory(PropertyValueFactory("hasFramesMediumString"))
         colFileExtFF?.setCellValueFactory(PropertyValueFactory("hasFramesFullString"))
         colFileExtDF?.setCellValueFactory(PropertyValueFactory("hasFacesString"))
-        colFileExtAF?.setCellValueFactory(PropertyValueFactory("hasAnalyzedFrames"))
+        colFileExtAF?.setCellValueFactory(PropertyValueFactory("hasAnalyzedFramesString"))
         tblFilesExt?.items = listFilesExt
 
     }
@@ -198,14 +200,6 @@ class ProjectActionsFXController {
     @FXML
     fun doActions(event: ActionEvent?) {
 
-        val countSelectedCheckboxes: Int = (if (checkCreatePreview?.isSelected == true) 1 else 0) +
-                (if (checkCreateLossless?.isSelected == true) 1 else 0) +
-                (if (checkCreateFramesSmall?.isSelected == true) 1 else 0) +
-                (if (checkCreateFramesMedium?.isSelected == true) 1 else 0) +
-                (if (checkCreateFramesFull?.isSelected == true) 1 else 0) +
-                (if (checkAnalyzeFrames?.isSelected == true) 1 else 0) +
-                (if (checkDetectFaces?.isSelected == true) 1 else 0)
-        val countSelectedFiles: Int = tblFilesExt?.selectionModel?.selectedItems?.size?:0
         var countActions = 0
 
         tblFilesExt?.selectionModel?.selectedItems?.forEach { fileExt ->
@@ -271,7 +265,7 @@ class ProjectActionsFXController {
             if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames || (fileExt.hasAnalyzedFrames && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
-                    AnalyzeFrames(fileExt!!, fileController, frameController, tblFilesExt!!,
+                    AnalyzeFrames(fileExt!!, fileController, frameController, shotController, tblFilesExt!!,
                         "File: ${fileExt.name}, Action: Analyze Frames, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
