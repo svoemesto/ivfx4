@@ -1,15 +1,9 @@
 package com.svoemesto.ivfx.utils
 
 import net.bramp.ffmpeg.FFmpeg
-import net.bramp.ffmpeg.FFmpegExecutor
-import net.bramp.ffmpeg.FFmpegUtils
-import net.bramp.ffmpeg.FFprobe
-import net.bramp.ffmpeg.builder.FFmpegBuilder
-import net.bramp.ffmpeg.probe.FFmpegProbeResult
-import net.bramp.ffmpeg.probe.FFmpegStream
-import net.bramp.ffmpeg.progress.Progress
-import net.bramp.ffmpeg.progress.ProgressListener
-import java.util.concurrent.TimeUnit
+import java.io.IOException
+import java.util.regex.Pattern
+import kotlin.math.roundToInt
 
 
 class IvfxFFmpegUtils {
@@ -20,91 +14,48 @@ class IvfxFFmpegUtils {
     }
 }
 
-fun main() {
-
-    val fileInput = "E:/GOT/GOT.S01/GOT.S01E01.BDRip.1080p.mkv"
-    val fileOutput = "F:/ivfxGOT/TestOutput/GOT.S1.E1/GOT.S1.E1.%06d.jpg"
-//    val fileOutput = "F:/ivfxGOT/TestOutput/GOT.S1.E1.mp4"
-
-
-
-    var ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
-    var ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
-
-    val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(fileInput)
-    val ffmpegFormat = fFmpegProbeResult.getFormat()
-    val ffmpegStream = fFmpegProbeResult.getStreams().get(0)
-
-    val countFrames = fFmpegProbeResult.streams.filter { it.codec_type == FFmpegStream.CodecType.VIDEO }
-        .firstOrNull()?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
-
-    var builder = FFmpegBuilder()
-        .setInput(fileInput)
-        .overrideOutputFiles(true)
-        .addOutput(fileOutput)
-        .setFrames(countFrames?:1)
-//        .setFrames(10000)
-            .setVideoResolution(135,75)
-        .done()
-
-
-//    val w = 720
-//    val h = 400
-//
-//    val fileWidth: Int = 1920
-//    val fileHeight: Int = 1080
-//    val fileAspect = fileWidth.toDouble() / fileHeight.toDouble()
-//    val frameAspect = w.toDouble() / h.toDouble()
-//    var filter = ""
-//
-//    filter = if (fileAspect > frameAspect) {
-//        val frameHeight = (w.toDouble() / fileAspect).toInt()
-//        "\"scale=" + w + ":" + frameHeight + ",pad=" + w + ":" + h + ":0:" + ((h - frameHeight) / 2.0).toInt() + ":black\""
-//    } else {
-//        val frameWidth = (h.toDouble() * fileAspect).toInt()
-//        "\"scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black\""
-//    }
-//
-//    var builder = FFmpegBuilder()
-//        .setInput(fileInput)
-//        .overrideOutputFiles(true)
-//        .addOutput(fileOutput)
-//        .setVideoResolution(720,400)
-//        .setVideoBitRate(500000)
-//        .setVideoCodec("libx264")
-//        .setAudioCodec("aac")
-//        .setAudioBitRate(128492)
-//        .setAudioSampleRate(48000)
-//        .setAudioChannels(2)
-//        .setVideoFilter(filter)
-//        .done()
-
-
-
-    var executor = FFmpegExecutor(ffmpeg, ffprobe)
-
-
-
-    val job = executor.createJob(builder, object : ProgressListener {
-        // Using the FFmpegProbeResult determine the duration of the input
-        val duration_ns: Double = fFmpegProbeResult.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
-        override fun progress(progress: Progress) {
-            val percentage: Double = progress.out_time_ns / duration_ns
-            // Print out interesting information about the progress
-            println(
-                java.lang.String.format(
-                    "[%.0f%%] status:%s frame:%d time:%s ms fps:%.0f speed:%.2fx",
-                    percentage * 100,
-                    progress.status,
-                    progress.frame,
-                    FFmpegUtils.toTimecode(progress.out_time_ns, TimeUnit.NANOSECONDS),
-                    progress.fps.toDouble(),
-                    progress.speed
-                )
-            )
+//@Throws(IOException::class, InterruptedException::class)
+fun getListIFrames(mediaFile: String, fps: Double): List<Int> {
+    val exePath = IvfxFFmpegUtils.FFPROBE_PATH
+    val param: MutableList<String> = mutableListOf()
+    param.add("-skip_frame")
+    param.add("nokey")
+    param.add("-select_streams")
+    param.add("v")
+    param.add("-show_frames")
+    param.add(mediaFile)
+    val executeResult: String = executeExe(exePath, param)
+    val list: MutableList<Int> = ArrayList()
+    val regExp = "(?<=\\[FRAME\\]\r\n)[\\w|\\W]+?(?=\\[/FRAME\\]\r\n)"
+    val pattern = Pattern.compile(regExp)
+    val matcher = pattern.matcher(executeResult)
+    while (matcher.find()) {
+        val startPosition = matcher.start()
+        val endPosition = matcher.end()
+        val result = executeResult.substring(startPosition, endPosition)
+        val resultLines = result.split("\\r\\n".toRegex()).toTypedArray()
+        for (i in resultLines.indices) {
+            val line = resultLines[i].split("=".toRegex()).toTypedArray()
+            if (line.size > 0) {
+                if (line[0] == "pkt_pts") {
+                    try {
+                        val findedResult = line[1].toInt()
+                        list.add(getFrameNumberByDuration(findedResult, fps))
+                    } catch (ex: NumberFormatException) {
+                    }
+                }
+            }
         }
-    })
+    }
+    return list
+}
 
-    job.run()
+fun getFrameNumberByDuration(duration: Int, fps: Double): Int {
+    val dur1fr = 1000 / fps
+    val doubleFrames = duration / dur1fr + 1
+    return doubleFrames.roundToInt()
+}
+
+fun main() {
 
 }
