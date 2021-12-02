@@ -44,6 +44,8 @@ class FileController(val projectRepo: ProjectRepo,
         var hasFramesMediumString: String = ""
         var hasFramesFull: Boolean = false
         var hasFramesFullString: String = ""
+        var hasFaces: Boolean = false
+        var hasFacesString: String = ""
         val order = file.order
         val name = file.name
     }
@@ -124,6 +126,18 @@ class FileController(val projectRepo: ProjectRepo,
         }
     }
 
+    fun hasFaces(file: File): Boolean {
+        if (getCdfFolder(file, Folders.FRAMES_FULL) != "") {
+            val fld = IOFile(getCdfFolder(file, Folders.FRAMES_FULL)).parent
+            if (IOFile(fld).exists()) {
+                val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
+                val faceFilenameRegex: Regex = Regex("^\\b$fileNameRegexp\\.\\b\\d{6}_face_\\d{2}\\.\\bjpg\\b\$")
+                return IOFile(fld).listFiles(FilenameFilter { dir, name -> name.contains(faceFilenameRegex) }).size > 0
+            }
+        }
+        return false
+    }
+
     fun getListFilesExt(project: Project): List<FileExt> {
         val list = fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toList()
         var resultedList: MutableList<FileExt> = mutableListOf()
@@ -139,6 +153,8 @@ class FileController(val projectRepo: ProjectRepo,
             fileExt.hasFramesMediumString = if (fileExt.hasFramesMedium) "✓" else "✗"
             fileExt.hasFramesFull = hasFramesFull(file)
             fileExt.hasFramesFullString = if (fileExt.hasFramesFull) "✓" else "✗"
+            fileExt.hasFaces = hasFaces(file)
+            fileExt.hasFacesString = if (fileExt.hasFaces) "✓" else "✗"
             resultedList.add(fileExt)
         }
         return resultedList

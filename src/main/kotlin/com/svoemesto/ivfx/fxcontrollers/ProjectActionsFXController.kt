@@ -24,6 +24,7 @@ import com.svoemesto.ivfx.threads.CreateFramesMedium
 import com.svoemesto.ivfx.threads.CreateFramesSmall
 import com.svoemesto.ivfx.threads.CreateLossless
 import com.svoemesto.ivfx.threads.CreatePreview
+import com.svoemesto.ivfx.threads.DetectFaces
 import com.svoemesto.ivfx.threads.RunListThreads
 import javafx.application.HostServices
 import javafx.collections.FXCollections
@@ -73,6 +74,9 @@ class ProjectActionsFXController {
     private var colFileExtFF: TableColumn<FileExt, String>? = null
 
     @FXML
+    private var colFileExtDF: TableColumn<FileExt, String>? = null
+
+    @FXML
     private var checkReCreateIfExists: CheckBox? = null
 
     @FXML
@@ -92,6 +96,9 @@ class ProjectActionsFXController {
 
     @FXML
     private var checkCreateFramesFull: CheckBox? = null
+
+    @FXML
+    private var checkDetectFaces: CheckBox? = null
 
     @FXML
     private var pb1: ProgressBar? = null
@@ -173,6 +180,7 @@ class ProjectActionsFXController {
         colFileExtFS?.setCellValueFactory(PropertyValueFactory("hasFramesSmallString"))
         colFileExtFM?.setCellValueFactory(PropertyValueFactory("hasFramesMediumString"))
         colFileExtFF?.setCellValueFactory(PropertyValueFactory("hasFramesFullString"))
+        colFileExtDF?.setCellValueFactory(PropertyValueFactory("hasFacesString"))
         tblFilesExt?.items = listFilesExt
 
     }
@@ -184,7 +192,8 @@ class ProjectActionsFXController {
                 (if (checkCreateLossless?.isSelected == true) 1 else 0) +
                 (if (checkCreateFramesSmall?.isSelected == true) 1 else 0) +
                 (if (checkCreateFramesMedium?.isSelected == true) 1 else 0) +
-                (if (checkCreateFramesFull?.isSelected == true) 1 else 0)
+                (if (checkCreateFramesFull?.isSelected == true) 1 else 0) +
+                (if (checkDetectFaces?.isSelected == true) 1 else 0)
         val countSelectedFiles: Int = tblFilesExt?.selectionModel?.selectedItems?.size?:0
         var countActions = 0
 
@@ -194,6 +203,7 @@ class ProjectActionsFXController {
             if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall || (fileExt.hasFramesSmall && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium || (fileExt.hasFramesMedium && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull || (fileExt.hasFramesFull && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkDetectFaces?.isSelected == true && (!fileExt.hasFaces || (fileExt.hasFaces && checkReCreateIfExists?.isSelected!!))) countActions++
         }
         var counterPb1 = 0
 
@@ -246,6 +256,14 @@ class ProjectActionsFXController {
                 )
             }
 
+            if (checkDetectFaces?.isSelected == true && (!fileExt.hasFaces || (fileExt.hasFaces && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    DetectFaces(fileExt!!, fileController, tblFilesExt!!,
+                        "File: ${fileExt.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
 
         }
 
