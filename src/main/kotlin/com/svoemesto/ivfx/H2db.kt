@@ -290,7 +290,7 @@ fun initializeH2db() {
     if (!isTablePresent("tbl_databases")) createTableDatabases()
 
     // Проверяем наличие таблицы tbl_properties и создаем её если нужно
-    if (!isTablePresent("tbl_properties")) createTableDatabases()
+    if (!isTablePresent("tbl_properties")) createTableProperties()
 
     // Проверяем количество записей в таблице tbl_databases
     val listH2databases = getListH2databases()

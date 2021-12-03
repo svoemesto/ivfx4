@@ -6,15 +6,18 @@ import com.svoemesto.ivfx.enums.LosslessContainers
 import com.svoemesto.ivfx.enums.LosslessVideoCodecs
 import com.svoemesto.ivfx.enums.VideoCodecs
 import com.svoemesto.ivfx.enums.VideoContainers
+import org.hibernate.Hibernate
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.springframework.stereotype.Component
 import javax.persistence.CascadeType
 import javax.persistence.Column
 import javax.persistence.Entity
+import javax.persistence.FetchType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
+import javax.persistence.JoinColumn
 import javax.persistence.OneToMany
 import javax.persistence.Table
 import javax.validation.constraints.NotNull
@@ -61,7 +64,7 @@ class Project {
     @Column(name = "height", columnDefinition = "int default 1080")
     var height: Int = 1080
 
-    @Column(name = "fps", columnDefinition = "double default 23.976")
+    @Column(name = "fps")
     var fps: Double = 23.976
 
     @Column(name = "video_bitrate", columnDefinition = "int default 10000000")
@@ -73,20 +76,20 @@ class Project {
     @Column(name = "audio_frequency", columnDefinition = "int default 48000")
     var audioFrequency: Int = 48_000
 
-    @OneToMany(mappedBy = "project", cascade = [CascadeType.ALL])
-//    @JoinColumn(name = "project_id")
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     var files: MutableList<File> = mutableListOf()
 
-    @OneToMany(mappedBy = "project", cascade = [CascadeType.ALL])
-//    @JoinColumn(name = "project_id")
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     var cdfs: MutableList<ProjectCdf> = mutableListOf()
 
 
 //    @Transient
     var folder: String
-        get() = cdfs.firstOrNull { it.computerId == Main.ccid }?.folder ?: ""
+        get() {
+            return cdfs.firstOrNull { it.computerId == Main.ccid }?.folder ?: ""
+        }
         set(value) {
             var cdf: ProjectCdf? = cdfs.filter { it.computerId == Main.ccid }.firstOrNull()
             if (cdf != null) {

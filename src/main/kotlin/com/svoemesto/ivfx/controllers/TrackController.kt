@@ -11,6 +11,7 @@ import com.svoemesto.ivfx.repos.TrackRepo
 import com.svoemesto.ivfx.utils.MediaInfo
 import com.svoemesto.ivfx.utils.getFromMediaInfoTracks
 import org.springframework.stereotype.Controller
+import org.springframework.transaction.annotation.Transactional
 
 
 @Controller

@@ -45,34 +45,34 @@ class Frame {
     @Column(name = "is_final_find", columnDefinition = "boolean default false")
     var isFinalFind: Boolean = false
 
-    @Column(name = "sim_score_next_1", columnDefinition = "double default 0")
+    @Column(name = "sim_score_next_1")
     var simScoreNext1: Double = 0.0
 
-    @Column(name = "sim_score_next_2", columnDefinition = "double default 0")
+    @Column(name = "sim_score_next_2")
     var simScoreNext2: Double = 0.0
 
-    @Column(name = "sim_score_next_3", columnDefinition = "double default 0")
+    @Column(name = "sim_score_next_3")
     var simScoreNext3: Double = 0.0
 
-    @Column(name = "sim_score_prev_1", columnDefinition = "double default 0")
+    @Column(name = "sim_score_prev_1")
     var simScorePrev1: Double = 0.0
 
-    @Column(name = "sim_score_prev_2", columnDefinition = "double default 0")
+    @Column(name = "sim_score_prev_2")
     var simScorePrev2: Double = 0.0
 
-    @Column(name = "sim_score_prev_3", columnDefinition = "double default 0")
+    @Column(name = "sim_score_prev_3")
     var simScorePrev3: Double = 0.0
 
-    @Column(name = "diff_next_1", columnDefinition = "double default 0")
+    @Column(name = "diff_next_1")
     var diffNext1: Double = 0.0
 
-    @Column(name = "diff_next_2", columnDefinition = "double default 0")
+    @Column(name = "diff_next_2")
     var diffNext2: Double = 0.0
 
-    @Column(name = "diff_prev_1", columnDefinition = "double default 0")
+    @Column(name = "diff_prev_1")
     var diffPrev1: Double = 0.0
 
-    @Column(name = "diff_prev_2", columnDefinition = "double default 0")
+    @Column(name = "diff_prev_2")
     var diffPrev2: Double = 0.0
 
 }

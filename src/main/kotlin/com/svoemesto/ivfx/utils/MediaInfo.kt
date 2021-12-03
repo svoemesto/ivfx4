@@ -1,7 +1,5 @@
 package com.svoemesto.ivfx.utils
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.IOException
@@ -78,12 +76,16 @@ object MediaInfo {
 
 }
 
-fun getFromMediaInfoTracks(json: String): List<Map<String, Any>>? {
+fun getFromMediaInfoTracks(json: String): List<Map<String, Any?>>? {
 
     val mapType: Type = object : TypeToken<Map<String?, Map<*, *>?>?>() {}.getType()
     val son = Gson().fromJson<Map<String, Map<*, *>>>(json, mapType)
-    val media: Map<String, Any> = son["media"] as Map<String, Any>
-    val ref = media["@ref"].toString()
-    return media["track"] as List<Map<String, Any>>?
+    val media: Map<String, Any?>? = son["media"] as Map<String, Any?>?
+    if (media != null) {
+        val ref = media["@ref"].toString()
+        return media["track"] as List<Map<String, Any>>?
+    } else {
+        return null
+    }
 
 }

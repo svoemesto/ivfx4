@@ -35,13 +35,13 @@ class Shot {
     @Column(name = "shot_type_person", columnDefinition = "varchar(255) default 'NONE'")
     var typePerson: ShotTypePerson = ShotTypePerson.NONE
 
-    @Column(name = "first_frame_number", nullable = false, columnDefinition = "int default 0")
+    @Column(name = "first_frame_number", columnDefinition = "int default 0")
     var firstFrameNumber: Int = 0
 
-    @Column(name = "last_frame_number", nullable = false, columnDefinition = "int default 0")
+    @Column(name = "last_frame_number", columnDefinition = "int default 0")
     var lastFrameNumber: Int = 0
 
-    @Column(name = "nearest_i_frame", nullable = false, columnDefinition = "int default 0")
+    @Column(name = "nearest_i_frame", columnDefinition = "int default 0")
     var nearestIFrame: Int = 0
 
 

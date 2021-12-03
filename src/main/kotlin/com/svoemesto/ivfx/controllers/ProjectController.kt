@@ -1,8 +1,10 @@
 package com.svoemesto.ivfx.controllers
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.Project
+import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.repos.FileCdfRepo
 import com.svoemesto.ivfx.repos.FileRepo
 import com.svoemesto.ivfx.repos.FrameRepo
@@ -13,11 +15,13 @@ import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.ShotRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.stereotype.Controller
+import org.springframework.transaction.annotation.Transactional
 import java.io.IOException
 import java.io.File as IOFile
 
 @Controller
 //@Scope("prototype")
+@Transactional
 class ProjectController(val projectRepo: ProjectRepo,
                         val propertyRepo: PropertyRepo,
                         val propertyCdfRepo: PropertyCdfRepo,
@@ -29,10 +33,16 @@ class ProjectController(val projectRepo: ProjectRepo,
                         val shotRepo: ShotRepo) {
 
     fun getCdfFolder(project: Project, folder: Folders, createIfNotExist: Boolean = false): String {
-        val propertyValue = getPropertyValue(project, folder.propertyCdfKey)
+        if (!isPropertyCdfPresent(project, folder.propertyCdfKey)) {
+            PropertyCdfController(propertyCdfRepo).getOrCreate(project::class.java.simpleName, project.id, folder.propertyCdfKey)
+        }
+        val propertyValue = getPropertyCdfValue(project, folder.propertyCdfKey)
         val fld = if (propertyValue == "") project.folder + IOFile.separator + folder.folderName else propertyValue
         try {
-            if (createIfNotExist && !IOFile(fld).exists()) IOFile(fld).mkdir()
+            if (createIfNotExist && !IOFile(fld).exists()) {
+                if (!isPropertyPresent(project, folder.propertyCdfKey))
+                IOFile(fld).mkdir()
+            }
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -45,9 +55,9 @@ class ProjectController(val projectRepo: ProjectRepo,
         return projectRepo.findByOrderGreaterThanOrderByOrder(0).toList()
     }
 
-//    fun getProperties(project: Project) : List<Property> {
-//        return propertyRepo.findByParentClassAndParentId(project::class.simpleName!!, project.id).toList()
-//    }
+    fun getProperties(project: Project) : List<Property> {
+        return propertyRepo.findByParentClassAndParentId(project::class.simpleName!!, project.id).toList()
+    }
 
     fun getPropertyValue(project: Project, key: String) : String {
         val property = propertyRepo.findByParentClassAndParentIdAndKey(project::class.simpleName!!, project.id, key).firstOrNull()
@@ -58,12 +68,26 @@ class ProjectController(val projectRepo: ProjectRepo,
         return propertyRepo.findByParentClassAndParentIdAndKey(project::class.simpleName!!, project.id, key).any()
     }
 
+    fun getPropertyCdfValue(project: Project, key: String) : String {
+        val property = propertyCdfRepo.findByParentClassAndParentIdAndComputerIdAndKey(project::class.simpleName!!, project.id, Main.ccid, key).firstOrNull()
+        return if (property != null) property.value else ""
+    }
+
+    fun isPropertyCdfPresent(project: Project, key: String) : Boolean {
+        return propertyCdfRepo.findByParentClassAndParentIdAndComputerIdAndKey(project::class.simpleName!!, project.id, Main.ccid, key).any()
+    }
+
+
     fun create(): Project {
         val entity = Project()
         val lastEntity = projectRepo.getEntityWithGreaterOrder().firstOrNull()
         entity.order = if (lastEntity != null) lastEntity.order + 1 else 1
         entity.name = "New order ${entity.order}"
         projectRepo.save(entity)
+        val propertyCdfController = PropertyCdfController(propertyCdfRepo)
+        Folders.values().forEach {
+            propertyCdfController.editOrCreate(entity::class.java.simpleName, entity.id, it.propertyCdfKey)
+        }
         return entity
     }
 

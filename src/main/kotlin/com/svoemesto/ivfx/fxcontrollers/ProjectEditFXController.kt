@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.fxcontrollers
 
+import com.svoemesto.ivfx.H2DB_PROPERTYKEY_CURRENTDB_ID
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.SpringConfig
 import com.svoemesto.ivfx.controllers.FileCdfController
@@ -32,6 +33,7 @@ import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.ShotRepo
 import com.svoemesto.ivfx.repos.TrackRepo
+import com.svoemesto.ivfx.setPropertyValue
 import javafx.application.HostServices
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -64,7 +66,9 @@ import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Stage
+import org.hibernate.Hibernate
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import org.springframework.transaction.annotation.Transactional
 import java.io.IOException
 import java.io.File as IOFile
 
@@ -1134,6 +1138,7 @@ class ProjectEditFXController {
             }
 
             if (needToSave) {
+                projectCdfRepo.save(currentProject!!.cdfs.first())
                 projectRepo.save(currentProject!!)
                 mainStage?.setTitle("Проект: ${currentProject?.name}")
             }
@@ -1196,6 +1201,17 @@ class ProjectEditFXController {
 
     @FXML
     fun doSelectDatabase(event: ActionEvent?) {
+
+        val currentDatabase = getCurrentDatabase()
+        val result = DatabaseSelectFXController.getDatabase(getCurrentDatabase())
+        if (currentDatabase != result) {
+            setPropertyValue(H2DB_PROPERTYKEY_CURRENTDB_ID,result?.id.toString())
+            val alert = Alert(Alert.AlertType.INFORMATION)
+            alert.title = "Выбор базы данных"
+            alert.headerText = "Для вступления измненения в силу перезапустите приложение."
+            alert.showAndWait()
+            mainStage?.close()
+        }
     }
 
     @FXML
@@ -1208,6 +1224,7 @@ class ProjectEditFXController {
         if (directorySelected != null) {
             fldProjectFolder?.text = directorySelected.absolutePath
             currentProject?.folder = directorySelected.absolutePath
+            projectCdfRepo.save(currentProject!!.cdfs.first())
             projectRepo.save(currentProject!!)
         }
     }
@@ -1225,8 +1242,12 @@ class ProjectEditFXController {
         val ioFile = fileChooser.showOpenDialog(Stage())
         if (ioFile != null && currentFile != null) {
             currentFile?.path = ioFile.absolutePath
+            fileCdfRepo.save(currentFile?.cdfs!!.first())
             fldFilePath?.text = currentFile?.path
             fileRepo.save(currentFile!!)
+            trackController.createTracksFromMediaInfo(currentFile!!)
+            listTracks = FXCollections.observableArrayList(trackController.getListTracks(currentFile!!))
+            tblTracks?.items = listTracks
         }
 
     }
@@ -1249,12 +1270,16 @@ class ProjectEditFXController {
                 val file = fileController.create(currentProject!!)
                 file.path = ioFile.absolutePath
                 file.name = ioFile.nameWithoutExtension
+                fileCdfRepo.save(file.cdfs.first())
                 fileRepo.save(file)
                 val id = file.id
                 listFiles = FXCollections.observableArrayList(fileController.getListFiles(currentProject!!))
                 tblFiles?.items = listFiles
                 currentFile = listFiles.filter { it.id == id }.first()
                 tblFiles?.selectionModel?.select(currentFile)
+                trackController.createTracksFromMediaInfo(currentFile!!)
+                listTracks = FXCollections.observableArrayList(trackController.getListTracks(currentFile!!))
+                tblTracks?.items = listTracks
             }
         }
     }
@@ -1275,7 +1300,9 @@ class ProjectEditFXController {
                     val file = fileController.create(currentProject!!)
                     file.path = ioFile.absolutePath
                     file.name = ioFile.nameWithoutExtension
+                    fileCdfRepo.save(file.cdfs.first())
                     fileRepo.save(file)
+                    trackController.createTracksFromMediaInfo(file)
                 }
             }
             listFiles = FXCollections.observableArrayList(fileController.getListFiles(currentProject!!))
