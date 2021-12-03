@@ -30,7 +30,7 @@ class File {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     lateinit var project: Project
 
@@ -43,19 +43,19 @@ class File {
     @Column(name = "short_name", columnDefinition = "varchar(255) default ''")
     var shortName: String = ""
 
-    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
     var tracks: MutableList<Track> = mutableListOf()
 
-    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
     var frames: MutableList<Frame> = mutableListOf()
 
-    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
     var cdfs: MutableList<FileCdf> = mutableListOf()
 
-    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
     var shots: MutableList<Shot> = mutableListOf()
 
