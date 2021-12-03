@@ -25,7 +25,6 @@ class FileCdf {
     var id: Long = 0
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinTable
     @JoinColumn(name = "file_id")
     lateinit var file: File
 

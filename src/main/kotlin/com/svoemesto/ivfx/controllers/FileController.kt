@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.controllers
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.File
@@ -54,7 +55,10 @@ class FileController(val projectRepo: ProjectRepo,
     }
 
     fun getCdfFolder(file: File, folder: Folders, createFolderIfNotExist: Boolean = false): String {
-        val propertyValue = getPropertyValue(file, folder.propertyCdfKey)
+        if (!isPropertyCdfPresent(file, folder.propertyCdfKey)) {
+            PropertyCdfController(propertyCdfRepo).getOrCreate(file::class.java.simpleName, file.id, folder.propertyCdfKey)
+        }
+        val propertyValue = getPropertyCdfValue(file, folder.propertyCdfKey)
         val projectCdfFolder = ProjectController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo, shotRepo).getCdfFolder(file.project, folder, createFolderIfNotExist)
         val fld = if (propertyValue == "") projectCdfFolder  + IOFile.separator + file.shortName else propertyValue
         try {
@@ -91,7 +95,7 @@ class FileController(val projectRepo: ProjectRepo,
         val countFrames = getFramesCount(file)
         val fld = getCdfFolder(file, Folders.FRAMES_SMALL)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
-        val frameFilenameRegex = Regex("^\\b${fileNameRegexp}_frame_\\b\\d{6}\\.\\bjpg\\b\$")
+        val frameFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}\\.jpg\$")
 
         return if (!IOFile(fld).exists()) {
             false
@@ -104,7 +108,7 @@ class FileController(val projectRepo: ProjectRepo,
         val countFrames = getFramesCount(file)
         val fld = getCdfFolder(file, Folders.FRAMES_MEDIUM)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
-        val frameFilenameRegex = Regex("^\\b${fileNameRegexp}_frame_\\b\\d{6}\\.\\bjpg\\b\$")
+        val frameFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}\\.jpg\$")
 
         return if (!IOFile(fld).exists()) {
             false
@@ -117,7 +121,7 @@ class FileController(val projectRepo: ProjectRepo,
         val countFrames = getFramesCount(file)
         val fld = getCdfFolder(file, Folders.FRAMES_FULL)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
-        val frameFilenameRegex = Regex("^\\b${fileNameRegexp}_frame_\\b\\d{6}\\.\\bjpg\\b\$")
+        val frameFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}\\.jpg\$")
 
         return if (!IOFile(fld).exists()) {
             false
@@ -195,6 +199,16 @@ class FileController(val projectRepo: ProjectRepo,
         return propertyRepo.findByParentClassAndParentIdAndKey(file::class.simpleName!!, file.id, key).any()
     }
 
+    fun getPropertyCdfValue(file: File, key: String) : String {
+        val propertyCdf = propertyCdfRepo.findByParentClassAndParentIdAndComputerIdAndKey(file::class.simpleName!!, file.id, Main.ccid, key).firstOrNull()
+        return propertyCdf?.value ?: ""
+    }
+
+    fun isPropertyCdfPresent(file: File, key: String) : Boolean {
+        return propertyCdfRepo.findByParentClassAndParentIdAndComputerIdAndKey(file::class.simpleName!!, file.id, Main.ccid, key).any()
+    }
+
+
     fun create(project: Project): File {
         val entity = File()
         entity.project = project
@@ -202,6 +216,10 @@ class FileController(val projectRepo: ProjectRepo,
         entity.order = if (lastEntity != null) lastEntity.order + 1 else 1
         entity.name = "New file ${entity.order} to project ${project.id}"
         fileRepo.save(entity)
+        val propertyCdfController = PropertyCdfController(propertyCdfRepo)
+        Folders.values().forEach {
+            propertyCdfController.editOrCreate(entity::class.java.simpleName, entity.id, it.propertyCdfKey)
+        }
         return entity
     }
 

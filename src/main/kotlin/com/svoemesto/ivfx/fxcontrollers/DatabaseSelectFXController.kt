@@ -43,27 +43,29 @@ class DatabaseSelectFXController {
 
     companion object {
 
-        private var mainStage: Stage = Stage()
+        private var mainStage: Stage? = null
         private var currentDatabase: H2database? = null
         private var incomingDatabase: H2database? = null
         private var listDatabases: ObservableList<H2database> = FXCollections.observableArrayList()
 
         fun getDatabase(h2database: H2database?): H2database? {
+            mainStage = Stage()
             currentDatabase = h2database
             incomingDatabase = h2database
             try {
                 val root = FXMLLoader.load<Parent>(DatabaseSelectFXController::class.java.getResource("database-select-view.fxml"))
-                mainStage.setTitle("Выбор базы данных")
-                mainStage.setScene(Scene(root))
-                mainStage.initModality(Modality.APPLICATION_MODAL)
+                mainStage?.setTitle("Выбор базы данных")
+                mainStage?.setScene(Scene(root))
+                mainStage?.initModality(Modality.APPLICATION_MODAL)
 
-                mainStage.setOnCloseRequest { println("Закрытие окна DatabaseSelectFXController.") }
+                mainStage?.setOnCloseRequest { println("Закрытие окна DatabaseSelectFXController.") }
 
-                mainStage.showAndWait()
+                mainStage?.showAndWait()
             } catch (e: IOException) {
                 e.printStackTrace()
             }
             println("Завершение работы DatabaseSelectFXController.")
+            mainStage = null
             return currentDatabase
         }
 
@@ -93,7 +95,7 @@ class DatabaseSelectFXController {
             //событие двойного клика
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
-                    mainStage.close()
+                    mainStage?.close()
                 }
             }
         }
@@ -104,7 +106,7 @@ class DatabaseSelectFXController {
     fun doCancel(event: ActionEvent?) {
         println("Нажатие кнопки Cancel")
         currentDatabase = incomingDatabase
-        mainStage.close()
+        mainStage?.close()
     }
 
     @FXML
@@ -134,7 +136,7 @@ class DatabaseSelectFXController {
     @FXML
     fun doSelectDb(event: ActionEvent?) {
         println("Нажатие кнопки SelectDb")
-        mainStage.close()
+        mainStage?.close()
     }
 
 }

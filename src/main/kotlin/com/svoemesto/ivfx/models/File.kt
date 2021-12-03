@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.models
 
 import com.svoemesto.ivfx.Main
+import org.hibernate.Hibernate
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.springframework.stereotype.Component
@@ -42,23 +43,26 @@ class File {
     @Column(name = "short_name", columnDefinition = "varchar(255) default ''")
     var shortName: String = ""
 
-    //Список треков файла
-    @OneToMany(mappedBy = "file", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     var tracks: MutableList<Track> = mutableListOf()
 
-    //Список фреймов файла
-
-    @OneToMany(mappedBy = "file", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     var frames: MutableList<Frame> = mutableListOf()
 
-    @OneToMany(mappedBy = "file", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     var cdfs: MutableList<FileCdf> = mutableListOf()
 
+    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
+    var shots: MutableList<Shot> = mutableListOf()
+
     var path: String
-        get() = cdfs.firstOrNull { it.computerId == Main.ccid }?.path ?: ""
+        get() {
+            return cdfs.firstOrNull { it.computerId == Main.ccid }?.path ?: ""
+        }
         set(value) {
             var cdf: FileCdf? = cdfs.firstOrNull { it.computerId == Main.ccid }
             if (cdf != null) {
