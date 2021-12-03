@@ -76,11 +76,11 @@ class Project {
     @Column(name = "audio_frequency", columnDefinition = "int default 48000")
     var audioFrequency: Int = 48_000
 
-    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
     var files: MutableList<File> = mutableListOf()
 
-    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
     var cdfs: MutableList<ProjectCdf> = mutableListOf()
 
