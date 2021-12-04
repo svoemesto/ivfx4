@@ -12,6 +12,7 @@ interface FileCdfRepo : CrudRepository<FileCdf, Long> {
     fun findByFileId(fileId: Long): Iterable<FileCdf>
     fun findByFileIdAndComputerId(projectId: Long, computerId: Int): Iterable<FileCdf>
 
+
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_files_cdf WHERE file_id = ?", nativeQuery = true)

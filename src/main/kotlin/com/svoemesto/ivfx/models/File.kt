@@ -5,6 +5,7 @@ import org.hibernate.Hibernate
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import javax.persistence.CascadeType
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -22,6 +23,7 @@ import javax.validation.constraints.NotNull
 @Component
 @Entity
 @Table(name = "tbl_files")
+@Transactional
 class File {
 
     @NotNull(message = "ID файла не может быть NULL")

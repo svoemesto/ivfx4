@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.threads
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.FileController.FileExt
 import com.svoemesto.ivfx.enums.Folders
@@ -10,7 +11,6 @@ import javafx.scene.control.ProgressBar
 import javafx.scene.control.TableView
 
 class DetectFaces(var fileExt: FileExt,
-                  val fileController: FileController,
                   val table: TableView<FileExt>,
                   val textLbl1: String,
                   val numCurrentThread: Int,
@@ -39,7 +39,7 @@ class DetectFaces(var fileExt: FileExt,
         param.add("py")
         param.add("\"${faceDetectorPath}/detect_faces_in_folder.py\"")
         param.add("-i")
-        param.add("\"${fileController.getCdfFolder(fileExt.file, Folders.FRAMES_FULL)}\"")
+        param.add("\"${Main.fileController.getCdfFolder(fileExt.file, Folders.FRAMES_FULL)}\"")
         param.add("-d")
         param.add("\"${faceDetectorPath}/face_detection_model\"")
         param.add("-m")

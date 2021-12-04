@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.threads
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.FileController.FileExt
 import com.svoemesto.ivfx.controllers.FrameController
@@ -17,9 +18,6 @@ import org.sikuli.script.Match
 import org.sikuli.script.Pattern
 
 class AnalyzeFrames(var fileExt: FileExt,
-                    val fileController: FileController,
-                    val frameController: FrameController,
-                    val shotController: ShotController,
                     val table: TableView<FileExt>,
                     private val textLbl1: String,
                     private val numCurrentThread: Int,
@@ -35,11 +33,11 @@ class AnalyzeFrames(var fileExt: FileExt,
         pb2.isVisible = true
 
         val mediaFile: String = fileExt.file.path
-        val fps: Double = fileController.getFps(fileExt.file)
-        val framesCount: Int = fileController.getFramesCount(fileExt.file)
+        val fps: Double = Main.fileController.getFps(fileExt.file)
+        val framesCount: Int = Main.fileController.getFramesCount(fileExt.file)
 
         // удаляем все фреймы файла
-        frameController.frameRepo.deleteAll(fileExt.file.id)
+        Main.frameController.deleteAll(fileExt.file)
 
         // создаем новые фреймы
 
@@ -75,7 +73,7 @@ class AnalyzeFrames(var fileExt: FileExt,
                 pb2.progress = percentage2
             }
 
-            val frame: Frame = frameController.getOrCreate(fileExt.file, frameNumber)
+            val frame: Frame = Main.frameController.getOrCreate(fileExt.file, frameNumber)
             frame.isIFrame = listIFrames.contains(frameNumber)
 //            frameController.save(frame)
             listFrames.add(frame)
@@ -103,8 +101,8 @@ class AnalyzeFrames(var fileExt: FileExt,
             val frameNext3: Frame? = if (i < listFrames.size - 3) listFrames[i + 3] else null
             simScore = 0.9999
             if (frameNext1 != null) {
-                val fileName1: String = frameController.getFileNameFrameSmall(currentFrame)
-                val fileName2: String = frameController.getFileNameFrameSmall(frameNext1)
+                val fileName1: String = Main.frameController.getFileNameFrameSmall(currentFrame)
+                val fileName2: String = Main.frameController.getFileNameFrameSmall(frameNext1)
                 val f = Finder(fileName1)
                 val targetImage = Pattern(fileName2)
                 f.find(targetImage)
@@ -115,8 +113,8 @@ class AnalyzeFrames(var fileExt: FileExt,
             currentFrame.simScoreNext1 = simScore
             simScore = 0.9999
             if (frameNext2 != null) {
-                val f = Finder(frameController.getFileNameFrameSmall(currentFrame))
-                val targetImage = Pattern(frameController.getFileNameFrameSmall(frameNext2))
+                val f = Finder(Main.frameController.getFileNameFrameSmall(currentFrame))
+                val targetImage = Pattern(Main.frameController.getFileNameFrameSmall(frameNext2))
                 f.find(targetImage)
                 val match: Match = f.next()
                 simScore = match.score
@@ -125,8 +123,8 @@ class AnalyzeFrames(var fileExt: FileExt,
             currentFrame.simScoreNext2 = simScore
             simScore = 0.9999
             if (frameNext3 != null) {
-                val f = Finder(frameController.getFileNameFrameSmall(currentFrame))
-                val targetImage = Pattern(frameController.getFileNameFrameSmall(frameNext3))
+                val f = Finder(Main.frameController.getFileNameFrameSmall(currentFrame))
+                val targetImage = Pattern(Main.frameController.getFileNameFrameSmall(frameNext3))
                 f.find(targetImage)
                 val match: Match = f.next()
                 simScore = match.score
@@ -244,7 +242,7 @@ class AnalyzeFrames(var fileExt: FileExt,
 
             val frame: Frame = listFrames[i]
 
-            frameController.frameRepo.save(frame)
+            Main.frameController.save(frame)
         }
 
         // 6. Создаем планы
@@ -254,7 +252,7 @@ class AnalyzeFrames(var fileExt: FileExt,
         var currentFrameNumber: Int
         var currentIFrame = 1
         var previousIFrame = 1
-        val listShotsTmp: List<Shot> = shotController.getListShots(fileExt.file)
+        val listShotsTmp: List<Shot> = Main.shotController.getListShots(fileExt.file)
         val listShots: MutableList<Shot> = mutableListOf()
 
         for (i in 0 until listFrames.size - 1) {
@@ -310,13 +308,13 @@ class AnalyzeFrames(var fileExt: FileExt,
                 if (shot.firstFrameNumber == shotTmp.firstFrameNumber && shot.lastFrameNumber == shotTmp.lastFrameNumber) {
                     if (shot.nearestIFrame != shotTmp.nearestIFrame) {
                         shotTmp.nearestIFrame = shot.nearestIFrame
-                        shotController.shotRepo.save(shotTmp)
+                        Main.shotController.save(shotTmp)
                     }
                     isFound = true
                     return@forEach
                 }
             }
-            if (!isFound) shotController.shotRepo.save(shot)
+            if (!isFound) Main.shotController.save(shot)
         }
 
         fileExt.hasAnalyzedFrames = true

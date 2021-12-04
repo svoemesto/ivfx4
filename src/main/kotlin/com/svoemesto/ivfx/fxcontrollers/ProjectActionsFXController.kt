@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.fxcontrollers
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.SpringConfig
 import com.svoemesto.ivfx.controllers.FileCdfController
 import com.svoemesto.ivfx.controllers.FileController
@@ -125,27 +126,6 @@ class ProjectActionsFXController {
     companion object {
 
         private var hostServices: HostServices? = null
-        private val context = AnnotationConfigApplicationContext(SpringConfig::class.java)
-
-        private val propertyRepo = context.getBean("propertyRepo", PropertyRepo::class.java)
-        private val propertyCdfRepo = context.getBean("propertyCdfRepo", PropertyCdfRepo::class.java)
-        private val projectRepo = context.getBean("projectRepo", ProjectRepo::class.java)
-        private val projectCdfRepo = context.getBean("projectCdfRepo", ProjectCdfRepo::class.java)
-        private val fileRepo = context.getBean("fileRepo", FileRepo::class.java)
-        private val fileCdfRepo = context.getBean("fileCdfRepo", FileCdfRepo::class.java)
-        private val trackRepo = context.getBean("trackRepo", TrackRepo::class.java)
-        private val frameRepo = context.getBean("frameRepo", FrameRepo::class.java)
-        private val shotRepo = context.getBean("shotRepo", ShotRepo::class.java)
-
-        private val projectController = ProjectController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val projectCdfController = ProjectCdfController(projectCdfRepo)
-        private val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val fileCdfController = FileCdfController(fileCdfRepo)
-        private val trackController = TrackController(trackRepo, propertyRepo, propertyCdfRepo)
-        private val frameController = FrameController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val shotController = ShotController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val propertyController = PropertyController(propertyRepo)
-        private val propertyCdfController = PropertyCdfController(propertyCdfRepo)
 
         private var mainStage: Stage? = null
         private var currentProject: Project = Project()
@@ -183,7 +163,7 @@ class ProjectActionsFXController {
 
         tblFilesExt?.selectionModel?.selectionMode = SelectionMode.MULTIPLE
 
-        listFilesExt = FXCollections.observableArrayList(fileController.getListFilesExt(currentProject))
+        listFilesExt = FXCollections.observableArrayList(Main.fileController.getListFilesExt(currentProject))
         colFileExtOrder?.setCellValueFactory(PropertyValueFactory("order"))
         colFileExtName?.setCellValueFactory(PropertyValueFactory("name"))
         colFileExtPW?.setCellValueFactory(PropertyValueFactory("hasPreviewString"))
@@ -220,7 +200,7 @@ class ProjectActionsFXController {
             if (checkCreatePreview?.isSelected == true && (!fileExt.hasPreview || (fileExt.hasPreview && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
-                    CreatePreview(fileExt!!, fileController, tblFilesExt!!,
+                    CreatePreview(fileExt!!, tblFilesExt!!,
                     "File: ${fileExt.name}, Action: Create Preview, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
@@ -229,7 +209,7 @@ class ProjectActionsFXController {
             if (checkCreateLossless?.isSelected == true && (!fileExt.hasLossless || (fileExt.hasLossless && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
-                    CreateLossless(fileExt!!, fileController, propertyController, tblFilesExt!!,
+                    CreateLossless(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.name}, Action: Create Lossless, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
@@ -238,7 +218,7 @@ class ProjectActionsFXController {
             if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall || (fileExt.hasFramesSmall && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
-                    CreateFramesSmall(fileExt!!, fileController, tblFilesExt!!,
+                    CreateFramesSmall(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.name}, Action: Create Frames (small size 175x35), Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
@@ -247,7 +227,7 @@ class ProjectActionsFXController {
             if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium || (fileExt.hasFramesMedium && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
-                    CreateFramesMedium(fileExt!!, fileController, tblFilesExt!!,
+                    CreateFramesMedium(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.name}, Action: Create Frames (medium size 720x400), Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
@@ -256,7 +236,7 @@ class ProjectActionsFXController {
             if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull || (fileExt.hasFramesFull && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
-                    CreateFramesFull(fileExt!!, fileController, tblFilesExt!!,
+                    CreateFramesFull(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.name}, Action: Create Frames (full size 1920x1080), Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
@@ -265,7 +245,7 @@ class ProjectActionsFXController {
             if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames || (fileExt.hasAnalyzedFrames && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
-                    AnalyzeFrames(fileExt!!, fileController, frameController, shotController, tblFilesExt!!,
+                    AnalyzeFrames(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.name}, Action: Analyze Frames, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
@@ -274,7 +254,7 @@ class ProjectActionsFXController {
             if (checkDetectFaces?.isSelected == true && (!fileExt.hasFaces || (fileExt.hasFaces && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
-                    DetectFaces(fileExt!!, fileController, tblFilesExt!!,
+                    DetectFaces(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )

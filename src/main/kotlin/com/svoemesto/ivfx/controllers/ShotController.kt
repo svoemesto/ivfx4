@@ -1,58 +1,68 @@
 package com.svoemesto.ivfx.controllers
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.models.Shot
-import com.svoemesto.ivfx.repos.FileCdfRepo
-import com.svoemesto.ivfx.repos.FileRepo
-import com.svoemesto.ivfx.repos.FrameRepo
-import com.svoemesto.ivfx.repos.ProjectCdfRepo
-import com.svoemesto.ivfx.repos.ProjectRepo
-import com.svoemesto.ivfx.repos.PropertyCdfRepo
-import com.svoemesto.ivfx.repos.PropertyRepo
-import com.svoemesto.ivfx.repos.ShotRepo
-import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.stereotype.Controller
 
 @Controller
 //@Scope("prototype")
-class ShotController(val projectRepo: ProjectRepo,
-                     val propertyRepo: PropertyRepo,
-                     val propertyCdfRepo: PropertyCdfRepo,
-                     val projectCdfRepo: ProjectCdfRepo,
-                     val fileRepo: FileRepo,
-                     val fileCdfRepo: FileCdfRepo,
-                     val frameRepo: FrameRepo,
-                     val trackRepo: TrackRepo,
-                     val shotRepo: ShotRepo) {
+class ShotController() {
 
-    fun getProperties(frame: Frame) : List<Property> {
-        return propertyRepo.findByParentClassAndParentId(frame::class.simpleName!!, frame.id).toList()
+    fun getProperties(shot: Shot) : List<Property> {
+        return Main.propertyRepo.findByParentClassAndParentId(shot::class.simpleName!!, shot.id).toList()
     }
 
-    fun getListShots(file: File): List<Shot> {
-        return shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(file.id,0).toList()
+    fun getListShots(file: File): MutableList<Shot> {
+        val result = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(file.id,0).toMutableList()
+        result.forEach { it.file = file }
+        return result
     }
 
     fun getPropertyValue(shot: Shot, key: String) : String {
-        val property = propertyRepo.findByParentClassAndParentIdAndKey(shot::class.simpleName!!, shot.id, key).firstOrNull()
-        return if (property != null) property.value else ""
+        val property = Main.propertyRepo.findByParentClassAndParentIdAndKey(shot::class.simpleName!!, shot.id, key).firstOrNull()
+        return property?.value ?: ""
     }
 
     fun isPropertyPresent(shot: Shot, key: String) : Boolean {
-        return propertyRepo.findByParentClassAndParentIdAndKey(shot::class.simpleName!!, shot.id, key).any()
+        return Main.propertyRepo.findByParentClassAndParentIdAndKey(shot::class.simpleName!!, shot.id, key).any()
+    }
+
+    fun save(shot: Shot) {
+        Main.shotRepo.save(shot)
+    }
+
+    fun saveAll(shots: Iterable<Shot>) {
+        Main.shotRepo.saveAll(shots)
+    }
+
+    fun delete(shot: Shot) {
+        Main.propertyController.deleteAll(shot::class.java.simpleName, shot.id)
+        Main.propertyCdfController.deleteAll(shot::class.java.simpleName, shot.id)
+        Main.shotRepo.delete(shot)
+    }
+
+    fun deleteAll(file: File) {
+        getListShots(file).forEach { shot ->
+            Main.propertyController.deleteAll(shot::class.java.simpleName, shot.id)
+            Main.propertyCdfController.deleteAll(shot::class.java.simpleName, shot.id)
+        }
+        Main.shotRepo.deleteAll(file.id)
     }
 
     fun getOrCreate(file: File, firstFrameNumber: Int, lastFrameNumber: Int): Shot {
-        var entity = shotRepo.findByFileIdAndFirstFrameNumberAndLastFrameNumber(file.id, firstFrameNumber, lastFrameNumber).firstOrNull()
+        var entity = Main.shotRepo.findByFileIdAndFirstFrameNumberAndLastFrameNumber(file.id, firstFrameNumber, lastFrameNumber).firstOrNull()
         if (entity == null) {
             entity = Shot()
             entity.file = file
             entity.firstFrameNumber = firstFrameNumber
             entity.lastFrameNumber = lastFrameNumber
-            shotRepo.save(entity)
+        } else {
+            entity.file = file
         }
+        save(entity)
         return entity
     }
 

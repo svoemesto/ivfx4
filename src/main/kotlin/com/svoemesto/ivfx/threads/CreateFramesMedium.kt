@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.threads
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.FileController.FileExt
 import com.svoemesto.ivfx.enums.Folders
@@ -21,7 +22,6 @@ import java.io.File as IOFile
 import java.util.concurrent.TimeUnit
 
 class CreateFramesMedium(var fileExt: FileExt,
-                         val fileController: FileController,
                          val table: TableView<FileExt>,
                          val textLbl1: String,
                          val numCurrentThread: Int,
@@ -36,7 +36,7 @@ class CreateFramesMedium(var fileExt: FileExt,
         pb2.isVisible = true
 
         val fileInput = fileExt.file.path
-        val fileOutput = fileController.getCdfFolder(fileExt.file, Folders.FRAMES_MEDIUM,  true) + IOFile.separator +
+        val fileOutput = Main.fileController.getCdfFolder(fileExt.file, Folders.FRAMES_MEDIUM,  true) + IOFile.separator +
                 fileExt.file.shortName + "_frame_%06d.jpg"
 
         val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)

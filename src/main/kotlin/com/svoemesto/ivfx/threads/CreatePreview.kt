@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.threads
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.FileController.FileExt
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
@@ -19,7 +20,6 @@ import net.bramp.ffmpeg.progress.ProgressListener
 import java.util.concurrent.TimeUnit
 
 class CreatePreview(var fileExt: FileExt,
-                    val fileController: FileController,
                     val table: TableView<FileExt>,
                     val textLbl1: String,
                     val numCurrentThread: Int,
@@ -34,7 +34,7 @@ class CreatePreview(var fileExt: FileExt,
         pb2.isVisible = true
 
         val fileInput = fileExt.file.path
-        val fileOutput = fileController.getPreview(fileExt.file, true)
+        val fileOutput = Main.fileController.getPreview(fileExt.file, true)
 
         val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
         val ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)

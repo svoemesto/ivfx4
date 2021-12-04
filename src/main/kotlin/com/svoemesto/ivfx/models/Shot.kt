@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.models
 import com.svoemesto.ivfx.enums.ShotTypePerson
 import com.svoemesto.ivfx.enums.ShotTypeSize
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -17,6 +18,7 @@ import javax.validation.constraints.NotNull
 @Component
 @Entity
 @Table(name = "tbl_shots")
+@Transactional
 class Shot {
 
     @NotNull(message = "ID плана не может быть NULL")

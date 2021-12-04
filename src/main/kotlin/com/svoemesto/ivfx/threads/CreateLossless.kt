@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.threads
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.FileController.FileExt
 import com.svoemesto.ivfx.controllers.PropertyController
@@ -24,8 +25,6 @@ import net.bramp.ffmpeg.progress.ProgressListener
 import java.util.concurrent.TimeUnit
 
 class CreateLossless(var fileExt: FileExt,
-                     val fileController: FileController,
-                     private var propertyController: PropertyController,
                      val table: TableView<FileExt>,
                      val textLbl1: String,
                      val numCurrentThread: Int,
@@ -41,7 +40,7 @@ class CreateLossless(var fileExt: FileExt,
         pb2.isVisible = true
 
         val fileInput = fileExt.file.path
-        val fileOutput = fileController.getLossless(fileExt.file, true)
+        val fileOutput = Main.fileController.getLossless(fileExt.file, true)
 
         val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
         val ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
@@ -75,7 +74,7 @@ class CreateLossless(var fileExt: FileExt,
         builderOutput.addExtraArgs("-map", "0:v:0")
 
         fileExt.file.tracks.filter { it.type == "Audio" && it.use }.forEach { track ->
-            var typeOrder = propertyController.getOrCreate(track::class.java.simpleName, track.id, "@typeorder")
+            var typeOrder = Main.propertyController.getOrCreate(track::class.java.simpleName, track.id, "@typeorder")
             if (typeOrder == "") typeOrder = "1"
             builderOutput.addExtraArgs("-map", "0:a:${(typeOrder.toInt())-1}")
         }

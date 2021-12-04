@@ -2,15 +2,6 @@ package com.svoemesto.ivfx.fxcontrollers
 
 import com.svoemesto.ivfx.H2DB_PROPERTYKEY_CURRENTDB_ID
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.SpringConfig
-import com.svoemesto.ivfx.controllers.FileCdfController
-import com.svoemesto.ivfx.controllers.FileController
-import com.svoemesto.ivfx.controllers.FrameController
-import com.svoemesto.ivfx.controllers.ProjectCdfController
-import com.svoemesto.ivfx.controllers.ProjectController
-import com.svoemesto.ivfx.controllers.PropertyCdfController
-import com.svoemesto.ivfx.controllers.PropertyController
-import com.svoemesto.ivfx.controllers.TrackController
 import com.svoemesto.ivfx.enums.AudioCodecs
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.LosslessContainers
@@ -24,15 +15,6 @@ import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.models.PropertyCdf
 import com.svoemesto.ivfx.models.Track
-import com.svoemesto.ivfx.repos.FileCdfRepo
-import com.svoemesto.ivfx.repos.FileRepo
-import com.svoemesto.ivfx.repos.FrameRepo
-import com.svoemesto.ivfx.repos.ProjectCdfRepo
-import com.svoemesto.ivfx.repos.ProjectRepo
-import com.svoemesto.ivfx.repos.PropertyCdfRepo
-import com.svoemesto.ivfx.repos.PropertyRepo
-import com.svoemesto.ivfx.repos.ShotRepo
-import com.svoemesto.ivfx.repos.TrackRepo
 import com.svoemesto.ivfx.setPropertyValue
 import javafx.application.HostServices
 import javafx.collections.FXCollections
@@ -66,13 +48,11 @@ import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Stage
-import org.hibernate.Hibernate
-import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.transaction.annotation.Transactional
 import java.io.IOException
 import java.io.File as IOFile
 
-
+@Transactional
 class ProjectEditFXController {
 
     // MENU
@@ -376,26 +356,6 @@ class ProjectEditFXController {
     companion object {
 
         private var hostServices: HostServices? = null
-        private val context = AnnotationConfigApplicationContext(SpringConfig::class.java)
-
-        private val propertyRepo = context.getBean("propertyRepo", PropertyRepo::class.java)
-        private val propertyCdfRepo = context.getBean("propertyCdfRepo", PropertyCdfRepo::class.java)
-        private val projectRepo = context.getBean("projectRepo", ProjectRepo::class.java)
-        private val projectCdfRepo = context.getBean("projectCdfRepo", ProjectCdfRepo::class.java)
-        private val fileRepo = context.getBean("fileRepo", FileRepo::class.java)
-        private val fileCdfRepo = context.getBean("fileCdfRepo", FileCdfRepo::class.java)
-        private val trackRepo = context.getBean("trackRepo", TrackRepo::class.java)
-        private val frameRepo = context.getBean("frameRepo", FrameRepo::class.java)
-        private val shotRepo = context.getBean("shotRepo", ShotRepo::class.java)
-
-        private val projectController = ProjectController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val projectCdfController = ProjectCdfController(projectCdfRepo)
-        private val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val fileCdfController = FileCdfController(fileCdfRepo)
-        private val trackController = TrackController(trackRepo, propertyRepo, propertyCdfRepo)
-        private val frameController = FrameController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val propertyController = PropertyController(propertyRepo)
-        private val propertyCdfController = PropertyCdfController(propertyCdfRepo)
 
         private var mainStage: Stage? = null
         private var currentProject: Project? = Project()
@@ -422,7 +382,7 @@ class ProjectEditFXController {
 
         fun editProject(project: Project? = null, hostServices: HostServices? = null): Project? {
             if (project == null) {
-                currentProject = projectController.getListProjects().firstOrNull()
+                currentProject = Main.projectController.getListProjects().firstOrNull()
             } else {
                 currentProject = project
             }
@@ -488,7 +448,7 @@ class ProjectEditFXController {
         AudioCodecs.values().forEach{ listAudioCodecs.add(it.name) }
         cbProjectAudioCodec?.items = listAudioCodecs
 
-        listProjectProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+        listProjectProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
         tblProjectProperties?.items = listProjectProperties
 
         btnProjectPropertyMoveToFirst?.isDisable = currentProjectProperty == null
@@ -501,7 +461,7 @@ class ProjectEditFXController {
         fldProjectPropertyKey?.text = ""
         fldProjectPropertyValue?.text = ""
         
-        listProjectPropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+        listProjectPropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
         tblProjectPropertiesCdf?.items = listProjectPropertiesCdf
 
         colProjectPropertyKey?.setCellValueFactory(PropertyValueFactory("key"))
@@ -529,6 +489,7 @@ class ProjectEditFXController {
 
         fldProjectName?.text = currentProject?.name
         fldProjectShortName?.text = currentProject?.shortName
+//        fldProjectFolder?.text = currentProject?.cdfs!!.first().folder
         fldProjectFolder?.text = currentProject?.folder
         fldProjectWidth?.text = currentProject?.width.toString()
         fldProjectHeight?.text = currentProject?.height.toString()
@@ -544,7 +505,7 @@ class ProjectEditFXController {
         cbProjectLosslessContainer?.selectionModel?.select(currentProject?.lossLessContainer)
 
 
-        listFiles = FXCollections.observableArrayList(fileController.getListFiles(currentProject!!))
+        listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
 
         colFileOrder?.setCellValueFactory(PropertyValueFactory("order"))
         colFileName?.setCellValueFactory(PropertyValueFactory("name"))
@@ -595,7 +556,7 @@ class ProjectEditFXController {
                     fldFileShortName?.text = currentFile?.shortName
                     fldFilePath?.text = currentFile?.path
 
-                    listFileProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                    listFileProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                     tblFileProperties?.items = listFileProperties
 
                     btnFilePropertyMoveToFirst?.isDisable = currentFileProperty == null
@@ -608,7 +569,7 @@ class ProjectEditFXController {
                     fldFilePropertyKey?.text = ""
                     fldFilePropertyValue?.text = ""
 
-                    listFilePropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                    listFilePropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                     tblFilePropertiesCdf?.items = listFilePropertiesCdf
 
                     btnFilePropertyCdfMoveToFirst?.isDisable = currentFilePropertyCdf == null
@@ -622,7 +583,7 @@ class ProjectEditFXController {
                     fldFilePropertyCdfKey?.text = ""
                     fldFilePropertyCdfValue?.text = ""
 
-                    listTracks = FXCollections.observableArrayList(trackController.getListTracks(currentFile!!))
+                    listTracks = FXCollections.observableArrayList(Main.trackController.getListTracks(currentFile!!))
                     tblTracks?.items = listTracks
 
                 }
@@ -641,7 +602,7 @@ class ProjectEditFXController {
             currentTrack = newValue
 
             if (currentTrack != null) {
-                listTrackProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentTrack!!::class.java.simpleName, currentTrack!!.id))
+                listTrackProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentTrack!!::class.java.simpleName, currentTrack!!.id))
                 tblTrackProperties?.items = listTrackProperties
             } else {
                 listTrackProperties = FXCollections.observableArrayList()
@@ -875,7 +836,7 @@ class ProjectEditFXController {
                 if (mouseEvent.clickCount == 2) {
                     if (hostServices != null && currentFilePropertyCdf != null && currentFilePropertyCdf?.key?.startsWith("folder_", ignoreCase = true) == true) {
                         val fld = Folders.values().filter { it.propertyCdfKey == currentFilePropertyCdf?.key }.firstOrNull()
-                        hostServices!!.showDocument(if (fld == null || currentFilePropertyCdf?.value != "") currentFilePropertyCdf?.value else fileController.getCdfFolder(currentFile!!, fld, true))
+                        hostServices!!.showDocument(if (fld == null || currentFilePropertyCdf?.value != "") currentFilePropertyCdf?.value else Main.fileController.getCdfFolder(currentFile!!, fld, true))
                     }
                 }
             }
@@ -898,7 +859,7 @@ class ProjectEditFXController {
                 if (mouseEvent.clickCount == 2) {
                     if (hostServices != null && currentProjectPropertyCdf != null && currentProjectPropertyCdf?.key?.startsWith("folder_", ignoreCase = true) == true) {
                         val fld = Folders.values().filter { it.propertyCdfKey == currentProjectPropertyCdf?.key }.firstOrNull()
-                        hostServices!!.showDocument(if (fld == null || currentProjectPropertyCdf?.value != "") currentProjectPropertyCdf?.value else projectController.getCdfFolder(currentProject!!, fld, true))
+                        hostServices!!.showDocument(if (fld == null || currentProjectPropertyCdf?.value != "") currentProjectPropertyCdf?.value else Main.projectController.getCdfFolder(currentProject!!, fld, true))
                     }
                 }
             }
@@ -910,7 +871,7 @@ class ProjectEditFXController {
                 if (mouseEvent.clickCount == 2) {
                     if (currentTrack != null && currentTrack?.type != "General" && currentTrack?.type != "Video") {
                         currentTrack?.use = !currentTrack?.use!!
-                        trackRepo.save(currentTrack!!)
+                        Main.trackController.save(currentTrack!!)
                         tblTracks?.refresh()
                     }
                 }
@@ -937,7 +898,7 @@ class ProjectEditFXController {
             }
 
             if (needToSave) {
-                propertyRepo.save(currentFileProperty!!)
+                Main.propertyController.save(currentFileProperty!!)
                 tblFileProperties?.refresh()
             }
 
@@ -962,7 +923,7 @@ class ProjectEditFXController {
             }
 
             if (needToSave) {
-                propertyCdfRepo.save(currentFilePropertyCdf!!)
+                Main.propertyCdfController.save(currentFilePropertyCdf!!)
                 tblFilePropertiesCdf?.refresh()
             }
 
@@ -987,7 +948,7 @@ class ProjectEditFXController {
             }
 
             if (needToSave) {
-                propertyRepo.save(currentProjectProperty!!)
+                Main.propertyController.save(currentProjectProperty!!)
                 tblProjectProperties?.refresh()
             }
 
@@ -1012,7 +973,7 @@ class ProjectEditFXController {
             }
 
             if (needToSave) {
-                propertyCdfRepo.save(currentProjectPropertyCdf!!)
+                Main.propertyCdfController.save(currentProjectPropertyCdf!!)
                 tblProjectPropertiesCdf?.refresh()
             }
 
@@ -1042,7 +1003,7 @@ class ProjectEditFXController {
             }
 
             if (needToSave) {
-                fileRepo.save(currentFile!!)
+                Main.fileController.save(currentFile!!)
                 tblFiles?.refresh()
             }
 
@@ -1138,8 +1099,8 @@ class ProjectEditFXController {
             }
 
             if (needToSave) {
-                projectCdfRepo.save(currentProject!!.cdfs.first())
-                projectRepo.save(currentProject!!)
+                Main.projectCdfController.save(currentProject!!.cdfs.first())
+                Main.projectController.save(currentProject!!)
                 mainStage?.setTitle("Проект: ${currentProject?.name}")
             }
 
@@ -1149,8 +1110,8 @@ class ProjectEditFXController {
     @FXML
     fun doGetFileTracksFromMediaInfo(event: ActionEvent?) {
         if (currentFile != null) {
-            trackController.createTracksFromMediaInfo(currentFile!!)
-            listTracks = FXCollections.observableArrayList(trackController.getListTracks(currentFile!!))
+            Main.trackController.createTracksFromMediaInfo(currentFile!!)
+            listTracks = FXCollections.observableArrayList(Main.trackController.getListTracks(currentFile!!))
             tblTracks?.items = listTracks
         }
     }
@@ -1165,7 +1126,7 @@ class ProjectEditFXController {
             alert.contentText = "В случае утвердительного ответа проект будет удален из базы данных и его восстановление будет невозможно.\nВы уверены, что хотите удалить проект?"
             val option = alert.showAndWait()
             if (option.get() == ButtonType.OK) {
-                projectController.delete(currentProject!!)
+                Main.projectController.delete(currentProject!!)
                 currentProject = null
                 initialize()
             }
@@ -1180,7 +1141,7 @@ class ProjectEditFXController {
 
     @FXML
     fun doMenuNewProject(event: ActionEvent?) {
-        currentProject = projectController.create()
+        currentProject = Main.projectController.create()
         initialize()
     }
 
@@ -1224,15 +1185,15 @@ class ProjectEditFXController {
         if (directorySelected != null) {
             fldProjectFolder?.text = directorySelected.absolutePath
             currentProject?.folder = directorySelected.absolutePath
-            projectCdfRepo.save(currentProject!!.cdfs.first())
-            projectRepo.save(currentProject!!)
+            Main.projectCdfController.save(currentProject!!.cdfs.first())
+            Main.projectController.save(currentProject!!)
         }
     }
 
     @FXML
     fun doSelectFilePath(event: ActionEvent?) {
 
-        currentFile?.let { fileRepo.save(currentFile!!) }
+        currentFile?.let { Main.fileController.save(currentFile!!) }
 
         val fileChooser = FileChooser()
         fileChooser.title = "Выберите файл"
@@ -1242,11 +1203,11 @@ class ProjectEditFXController {
         val ioFile = fileChooser.showOpenDialog(Stage())
         if (ioFile != null && currentFile != null) {
             currentFile?.path = ioFile.absolutePath
-            fileCdfRepo.save(currentFile?.cdfs!!.first())
+            Main.fileCdfController.save(currentFile?.cdfs!!.first())
             fldFilePath?.text = currentFile?.path
-            fileRepo.save(currentFile!!)
-            trackController.createTracksFromMediaInfo(currentFile!!)
-            listTracks = FXCollections.observableArrayList(trackController.getListTracks(currentFile!!))
+            Main.fileController.save(currentFile!!)
+            Main.trackController.createTracksFromMediaInfo(currentFile!!)
+            listTracks = FXCollections.observableArrayList(Main.trackController.getListTracks(currentFile!!))
             tblTracks?.items = listTracks
         }
 
@@ -1254,7 +1215,7 @@ class ProjectEditFXController {
 
     @FXML
     fun doFileAdd(event: ActionEvent?) {
-        currentFile?.let { fileRepo.save(currentFile!!) }
+        currentFile?.let { Main.fileController.save(currentFile!!) }
 
         val fileChooser = FileChooser()
         fileChooser.title = "Добавить файл к проекту"
@@ -1263,22 +1224,22 @@ class ProjectEditFXController {
         if (IOFile(initialDirectory).exists()) fileChooser.initialDirectory = IOFile(initialDirectory)
         val ioFile = fileChooser.showOpenDialog(Stage())
         if (ioFile != null) {
-            val foundFile = fileController.getListFiles(currentProject!!).firstOrNull { it.path == ioFile.absolutePath }
+            val foundFile = Main.fileController.getListFiles(currentProject!!).firstOrNull { it.path == ioFile.absolutePath }
             if (foundFile != null) {
                 tblFiles?.selectionModel?.select(foundFile)
             } else {
-                val file = fileController.create(currentProject!!)
+                val file = Main.fileController.create(currentProject!!)
                 file.path = ioFile.absolutePath
                 file.name = ioFile.nameWithoutExtension
-                fileCdfRepo.save(file.cdfs.first())
-                fileRepo.save(file)
+                Main.fileCdfController.save(file.cdfs.first())
+                Main.fileController.save(file)
                 val id = file.id
-                listFiles = FXCollections.observableArrayList(fileController.getListFiles(currentProject!!))
+                listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
                 tblFiles?.items = listFiles
                 currentFile = listFiles.filter { it.id == id }.first()
                 tblFiles?.selectionModel?.select(currentFile)
-                trackController.createTracksFromMediaInfo(currentFile!!)
-                listTracks = FXCollections.observableArrayList(trackController.getListTracks(currentFile!!))
+                Main.trackController.createTracksFromMediaInfo(currentFile!!)
+                listTracks = FXCollections.observableArrayList(Main.trackController.getListTracks(currentFile!!))
                 tblTracks?.items = listTracks
             }
         }
@@ -1296,16 +1257,16 @@ class ProjectEditFXController {
         val directorySelected = directoryChooser.showDialog(Stage())
         if (directorySelected != null) {
             directorySelected.listFiles()?.forEach { ioFile ->
-                if (fileController.getListFiles(currentProject!!).filter { it.path == ioFile.absolutePath }.count() == 0) {
-                    val file = fileController.create(currentProject!!)
+                if (Main.fileController.getListFiles(currentProject!!).filter { it.path == ioFile.absolutePath }.count() == 0) {
+                    val file = Main.fileController.create(currentProject!!)
                     file.path = ioFile.absolutePath
                     file.name = ioFile.nameWithoutExtension
-                    fileCdfRepo.save(file.cdfs.first())
-                    fileRepo.save(file)
-                    trackController.createTracksFromMediaInfo(file)
+                    Main.fileCdfController.save(file.cdfs.first())
+                    Main.fileController.save(file)
+                    Main.trackController.createTracksFromMediaInfo(file)
                 }
             }
-            listFiles = FXCollections.observableArrayList(fileController.getListFiles(currentProject!!))
+            listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
             tblFiles?.items = listFiles
         }
 
@@ -1320,9 +1281,9 @@ class ProjectEditFXController {
             alert.contentText = "В случае утвердительного ответа файл будет удален из базы данных и его восстановление будет невозможно.\nВы уверены, что хотите удалить файл?"
             val option = alert.showAndWait()
             if (option.get() == ButtonType.OK) {
-                fileController.delete(currentFile!!)
+                Main.fileController.delete(currentFile!!)
                 currentFile = null
-                listFiles = FXCollections.observableArrayList(fileController.getListFiles(currentProject!!))
+                listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
                 tblFiles?.items = listFiles
 
                 paneFile?.isVisible = currentFile != null
@@ -1358,8 +1319,8 @@ class ProjectEditFXController {
 
     fun doMoveFile(reorderType: ReorderTypes) {
         val id = currentFile?.id
-        currentFile?.let { fileController.reOrder(reorderType, it) }
-        listFiles = FXCollections.observableArrayList(fileController.getListFiles(currentProject!!))
+        currentFile?.let { Main.fileController.reOrder(reorderType, it) }
+        listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
         tblFiles?.items = listFiles
         currentFile = listFiles.filter { it.id == id }.first()
         tblFiles?.selectionModel?.select(currentFile)
@@ -1382,8 +1343,8 @@ class ProjectEditFXController {
                 val option = alert.showAndWait()
                 if (option.get() == ButtonType.OK) {
                     saveCurrentFileProperty()
-                    val id = propertyController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id).id
-                    listFileProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                    val id = Main.propertyController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id).id
+                    listFileProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                     tblFileProperties?.items = listFileProperties
                     currentFileProperty = listFileProperties.filter { it.id == id }.first()
                     tblFileProperties?.selectionModel?.select(currentFileProperty)
@@ -1393,7 +1354,7 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = propertyRepo.getKeys(currentFile!!::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(currentFile!!::class.java.simpleName)
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -1404,8 +1365,8 @@ class ProjectEditFXController {
                     menuItem.text = key
                     menuItem.onAction = EventHandler { e: ActionEvent? ->
                         saveCurrentFileProperty()
-                        val id = propertyController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key).id
-                        listFileProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                        val id = Main.propertyController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key).id
+                        listFileProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                         tblFileProperties?.items = listFileProperties
                         currentFileProperty = listFileProperties.filter { it.id == id }.first()
                         tblFileProperties?.selectionModel?.select(currentFileProperty)
@@ -1422,10 +1383,10 @@ class ProjectEditFXController {
                     saveCurrentFileProperty()
                     listKeys.forEach { key ->
                         if (listFileProperties.filter { it.key == key }.isEmpty()) {
-                            propertyController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key)
+                            Main.propertyController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key)
                         }
                     }
-                    listFileProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                    listFileProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                     tblFileProperties?.items = listFileProperties
                 }
                 menu.items.add(menuItem)
@@ -1454,8 +1415,8 @@ class ProjectEditFXController {
                 val option = alert.showAndWait()
                 if (option.get() == ButtonType.OK) {
                     saveCurrentFilePropertyCdf()
-                    val id = propertyCdfController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id).id
-                    listFilePropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                    val id = Main.propertyCdfController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id).id
+                    listFilePropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                     tblFilePropertiesCdf?.items = listFilePropertiesCdf
                     currentFilePropertyCdf = listFilePropertiesCdf.filter { it.id == id }.first()
                     tblFilePropertiesCdf?.selectionModel?.select(currentFilePropertyCdf)
@@ -1465,7 +1426,7 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = propertyCdfRepo.getKeys(currentFile!!::class.java.simpleName, Main.ccid)
+            val listKeys = Main.propertyCdfRepo.getKeys(currentFile!!::class.java.simpleName, Main.ccid)
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -1476,8 +1437,8 @@ class ProjectEditFXController {
                     menuItem.text = key
                     menuItem.onAction = EventHandler { e: ActionEvent? ->
                         saveCurrentFilePropertyCdf()
-                        val id = propertyCdfController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key).id
-                        listFilePropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                        val id = Main.propertyCdfController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key).id
+                        listFilePropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                         tblFilePropertiesCdf?.items = listFilePropertiesCdf
                         currentFilePropertyCdf = listFilePropertiesCdf.filter { it.id == id }.first()
                         tblFilePropertiesCdf?.selectionModel?.select(currentFilePropertyCdf)
@@ -1494,10 +1455,10 @@ class ProjectEditFXController {
                     saveCurrentFilePropertyCdf()
                     listKeys.forEach { key ->
                         if (listFilePropertiesCdf.filter { it.key == key }.isEmpty()) {
-                            propertyCdfController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key)
+                            Main.propertyCdfController.editOrCreate(currentFile!!::class.java.simpleName, currentFile!!.id, key)
                         }
                     }
-                    listFilePropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                    listFilePropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                     tblFilePropertiesCdf?.items = listFilePropertiesCdf
                 }
                 menu.items.add(menuItem)
@@ -1526,8 +1487,8 @@ class ProjectEditFXController {
                 val option = alert.showAndWait()
                 if (option.get() == ButtonType.OK) {
                     saveCurrentProjectProperty()
-                    val id = propertyController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id).id
-                    listProjectProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+                    val id = Main.propertyController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id).id
+                    listProjectProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
                     tblProjectProperties?.items = listProjectProperties
                     currentProjectProperty = listProjectProperties.filter { it.id == id }.first()
                     tblProjectProperties?.selectionModel?.select(currentProjectProperty)
@@ -1537,7 +1498,7 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = propertyRepo.getKeys(currentProject!!::class.java.simpleName)
+            val listKeys = Main.propertyController.getKeys(currentProject!!::class.java.simpleName)
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -1548,8 +1509,8 @@ class ProjectEditFXController {
                     menuItem.text = key
                     menuItem.onAction = EventHandler { e: ActionEvent? ->
                         saveCurrentProjectProperty()
-                        val id = propertyController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key).id
-                        listProjectProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+                        val id = Main.propertyController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key).id
+                        listProjectProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
                         tblProjectProperties?.items = listProjectProperties
                         currentProjectProperty = listProjectProperties.filter { it.id == id }.first()
                         tblProjectProperties?.selectionModel?.select(currentProjectProperty)
@@ -1566,10 +1527,10 @@ class ProjectEditFXController {
                     saveCurrentProjectProperty()
                     listKeys.forEach { key ->
                         if (listProjectProperties.filter { it.key == key }.isEmpty()) {
-                            propertyController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key)
+                            Main.propertyController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key)
                         }
                     }
-                    listProjectProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+                    listProjectProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
                     tblProjectProperties?.items = listProjectProperties
                 }
                 menu.items.add(menuItem)
@@ -1598,8 +1559,8 @@ class ProjectEditFXController {
                 val option = alert.showAndWait()
                 if (option.get() == ButtonType.OK) {
                     saveCurrentProjectPropertyCdf()
-                    val id = propertyCdfController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id).id
-                    listProjectPropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+                    val id = Main.propertyCdfController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id).id
+                    listProjectPropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
                     tblProjectPropertiesCdf?.items = listProjectPropertiesCdf
                     currentProjectPropertyCdf = listProjectPropertiesCdf.filter { it.id == id }.first()
                     tblProjectPropertiesCdf?.selectionModel?.select(currentProjectPropertyCdf)
@@ -1609,7 +1570,7 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = propertyCdfRepo.getKeys(currentProject!!::class.java.simpleName, Main.ccid)
+            val listKeys = Main.propertyCdfController.getKeys(currentProject!!::class.java.simpleName, Main.ccid)
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -1620,8 +1581,8 @@ class ProjectEditFXController {
                     menuItem.text = key
                     menuItem.onAction = EventHandler { e: ActionEvent? ->
                         saveCurrentProjectPropertyCdf()
-                        val id = propertyCdfController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key).id
-                        listProjectPropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+                        val id = Main.propertyCdfController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key).id
+                        listProjectPropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
                         tblProjectPropertiesCdf?.items = listProjectPropertiesCdf
                         currentProjectPropertyCdf = listProjectPropertiesCdf.filter { it.id == id }.first()
                         tblProjectPropertiesCdf?.selectionModel?.select(currentProjectPropertyCdf)
@@ -1638,10 +1599,10 @@ class ProjectEditFXController {
                     saveCurrentProjectPropertyCdf()
                     listKeys.forEach { key ->
                         if (listProjectPropertiesCdf.filter { it.key == key }.isEmpty()) {
-                            propertyCdfController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key)
+                            Main.propertyCdfController.editOrCreate(currentProject!!::class.java.simpleName, currentProject!!.id, key)
                         }
                     }
-                    listProjectPropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+                    listProjectPropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
                     tblProjectPropertiesCdf?.items = listProjectPropertiesCdf
                 }
                 menu.items.add(menuItem)
@@ -1663,9 +1624,9 @@ class ProjectEditFXController {
             alert.contentText = "В случае утвердительного ответа свойство файла будет удалено из базы данных и его восстановление будет невозможно.\nВы уверены, что хотите удалить свойство файла?"
             val option = alert.showAndWait()
             if (option.get() == ButtonType.OK) {
-                propertyController.delete(currentFileProperty!!)
+                Main.propertyController.delete(currentFileProperty!!)
                 currentFileProperty = null
-                listFileProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                listFileProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                 tblFileProperties?.items = listFileProperties
 
                 btnFilePropertyMoveToFirst?.isDisable = currentFileProperty == null
@@ -1692,9 +1653,9 @@ class ProjectEditFXController {
             alert.contentText = "В случае утвердительного ответа свойство файла будет удалено из базы данных и его восстановление будет невозможно.\nВы уверены, что хотите удалить свойство файла?"
             val option = alert.showAndWait()
             if (option.get() == ButtonType.OK) {
-                propertyCdfController.delete(currentFilePropertyCdf!!)
+                Main.propertyCdfController.delete(currentFilePropertyCdf!!)
                 currentFilePropertyCdf = null
-                listFilePropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+                listFilePropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
                 tblFilePropertiesCdf?.items = listFilePropertiesCdf
 
                 btnFilePropertyCdfMoveToFirst?.isDisable = currentFilePropertyCdf == null
@@ -1721,9 +1682,9 @@ class ProjectEditFXController {
             alert.contentText = "В случае утвердительного ответа свойство проета будет удалено из базы данных и его восстановление будет невозможно.\nВы уверены, что хотите удалить свойство проекта?"
             val option = alert.showAndWait()
             if (option.get() == ButtonType.OK) {
-                propertyController.delete(currentProjectProperty!!)
+                Main.propertyController.delete(currentProjectProperty!!)
                 currentProjectProperty = null
-                listProjectProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+                listProjectProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
                 tblProjectProperties?.items = listProjectProperties
 
                 btnProjectPropertyMoveToFirst?.isDisable = currentProjectProperty == null
@@ -1751,9 +1712,9 @@ class ProjectEditFXController {
             alert.contentText = "В случае утвердительного ответа свойство проекта будет удалено из базы данных и его восстановление будет невозможно.\nВы уверены, что хотите удалить свойство проекта?"
             val option = alert.showAndWait()
             if (option.get() == ButtonType.OK) {
-                propertyCdfController.delete(currentProjectPropertyCdf!!)
+                Main.propertyCdfController.delete(currentProjectPropertyCdf!!)
                 currentProjectPropertyCdf = null
-                listProjectPropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+                listProjectPropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
                 tblProjectPropertiesCdf?.items = listProjectPropertiesCdf
 
                 btnProjectPropertyCdfMoveToFirst?.isDisable = currentProjectPropertyCdf == null
@@ -1793,8 +1754,8 @@ class ProjectEditFXController {
 
     fun doMoveFileProperty(reorderType: ReorderTypes) {
         val id = currentFileProperty?.id
-        currentFileProperty?.let { propertyController.reOrder(reorderType, it) }
-        listFileProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+        currentFileProperty?.let { Main.propertyController.reOrder(reorderType, it) }
+        listFileProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
         tblFileProperties?.items = listFileProperties
         currentFileProperty = listFileProperties.filter { it.id == id }.first()
         tblFileProperties?.selectionModel?.select(currentFileProperty)
@@ -1822,8 +1783,8 @@ class ProjectEditFXController {
 
     fun doMoveFilePropertyCdf(reorderType: ReorderTypes) {
         val id = currentFilePropertyCdf?.id
-        currentFilePropertyCdf?.let { propertyCdfController.reOrder(reorderType, it) }
-        listFilePropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
+        currentFilePropertyCdf?.let { Main.propertyCdfController.reOrder(reorderType, it) }
+        listFilePropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentFile!!::class.java.simpleName, currentFile!!.id))
         tblFilePropertiesCdf?.items = listFilePropertiesCdf
         currentFilePropertyCdf = listFilePropertiesCdf.filter { it.id == id }.first()
         tblFilePropertiesCdf?.selectionModel?.select(currentFilePropertyCdf)
@@ -1851,8 +1812,8 @@ class ProjectEditFXController {
 
     fun doMoveProjectProperty(reorderType: ReorderTypes) {
         val id = currentProjectProperty?.id
-        currentProjectProperty?.let { propertyController.reOrder(reorderType, it) }
-        listProjectProperties = FXCollections.observableArrayList(propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+        currentProjectProperty?.let { Main.propertyController.reOrder(reorderType, it) }
+        listProjectProperties = FXCollections.observableArrayList(Main.propertyController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
         tblProjectProperties?.items = listProjectProperties
         currentProjectProperty = listProjectProperties.filter { it.id == id }.first()
         tblProjectProperties?.selectionModel?.select(currentProjectProperty)
@@ -1901,8 +1862,8 @@ class ProjectEditFXController {
 
     fun doMoveProjectPropertyCdf(reorderType: ReorderTypes) {
         val id = currentProjectPropertyCdf?.id
-        currentProjectPropertyCdf?.let { propertyCdfController.reOrder(reorderType, it) }
-        listProjectPropertiesCdf = FXCollections.observableArrayList(propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
+        currentProjectPropertyCdf?.let { Main.propertyCdfController.reOrder(reorderType, it) }
+        listProjectPropertiesCdf = FXCollections.observableArrayList(Main.propertyCdfController.getListProperties(currentProject!!::class.java.simpleName, currentProject!!.id))
         tblProjectPropertiesCdf?.items = listProjectPropertiesCdf
         currentProjectPropertyCdf = listProjectPropertiesCdf.filter { it.id == id }.first()
         tblProjectPropertiesCdf?.selectionModel?.select(currentProjectPropertyCdf)
