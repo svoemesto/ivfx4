@@ -2,6 +2,7 @@ package com.svoemesto.ivfx.models
 
 import com.svoemesto.ivfx.enums.TagType
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -16,6 +17,7 @@ import javax.validation.constraints.NotNull
 @Component
 @Entity
 @Table(name = "tbl_tags")
+@Transactional
 class Tag {
 
     @NotNull(message = "ID тэга не может быть NULL")

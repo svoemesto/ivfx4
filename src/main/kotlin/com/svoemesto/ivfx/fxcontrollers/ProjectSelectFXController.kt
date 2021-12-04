@@ -1,25 +1,9 @@
 package com.svoemesto.ivfx.fxcontrollers
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.ReorderTypes
-import com.svoemesto.ivfx.SpringConfig
-import com.svoemesto.ivfx.controllers.FileCdfController
-import com.svoemesto.ivfx.controllers.FileController
-import com.svoemesto.ivfx.controllers.FrameController
-import com.svoemesto.ivfx.controllers.ProjectCdfController
-import com.svoemesto.ivfx.controllers.ProjectController
-import com.svoemesto.ivfx.controllers.PropertyController
-import com.svoemesto.ivfx.controllers.TrackController
 import com.svoemesto.ivfx.getCurrentDatabase
 import com.svoemesto.ivfx.models.Project
-import com.svoemesto.ivfx.repos.FileCdfRepo
-import com.svoemesto.ivfx.repos.FileRepo
-import com.svoemesto.ivfx.repos.FrameRepo
-import com.svoemesto.ivfx.repos.ProjectCdfRepo
-import com.svoemesto.ivfx.repos.ProjectRepo
-import com.svoemesto.ivfx.repos.PropertyCdfRepo
-import com.svoemesto.ivfx.repos.PropertyRepo
-import com.svoemesto.ivfx.repos.ShotRepo
-import com.svoemesto.ivfx.repos.TrackRepo
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.event.ActionEvent
@@ -35,7 +19,6 @@ import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.input.MouseButton
 import javafx.stage.Modality
 import javafx.stage.Stage
-import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import java.io.IOException
 
 class ProjectSelectFXController {
@@ -77,26 +60,6 @@ class ProjectSelectFXController {
         private var incomingProject: Project? = null
         private var listProjects: ObservableList<Project> = FXCollections.observableArrayList()
 
-        private val context = AnnotationConfigApplicationContext(SpringConfig::class.java)
-
-        private val propertyRepo = context.getBean("propertyRepo", PropertyRepo::class.java)
-        private val propertyCdfRepo = context.getBean("propertyCdfRepo", PropertyCdfRepo::class.java)
-        private val projectRepo = context.getBean("projectRepo", ProjectRepo::class.java)
-        private val projectCdfRepo = context.getBean("projectCdfRepo", ProjectCdfRepo::class.java)
-        private val fileRepo = context.getBean("fileRepo", FileRepo::class.java)
-        private val fileCdfRepo = context.getBean("fileCdfRepo", FileCdfRepo::class.java)
-        private val trackRepo = context.getBean("trackRepo", TrackRepo::class.java)
-        private val frameRepo = context.getBean("frameRepo", FrameRepo::class.java)
-        private val shotRepo = context.getBean("shotRepo", ShotRepo::class.java)
-
-        private val projectController = ProjectController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val projectCdfController = ProjectCdfController(projectCdfRepo)
-        private val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val fileCdfController = FileCdfController(fileCdfRepo)
-        private val trackController = TrackController(trackRepo, propertyRepo, propertyCdfRepo)
-        private val frameController = FrameController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        private val propertyController = PropertyController(propertyRepo)
-
         fun getProject(project: Project?): Project? {
             currentProject = project
             incomingProject = project
@@ -132,7 +95,7 @@ class ProjectSelectFXController {
         btnMoveToLast?.isDisable = true
         btnMoveDown?.isDisable = true
 
-        listProjects = FXCollections.observableArrayList(projectController.getListProjects())
+        listProjects = FXCollections.observableArrayList(Main.projectController.getListProjects())
 
         colOrder?.setCellValueFactory(PropertyValueFactory("order"))
         colName?.setCellValueFactory(PropertyValueFactory("name"))
@@ -189,8 +152,8 @@ class ProjectSelectFXController {
 
     fun doMove(reorderType: ReorderTypes) {
         val id = currentProject?.id
-        currentProject?.let { projectController.reOrder(reorderType, it) }
-        listProjects = FXCollections.observableArrayList(projectController.getListProjects())
+        currentProject?.let { Main.projectController.reOrder(reorderType, it) }
+        listProjects = FXCollections.observableArrayList(Main.projectController.getListProjects())
         tblProjects?.items = listProjects
         currentProject = listProjects.filter { it.id == id }.first()
         tblProjects?.selectionModel?.select(currentProject)

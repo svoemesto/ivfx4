@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.models
 
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -15,6 +16,7 @@ import javax.validation.constraints.NotNull
 @Component
 @Entity
 @Table(name = "tbl_projects_cdf")
+@Transactional
 class ProjectCdf {
 
     @NotNull(message = "ID projects_cdf не может быть NULL")

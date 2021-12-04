@@ -25,15 +25,7 @@ import java.io.File as IOFile
 
 @Controller
 //@Scope("prototype")
-class FileController(val projectRepo: ProjectRepo,
-                     val propertyRepo: PropertyRepo,
-                     val propertyCdfRepo: PropertyCdfRepo,
-                     val projectCdfRepo: ProjectCdfRepo,
-                     val fileRepo: FileRepo,
-                     val fileCdfRepo: FileCdfRepo,
-                     val frameRepo: FrameRepo,
-                     val trackRepo: TrackRepo,
-                     val shotRepo: ShotRepo) {
+class FileController() {
 
     class FileExt(val file: File) {
         var hasPreview: Boolean = false
@@ -56,10 +48,10 @@ class FileController(val projectRepo: ProjectRepo,
 
     fun getCdfFolder(file: File, folder: Folders, createFolderIfNotExist: Boolean = false): String {
         if (!isPropertyCdfPresent(file, folder.propertyCdfKey)) {
-            PropertyCdfController(propertyCdfRepo).getOrCreate(file::class.java.simpleName, file.id, folder.propertyCdfKey)
+            Main.propertyCdfController.getOrCreate(file::class.java.simpleName, file.id, folder.propertyCdfKey)
         }
         val propertyValue = getPropertyCdfValue(file, folder.propertyCdfKey)
-        val projectCdfFolder = ProjectController(projectRepo,propertyRepo,propertyCdfRepo,projectCdfRepo,fileRepo,fileCdfRepo,frameRepo,trackRepo, shotRepo).getCdfFolder(file.project, folder, createFolderIfNotExist)
+        val projectCdfFolder = Main.projectController.getCdfFolder(file.project, folder, createFolderIfNotExist)
         val fld = if (propertyValue == "") projectCdfFolder  + IOFile.separator + file.shortName else propertyValue
         try {
             if (createFolderIfNotExist && !IOFile(fld).exists()) IOFile(fld).mkdir()
@@ -131,17 +123,7 @@ class FileController(val projectRepo: ProjectRepo,
     }
 
     fun hasAnalyzedFrames(file: File): Boolean {
-        return ShotController(
-            projectRepo,
-            propertyRepo,
-            propertyCdfRepo,
-            projectCdfRepo,
-            fileRepo,
-            fileCdfRepo,
-            frameRepo,
-            trackRepo,
-            shotRepo
-        ).getListShots(file).isNotEmpty()
+        return Main.shotController.getListShots(file).isNotEmpty()
     }
 
     fun hasFaces(file: File): Boolean {
@@ -157,7 +139,7 @@ class FileController(val projectRepo: ProjectRepo,
     }
 
     fun getListFilesExt(project: Project): List<FileExt> {
-        val list = fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toList()
+        val list = getListFiles(project)
         val resultedList: MutableList<FileExt> = mutableListOf()
         list.forEach { file ->
             val fileExt = FileExt(file)
@@ -180,45 +162,63 @@ class FileController(val projectRepo: ProjectRepo,
         return resultedList
     }
 
-    fun getListFiles(project: Project): List<File> {
-        val list = fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toList()
-        list.forEach { FileCdfController(fileCdfRepo).getFileCdf(it) }
-        return fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toList()
+    fun getListFiles(project: Project): MutableList<File> {
+        val result = Main.fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toMutableList()
+        result.forEach { file ->
+            file.project = project
+            val cdf = Main.fileCdfController.getFileCdf(file)
+            file.cdfs = mutableListOf()
+            file.cdfs.add(cdf)
+
+            file.frames = Main.frameController.getListFrames(file)
+            file.shots = Main.shotController.getListShots(file)
+            file.tracks = Main.trackController.getListTracks(file)
+
+        }
+        return result
     }
 
     fun getProperties(file: File) : List<Property> {
-        return propertyRepo.findByParentClassAndParentId(file::class.simpleName!!, file.id).toList()
+        return Main.propertyRepo.findByParentClassAndParentId(file::class.simpleName!!, file.id).toList()
     }
 
     fun getPropertyValue(file: File, key: String) : String {
-        val property = propertyRepo.findByParentClassAndParentIdAndKey(file::class.simpleName!!, file.id, key).firstOrNull()
+        val property = Main.propertyRepo.findByParentClassAndParentIdAndKey(file::class.simpleName!!, file.id, key).firstOrNull()
         return property?.value ?: ""
     }
 
     fun isPropertyPresent(file: File, key: String) : Boolean {
-        return propertyRepo.findByParentClassAndParentIdAndKey(file::class.simpleName!!, file.id, key).any()
+        return Main.propertyRepo.findByParentClassAndParentIdAndKey(file::class.simpleName!!, file.id, key).any()
     }
 
     fun getPropertyCdfValue(file: File, key: String) : String {
-        val propertyCdf = propertyCdfRepo.findByParentClassAndParentIdAndComputerIdAndKey(file::class.simpleName!!, file.id, Main.ccid, key).firstOrNull()
+        val propertyCdf = Main.propertyCdfRepo.findByParentClassAndParentIdAndComputerIdAndKey(file::class.simpleName!!, file.id, Main.ccid, key).firstOrNull()
         return propertyCdf?.value ?: ""
     }
 
     fun isPropertyCdfPresent(file: File, key: String) : Boolean {
-        return propertyCdfRepo.findByParentClassAndParentIdAndComputerIdAndKey(file::class.simpleName!!, file.id, Main.ccid, key).any()
+        return Main.propertyCdfRepo.findByParentClassAndParentIdAndComputerIdAndKey(file::class.simpleName!!, file.id, Main.ccid, key).any()
     }
 
+    fun save(file: File) {
+        Main.fileRepo.save(file)
+    }
+
+    fun saveAll(files: Iterable<File>) {
+        files.forEach { save(it) }
+    }
 
     fun create(project: Project): File {
         val entity = File()
         entity.project = project
-        val lastEntity = fileRepo.getEntityWithGreaterOrder(project.id).firstOrNull()
+        val lastEntity = Main.fileRepo.getEntityWithGreaterOrder(project.id).firstOrNull()
         entity.order = if (lastEntity != null) lastEntity.order + 1 else 1
         entity.name = "New file ${entity.order} to project ${project.id}"
-        fileRepo.save(entity)
-        val propertyCdfController = PropertyCdfController(propertyCdfRepo)
+        entity.cdfs = mutableListOf()
+//        entity.cdfs.add(Main.fileCdfController.create(entity))
+        save(entity)
         Folders.values().forEach {
-            propertyCdfController.editOrCreate(entity::class.java.simpleName, entity.id, it.propertyCdfKey)
+            Main.propertyCdfController.editOrCreate(entity::class.java.simpleName, entity.id, it.propertyCdfKey)
         }
         return entity
     }
@@ -226,59 +226,57 @@ class FileController(val projectRepo: ProjectRepo,
     // удаление файла
     fun delete(file: File) {
         reOrder(ReorderTypes.MOVE_TO_LAST, file)
-        propertyRepo.deleteAll(file::class.java.simpleName, file.id)
-        propertyCdfRepo.deleteAll(file::class.java.simpleName, file.id)
-        fileCdfRepo.deleteAll(file.id)
-        file.frames.forEach{ frame ->
-            propertyRepo.deleteAll(frame::class.java.simpleName, frame.id)
-            propertyCdfRepo.deleteAll(frame::class.java.simpleName, frame.id)
-        }
-        frameRepo.deleteAll(file.id)
-        file.tracks.forEach{ track ->
-            propertyRepo.deleteAll(track::class.java.simpleName, track.id)
-            propertyCdfRepo.deleteAll(track::class.java.simpleName, track.id)
-        }
-        trackRepo.deleteAll(file.id)
+        Main.frameController.deleteAll(file)
+        Main.trackController.deleteAll(file)
+        Main.shotController.deleteAll(file)
 
-        fileRepo.delete(file.id)
+        Main.propertyController.deleteAll(file::class.java.simpleName, file.id)
+        Main.propertyCdfController.deleteAll(file::class.java.simpleName, file.id)
+        Main.fileCdfController.deleteAll(file)
+        Main.fileRepo.delete(file)
     }
 
+    fun deleteAll(project: Project) {
+        getListFiles(project).forEach { file ->
+            delete(file)
+        }
+    }
 
     fun reOrder(reorderType: ReorderTypes, file: File) {
 
         when (reorderType) {
             ReorderTypes.MOVE_DOWN -> {
-                val nextEntity = fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(file.project.id, file.order).firstOrNull()
+                val nextEntity = Main.fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(file.project.id, file.order).firstOrNull()
                 if (nextEntity != null) {
                     nextEntity.order -= 1
                     file.order += 1
-                    fileRepo.save(file)
-                    fileRepo.save(nextEntity)
+                    save(file)
+                    save(nextEntity)
                 }
             }
             ReorderTypes.MOVE_UP -> {
-                val previousEntity = fileRepo.findByProjectIdAndOrderLessThanOrderByOrderDesc(file.project.id, file.order).firstOrNull()
+                val previousEntity = Main.fileRepo.findByProjectIdAndOrderLessThanOrderByOrderDesc(file.project.id, file.order).firstOrNull()
                 if (previousEntity != null) {
                     previousEntity.order += 1
                     file.order -= 1
-                    fileRepo.save(file)
-                    fileRepo.save(previousEntity)
+                    save(file)
+                    save(previousEntity)
                 }
             }
             ReorderTypes.MOVE_TO_FIRST -> {
-                val previousEntities = fileRepo.findByProjectIdAndOrderLessThanOrderByOrderDesc(file.project.id, file.order)
+                val previousEntities = Main.fileRepo.findByProjectIdAndOrderLessThanOrderByOrderDesc(file.project.id, file.order)
                 previousEntities.forEach{it.order++}
-                fileRepo.saveAll(previousEntities)
+                saveAll(previousEntities)
                 file.order = 1
-                fileRepo.save(file)
+                save(file)
             }
             ReorderTypes.MOVE_TO_LAST -> {
-                val nextEntities = fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(file.project.id, file.order).toList()
+                val nextEntities = Main.fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(file.project.id, file.order).toList()
                 if (nextEntities.isNotEmpty()) {
                     nextEntities.forEach{it.order--}
-                    fileRepo.saveAll(nextEntities)
+                    saveAll(nextEntities)
                     file.order = (nextEntities.lastOrNull()?.order ?: 0) + 1
-                    fileRepo.save(file)
+                    save(file)
                 }
             }
         }

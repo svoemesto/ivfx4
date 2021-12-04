@@ -1,17 +1,18 @@
 package com.svoemesto.ivfx.controllers
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.ProjectCdf
-import com.svoemesto.ivfx.repos.ProjectCdfRepo
 import org.springframework.stereotype.Controller
 
 @Controller
 //@Scope("prototype")
-class ProjectCdfController(val repo: ProjectCdfRepo) {
+class ProjectCdfController() {
 
     fun getProjectCdf(project: Project): ProjectCdf {
-        val cdf = repo.findByProjectIdAndComputerId(project.id, Main.ccid).firstOrNull()
+        val cdf = Main.projectCdfRepo.findByProjectIdAndComputerId(project.id, Main.ccid).firstOrNull()
+        if (cdf != null) cdf.project = project
         return cdf ?: create(project)
     }
 
@@ -19,8 +20,23 @@ class ProjectCdfController(val repo: ProjectCdfRepo) {
         val entity = ProjectCdf()
         entity.project = project
         entity.computerId = Main.ccid
-        repo.save(entity)
+        Main.projectCdfRepo.save(entity)
         return entity
     }
 
+    fun save(projectCdf: ProjectCdf) {
+        Main.projectCdfRepo.save(projectCdf)
+    }
+
+    fun delete(projectCdf: ProjectCdf) {
+        Main.propertyController.deleteAll(projectCdf::class.java.simpleName, projectCdf.id)
+        Main.propertyCdfController.deleteAll(projectCdf::class.java.simpleName, projectCdf.id)
+        Main.projectCdfRepo.delete(projectCdf)
+    }
+
+    fun deleteAll(project: Project) {
+        Main.projectCdfRepo.findByProjectId(project.id).forEach { projectCdf ->
+            delete(projectCdf)
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.controllers
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Frame
@@ -18,67 +19,74 @@ import java.io.File as IOFile
 
 @Controller
 //@Scope("prototype")
-class FrameController(val projectRepo: ProjectRepo,
-                      val propertyRepo: PropertyRepo,
-                      val propertyCdfRepo: PropertyCdfRepo,
-                      val projectCdfRepo: ProjectCdfRepo,
-                      val fileRepo: FileRepo,
-                      val fileCdfRepo: FileCdfRepo,
-                      val frameRepo: FrameRepo,
-                      val trackRepo: TrackRepo,
-                      val shotRepo: ShotRepo) {
+class FrameController() {
 
     fun getProperties(frame: Frame) : List<Property> {
-        return propertyRepo.findByParentClassAndParentId(frame::class.simpleName!!, frame.id).toList()
+        return Main.propertyRepo.findByParentClassAndParentId(frame::class.simpleName!!, frame.id).toList()
     }
 
     fun getOrCreate(file: File, frameNumber: Int): Frame {
-        var entity = frameRepo.findByFileIdAndFrameNumber(file.id, frameNumber).firstOrNull()
+        var entity = Main.frameRepo.findByFileIdAndFrameNumber(file.id, frameNumber).firstOrNull()
         if (entity == null) {
             entity = Frame()
             entity.file = file
             entity.frameNumber = frameNumber
-            frameRepo.save(entity)
+            save(entity)
+        } else {
+            entity.file = file
         }
         return entity
     }
 
-    fun getListFrames(file: File): List<Frame> {
-        return frameRepo.findByFileIdAndFrameNumberGreaterThanOrderByFrameNumber(file.id,0).toList()
+    fun getListFrames(file: File): MutableList<Frame> {
+        val result = Main.frameRepo.findByFileIdAndFrameNumberGreaterThanOrderByFrameNumber(file.id,0).toMutableList()
+        result.forEach { it.file = file }
+        return result
     }
 
     fun getPropertyValue(frame: Frame, key: String) : String {
-        val property = propertyRepo.findByParentClassAndParentIdAndKey(frame::class.simpleName!!, frame.id, key).firstOrNull()
+        val property = Main.propertyRepo.findByParentClassAndParentIdAndKey(frame::class.simpleName!!, frame.id, key).firstOrNull()
         return property?.value ?: ""
     }
 
     fun isPropertyPresent(frame: Frame, key: String) : Boolean {
-        return propertyRepo.findByParentClassAndParentIdAndKey(frame::class.simpleName!!, frame.id, key).any()
+        return Main.propertyRepo.findByParentClassAndParentIdAndKey(frame::class.simpleName!!, frame.id, key).any()
     }
 
+    fun save(frame: Frame) {
+        Main.frameRepo.save(frame)
+    }
+
+    fun delete(frame: Frame) {
+        Main.propertyController.deleteAll(frame::class.java.simpleName, frame.id)
+        Main.propertyCdfController.deleteAll(frame::class.java.simpleName, frame.id)
+        Main.frameRepo.delete(frame)
+    }
+
+    fun deleteAll(file: File) {
+        getListFrames(file).forEach { frame ->
+            Main.propertyController.deleteAll(frame::class.java.simpleName, frame.id)
+            Main.propertyCdfController.deleteAll(frame::class.java.simpleName, frame.id)
+        }
+        Main.frameRepo.deleteAll(file.id)
+    }
     fun create(file: File, frameNumber: Int): Frame {
         val entity = Frame()
         entity.file = file
         entity.frameNumber = frameNumber
-        frameRepo.save(entity)
+        save(entity)
         return entity
     }
 
     fun getFileNameFrameSmall(frame: Frame): String {
-        val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        val fld = fileController.getCdfFolder(frame.file, Folders.FRAMES_SMALL)
-        return "$fld${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
+        return "${Main.fileController.getCdfFolder(frame.file, Folders.FRAMES_SMALL)}${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     }
 
     fun getFileNameFrameMedium(frame: Frame): String {
-        val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        val fld = fileController.getCdfFolder(frame.file, Folders.FRAMES_MEDIUM)
-        return "$fld${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
+        return "${Main.fileController.getCdfFolder(frame.file, Folders.FRAMES_MEDIUM)}${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     }
 
     fun getFileNameFrameFull(frame: Frame): String {
-        val fileController = FileController(projectRepo, propertyRepo, propertyCdfRepo, projectCdfRepo, fileRepo, fileCdfRepo, frameRepo, trackRepo, shotRepo)
-        val fld = fileController.getCdfFolder(frame.file, Folders.FRAMES_FULL)
-        return "$fld${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
+        return "${Main.fileController.getCdfFolder(frame.file, Folders.FRAMES_FULL)}${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     }
 }
