@@ -1,10 +1,8 @@
 package com.svoemesto.ivfx.threads
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.FileController.FileExt
-import com.svoemesto.ivfx.controllers.FrameController
-import com.svoemesto.ivfx.controllers.ShotController
+import com.svoemesto.ivfx.controllers.FrameController.FrameExt
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.utils.getListIFrames
@@ -36,12 +34,8 @@ class AnalyzeFrames(var fileExt: FileExt,
         val fps: Double = Main.fileController.getFps(fileExt.file)
         val framesCount: Int = Main.fileController.getFramesCount(fileExt.file)
 
-        // удаляем все фреймы файла
-        Main.frameController.deleteAll(fileExt.file)
-
         // создаем новые фреймы
-
-
+        Main.frameController.createFrames(fileExt.file)
 
         Settings.MinSimilarity = 0.0
         var simScore: Double
@@ -59,9 +53,8 @@ class AnalyzeFrames(var fileExt: FileExt,
 
         // 1. создаем список кадров и заполяем его номером, файлом и признаком isIFrame
         currentBlock++
-        val listFrames: MutableList<Frame> = mutableListOf()
+        val listFramesExt = Main.frameController.getListFramesExt(fileExt.file)
         for (frameNumber in 1..framesCount) {
-
             val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
             val percentage2: Double = ((currentBlock-1) + frameNumber/framesCount.toDouble() ) / countBlocks.toDouble()
@@ -72,17 +65,14 @@ class AnalyzeFrames(var fileExt: FileExt,
                 lbl2.text = "Create list Frames [$frameNumber/$framesCount]"
                 pb2.progress = percentage2
             }
-
-            val frame: Frame = Main.frameController.getOrCreate(fileExt.file, frameNumber)
-            frame.isIFrame = listIFrames.contains(frameNumber)
-//            frameController.save(frame)
-            listFrames.add(frame)
+            val frameExt: FrameExt = listFramesExt.first { it.frame.frameNumber == frameNumber }
+            frameExt.frame.isIFrame = listIFrames.contains(frameNumber)
 
         }
 
         // 2. заполняем simScore's
         currentBlock++
-        for (i in 0 until listFrames.size - 1) {
+        for (i in 0 until listFramesExt.size - 1) {
 
             val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
@@ -95,47 +85,39 @@ class AnalyzeFrames(var fileExt: FileExt,
                 pb2.progress = percentage2
             }
 
-            val currentFrame: Frame = listFrames[i]
-            val frameNext1: Frame? = if (i < listFrames.size - 1) listFrames[i + 1] else null
-            val frameNext2: Frame? = if (i < listFrames.size - 2) listFrames[i + 2] else null
-            val frameNext3: Frame? = if (i < listFrames.size - 3) listFrames[i + 3] else null
+            val currentFrameExt: FrameExt = listFramesExt[i]
+            val frameNextExt1: FrameExt? = if (i < listFramesExt.size - 1) listFramesExt[i + 1] else null
+            val frameNextExt2: FrameExt? = if (i < listFramesExt.size - 2) listFramesExt[i + 2] else null
+            val frameNextExt3: FrameExt? = if (i < listFramesExt.size - 3) listFramesExt[i + 3] else null
             simScore = 0.9999
-            if (frameNext1 != null) {
-                val fileName1: String = Main.frameController.getFileNameFrameSmall(currentFrame)
-                val fileName2: String = Main.frameController.getFileNameFrameSmall(frameNext1)
-                val f = Finder(fileName1)
-                val targetImage = Pattern(fileName2)
-                f.find(targetImage)
-                val match: Match = f.next()
-                simScore = match.score
-                frameNext1.simScorePrev1 = simScore
+            if (frameNextExt1 != null) {
+                val f = Finder(currentFrameExt.pathToSmall)
+                f.find(Pattern(frameNextExt1.pathToSmall))
+                simScore = if (f.hasNext()) f.next().score else 0.0
+                frameNextExt1.frame.simScorePrev1 = simScore
             }
-            currentFrame.simScoreNext1 = simScore
+            currentFrameExt.frame.simScoreNext1 = simScore
             simScore = 0.9999
-            if (frameNext2 != null) {
-                val f = Finder(Main.frameController.getFileNameFrameSmall(currentFrame))
-                val targetImage = Pattern(Main.frameController.getFileNameFrameSmall(frameNext2))
-                f.find(targetImage)
-                val match: Match = f.next()
-                simScore = match.score
-                frameNext2.simScorePrev2 = simScore
+            if (frameNextExt2 != null) {
+                val f = Finder(currentFrameExt.pathToSmall)
+                f.find(Pattern(frameNextExt2.pathToSmall))
+                simScore = if (f.hasNext()) f.next().score else 0.0
+                frameNextExt2.frame.simScorePrev2 = simScore
             }
-            currentFrame.simScoreNext2 = simScore
+            currentFrameExt.frame.simScoreNext2 = simScore
             simScore = 0.9999
-            if (frameNext3 != null) {
-                val f = Finder(Main.frameController.getFileNameFrameSmall(currentFrame))
-                val targetImage = Pattern(Main.frameController.getFileNameFrameSmall(frameNext3))
-                f.find(targetImage)
-                val match: Match = f.next()
-                simScore = match.score
-                frameNext3.simScorePrev3 = simScore
+            if (frameNextExt3 != null) {
+                val f = Finder(currentFrameExt.pathToSmall)
+                f.find(Pattern(frameNextExt3.pathToSmall))
+                simScore = if (f.hasNext()) f.next().score else 0.0
+                frameNextExt3.frame.simScorePrev3 = simScore
             }
-            currentFrame.simScoreNext3 = simScore
+            currentFrameExt.frame.simScoreNext3 = simScore
         }
 
         // 3. заполняем diff's
         currentBlock++
-        for (i in 0 until listFrames.size - 1) {
+        for (i in 0 until listFramesExt.size - 1) {
 
             val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
@@ -148,43 +130,43 @@ class AnalyzeFrames(var fileExt: FileExt,
                 pb2.progress = percentage2
             }
 
-            val currentFrame: Frame = listFrames[i]
-            val framePrev1: Frame? = if (i > 0) listFrames[i - 1] else null
-            val framePrev2: Frame? = if (i > 1) listFrames[i - 2] else null
-            val frameNext1: Frame? = if (i < listFrames.size - 1) listFrames[i + 1] else null
-            val frameNext2: Frame? = if (i < listFrames.size - 2) listFrames[i + 2] else null
+            val currentFrameExt: FrameExt = listFramesExt[i]
+            val framePrevExt1: FrameExt? = if (i > 0) listFramesExt[i - 1] else null
+            val framePrevExt2: FrameExt? = if (i > 1) listFramesExt[i - 2] else null
+            val frameNextExt1: FrameExt? = if (i < listFramesExt.size - 1) listFramesExt[i + 1] else null
+            val frameNextExt2: FrameExt? = if (i < listFramesExt.size - 2) listFramesExt[i + 2] else null
             var diffNext: Double
             diffNext = 0.0
-            if (frameNext1 != null) {
-                diffNext = currentFrame.simScoreNext1 - frameNext1.simScoreNext1
+            if (frameNextExt1 != null) {
+                diffNext = currentFrameExt.frame.simScoreNext1 - frameNextExt1.frame.simScoreNext1
                 if (diffNext < 0) diffNext = -diffNext
             }
-            currentFrame.diffNext1 = diffNext
+            currentFrameExt.frame.diffNext1 = diffNext
             diffNext = 0.0
-            if (frameNext1 != null && frameNext2 != null) {
-                diffNext = frameNext1.simScoreNext1 - frameNext2.simScoreNext1
+            if (frameNextExt1 != null && frameNextExt2 != null) {
+                diffNext = frameNextExt1.frame.simScoreNext1 - frameNextExt2.frame.simScoreNext1
                 if (diffNext < 0) diffNext = -diffNext
             }
-            currentFrame.diffNext2 = diffNext
+            currentFrameExt.frame.diffNext2 = diffNext
             diffNext = 0.0
-            if (framePrev1 != null) {
-                diffNext = framePrev1.simScoreNext1 - currentFrame.simScoreNext1
+            if (framePrevExt1 != null) {
+                diffNext = framePrevExt1.frame.simScoreNext1 - currentFrameExt.frame.simScoreNext1
                 if (diffNext < 0) diffNext = -diffNext
             }
-            currentFrame.diffPrev1 = diffNext
+            currentFrameExt.frame.diffPrev1 = diffNext
             diffNext = 0.0
-            if (framePrev1 != null && framePrev2 != null) {
-                diffNext = framePrev2.simScoreNext1 - framePrev1.simScoreNext1
+            if (framePrevExt1 != null && framePrevExt2 != null) {
+                diffNext = framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1
                 if (diffNext < 0) diffNext = -diffNext
             }
-            currentFrame.diffPrev2 = diffNext
+            currentFrameExt.frame.diffPrev2 = diffNext
         }
 
         // 4. находим переходы
         currentBlock++
         val diff1 = 0.4 //Порог обнаружения перехода
         val diff2 = 0.42 //Вторичный порог
-        for (i in 0 until listFrames.size - 1) {
+        for (i in 0 until listFramesExt.size - 1) {
 
             val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
@@ -197,53 +179,61 @@ class AnalyzeFrames(var fileExt: FileExt,
                 pb2.progress = percentage2
             }
 
-            val frame: Frame = listFrames[i]
+            val frameExt: FrameExt = listFramesExt[i]
 
-            if (frame.simScorePrev1 < diff1) {
-                if (frame.diffPrev1 > diff2 || frame.diffPrev2 > diff2) {
-                    frame.isFind = true
-                    frame.isManualAdd = false
-                    frame.isManualCancel = false
-                    frame.isFinalFind = false
+            if (frameExt.frame.simScorePrev1 < diff1) {
+                if (frameExt.frame.diffPrev1 > diff2 || frameExt.frame.diffPrev2 > diff2) {
+                    frameExt.frame.isFind = true
+                    frameExt.frame.isManualAdd = false
+                    frameExt.frame.isManualCancel = false
+                    frameExt.frame.isFinalFind = true
                 } else {
-                    frame.isFind = false
-                    frame.isManualAdd = false
-                    frame.isManualCancel = false
-                    frame.isFinalFind = false
+                    frameExt.frame.isFind = false
+                    frameExt.frame.isManualAdd = false
+                    frameExt.frame.isManualCancel = false
+                    frameExt.frame.isFinalFind = false
                 }
-            } else if (frame.diffPrev1 > diff2 && frame.diffPrev2 > diff2 && frame.simScoreNext1 > diff1) {
-                frame.isFind = true
-                frame.isManualAdd = false
-                frame.isManualCancel = false
-                frame.isFinalFind = false
+            } else if (frameExt.frame.diffPrev1 > diff2 && frameExt.frame.diffPrev2 > diff2 && frameExt.frame.simScoreNext1 > diff1) {
+                frameExt.frame.isFind = true
+                frameExt.frame.isManualAdd = false
+                frameExt.frame.isManualCancel = false
+                frameExt.frame.isFinalFind = true
             } else {
-                frame.isFind = false
-                frame.isManualAdd = false
-                frame.isManualCancel = false
-                frame.isFinalFind = false
+                frameExt.frame.isFind = false
+                frameExt.frame.isManualAdd = false
+                frameExt.frame.isManualCancel = false
+                frameExt.frame.isFinalFind = false
             }
 
         }
 
         // 5. сохраняем фреймы
         currentBlock++
-        for (i in 0 until listFrames.size - 1) {
-
-            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
-            val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-            val percentage2: Double = ((currentBlock-1) + (i+1)/framesCount.toDouble() ) / countBlocks.toDouble()
-            val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
-            Platform.runLater {
-                lbl1.text = textLbl1
-                pb1.progress = percentage1
-                lbl2.text = "Saving frames [$i/$framesCount]"
-                pb2.progress = percentage2
-            }
-
-            val frame: Frame = listFrames[i]
-
-            Main.frameController.save(frame)
+        Platform.runLater {
+            lbl1.text = textLbl1
+            lbl2.text = "Saving frames"
         }
+        val listFrames: MutableList<Frame> = mutableListOf()
+        listFramesExt.forEach{ listFrames.add(it.frame)}
+        Main.frameRepo.saveAll(listFrames)
+
+//        for (i in 0 until listFramesExt.size - 1) {
+//
+//            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
+//            val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
+//            val percentage2: Double = ((currentBlock-1) + (i+1)/framesCount.toDouble() ) / countBlocks.toDouble()
+//            val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
+//            Platform.runLater {
+//                lbl1.text = textLbl1
+//                pb1.progress = percentage1
+//                lbl2.text = "Saving frames [$i/$framesCount]"
+//                pb2.progress = percentage2
+//            }
+//
+//            val frameExt: FrameExt = listFramesExt[i]
+//
+//            Main.frameController.save(frameExt.frame)
+//        }
 
         // 6. Создаем планы
         currentBlock++
@@ -255,7 +245,7 @@ class AnalyzeFrames(var fileExt: FileExt,
         val listShotsTmp: List<Shot> = Main.shotController.getListShots(fileExt.file)
         val listShots: MutableList<Shot> = mutableListOf()
 
-        for (i in 0 until listFrames.size - 1) {
+        for (i in 0 until listFramesExt.size - 1) {
 
             val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
@@ -268,11 +258,11 @@ class AnalyzeFrames(var fileExt: FileExt,
                 pb2.progress = percentage2
             }
 
-            val frame: Frame = listFrames[i]
+            val frameExt: FrameExt = listFramesExt[i]
 
-            if (frame.isIFrame) currentIFrame = frame.frameNumber
-            currentFrameNumber = frame.frameNumber
-            if (frame.isFinalFind) {
+            if (frameExt.frame.isIFrame) currentIFrame = frameExt.frame.frameNumber
+            currentFrameNumber = frameExt.frame.frameNumber
+            if (frameExt.frame.isFinalFind) {
                 lastFrameNumber = currentFrameNumber - 1
                 val tmpShot = Shot()
                 tmpShot.file = fileExt.file

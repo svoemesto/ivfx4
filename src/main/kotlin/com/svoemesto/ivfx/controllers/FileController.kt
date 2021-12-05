@@ -170,8 +170,8 @@ class FileController() {
             file.cdfs = mutableListOf()
             file.cdfs.add(cdf)
 
-            file.frames = Main.frameController.getListFrames(file)
-            file.shots = Main.shotController.getListShots(file)
+//            file.frames = Main.frameController.getListFrames(file)
+//            file.shots = Main.shotController.getListShots(file)
             file.tracks = Main.trackController.getListTracks(file)
 
         }
