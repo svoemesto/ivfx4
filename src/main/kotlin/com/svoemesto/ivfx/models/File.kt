@@ -55,6 +55,10 @@ class File {
 
     @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
+    var faces: MutableList<Face> = mutableListOf()
+
+    @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SUBSELECT)
     var cdfs: MutableList<FileCdf> = mutableListOf()
 
     @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
