@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.ReorderTypes
+import com.svoemesto.ivfx.fxcontrollers.ProjectEditFXController
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
@@ -61,64 +62,103 @@ class FileController() {
         return fld
     }
 
+    fun initializeTransientFields(file: File) {
+        file.folderLossless = getFolderLossless(file)
+        file.folderPreview = getFolderPreview(file)
+        file.folderFavorites = getFolderFavorites(file)
+        file.folderShots = getFolderShots(file)
+        file.folderFramesSmall = getFolderFramesSmall(file)
+        file.folderFramesMedium = getFolderFramesMedium(file)
+        file.folderFramesFull = getFolderFramesFull(file)
+        file.fps = getFps(file)
+        file.framesCount = getFramesCount(file)
+    }
+
+    fun getFolderLossless(file: File): String{
+        val value = Main.propertyCdfController.getOrCreate(file::class.java.simpleName, file.id, Folders.LOSSLESS.propertyCdfKey)
+        return if (value == "") file.project.folderLossless + IOFile.separator + file.shortName else value
+    }
+
+    fun getFolderPreview(file: File): String{
+        val value = Main.propertyCdfController.getOrCreate(file::class.java.simpleName, file.id, Folders.PREVIEW.propertyCdfKey)
+        return if (value == "") file.project.folderPreview + IOFile.separator + file.shortName else value
+    }
+
+    fun getFolderFavorites(file: File): String{
+        val value = Main.propertyCdfController.getOrCreate(file::class.java.simpleName, file.id, Folders.FAVORITES.propertyCdfKey)
+        return if (value == "") file.project.folderFavorites + IOFile.separator + file.shortName else value
+    }
+
+    fun getFolderShots(file: File): String{
+        val value = Main.propertyCdfController.getOrCreate(file::class.java.simpleName, file.id, Folders.SHOTS.propertyCdfKey)
+        return if (value == "") file.project.folderShots + IOFile.separator + file.shortName else value
+    }
+
+    fun getFolderFramesSmall(file: File): String{
+        val value = Main.propertyCdfController.getOrCreate(file::class.java.simpleName, file.id, Folders.FRAMES_SMALL.propertyCdfKey)
+        return if (value == "") file.project.folderFramesSmall + IOFile.separator + file.shortName else value
+    }
+
+    fun getFolderFramesMedium(file: File): String{
+        val value = Main.propertyCdfController.getOrCreate(file::class.java.simpleName, file.id, Folders.FRAMES_MEDIUM.propertyCdfKey)
+        return if (value == "") file.project.folderFramesMedium + IOFile.separator + file.shortName else value
+    }
+
+    fun getFolderFramesFull(file: File): String{
+        val value = Main.propertyCdfController.getOrCreate(file::class.java.simpleName, file.id, Folders.FRAMES_FULL.propertyCdfKey)
+        return if (value == "") file.project.folderFramesFull + IOFile.separator + file.shortName else value
+    }
+
     fun getFFmpegProbeResult(file: File): FFmpegProbeResult {
         return FFprobe(IvfxFFmpegUtils.FFPROBE_PATH).probe(file.path)
     }
 
     fun hasLossless(file: File): Boolean {
-        return IOFile(getLossless(file)).exists()
+        return IOFile(file.folderLossless).exists()
     }
 
     fun hasPreview(file: File): Boolean {
-        return IOFile(getPreview(file)).exists()
+        return IOFile(file.folderPreview).exists()
     }
 
     fun getLossless(file: File, createFolderIfNotExist: Boolean = false): String {
-        val folder = getCdfFolder(file, Folders.LOSSLESS, createFolderIfNotExist)
-        return if (folder == "") "" else folder + IOFile.separator + file.shortName + "_lossless.mkv"
+        return if (file.folderLossless == "") "" else file.folderLossless + IOFile.separator + file.shortName + "_lossless.mkv"
     }
 
     fun getPreview(file: File, createFolderIfNotExist: Boolean = false): String {
-        val folder = getCdfFolder(file, Folders.PREVIEW, createFolderIfNotExist)
-        return if (folder == "") "" else folder + IOFile.separator + file.shortName + "_preview.mp4"
+        return if (file.folderPreview == "") "" else file.folderPreview + IOFile.separator + file.shortName + "_preview.mp4"
     }
 
     fun hasFramesSmall(file: File): Boolean {
-        val countFrames = getFramesCount(file)
-        val fld = getCdfFolder(file, Folders.FRAMES_SMALL)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
         val frameFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}\\.jpg\$")
 
-        return if (!IOFile(fld).exists()) {
+        return if (!IOFile(file.folderFramesSmall).exists()) {
             false
         } else {
-            countFrames == (IOFile(fld).listFiles { _, name -> name.contains(frameFilenameRegex) }?.size ?: 0)
+            file.framesCount == (IOFile(file.folderFramesSmall).listFiles { _, name -> name.contains(frameFilenameRegex) }?.size ?: 0)
         }
     }
 
     fun hasFramesMedium(file: File): Boolean {
-        val countFrames = getFramesCount(file)
-        val fld = getCdfFolder(file, Folders.FRAMES_MEDIUM)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
         val frameFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}\\.jpg\$")
 
-        return if (!IOFile(fld).exists()) {
+        return if (!IOFile(file.folderFramesMedium).exists()) {
             false
         } else {
-            countFrames == (IOFile(fld).listFiles { _, name -> name.contains(frameFilenameRegex) }?.size ?: 0)
+            file.framesCount == (IOFile(file.folderFramesMedium).listFiles { _, name -> name.contains(frameFilenameRegex) }?.size ?: 0)
         }
     }
 
     fun hasFramesFull(file: File): Boolean {
-        val countFrames = getFramesCount(file)
-        val fld = getCdfFolder(file, Folders.FRAMES_FULL)
         val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
         val frameFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}\\.jpg\$")
 
-        return if (!IOFile(fld).exists()) {
+        return if (!IOFile(file.folderFramesFull).exists()) {
             false
         } else {
-            countFrames == (IOFile(fld).listFiles { _, name -> name.contains(frameFilenameRegex) }?.size ?: 0)
+            file.framesCount == (IOFile(file.folderFramesFull).listFiles { _, name -> name.contains(frameFilenameRegex) }?.size ?: 0)
         }
     }
 
@@ -127,8 +167,8 @@ class FileController() {
     }
 
     fun hasFaces(file: File): Boolean {
-        if (getCdfFolder(file, Folders.FRAMES_FULL) != "") {
-            val fld = IOFile(getCdfFolder(file, Folders.FRAMES_FULL)).parent
+        if (file.folderFramesFull != "") {
+            val fld = file.folderFramesFull + ".faces"
             if (IOFile(fld).exists()) {
                 val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
                 val faceFilenameRegex = Regex("^\\b${fileNameRegexp}_frame_\\b\\d{6}_face_\\d{2}\\.\\bjpg\\b\$")
@@ -166,14 +206,15 @@ class FileController() {
         val result = Main.fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toMutableList()
         result.forEach { file ->
             file.project = project
+
             val cdf = Main.fileCdfController.getFileCdf(file)
             file.cdfs = mutableListOf()
             file.cdfs.add(cdf)
 
+            initializeTransientFields(file)
 //            file.frames = Main.frameController.getListFrames(file)
 //            file.shots = Main.shotController.getListShots(file)
             file.tracks = Main.trackController.getListTracks(file)
-
         }
         return result
     }
@@ -208,18 +249,27 @@ class FileController() {
         files.forEach { save(it) }
     }
 
-    fun create(project: Project): File {
+    fun create(project: Project, path: String): File {
         val entity = File()
         entity.project = project
         val lastEntity = Main.fileRepo.getEntityWithGreaterOrder(project.id).firstOrNull()
         entity.order = if (lastEntity != null) lastEntity.order + 1 else 1
-        entity.name = "New file ${entity.order} to project ${project.id}"
-        entity.cdfs = mutableListOf()
-//        entity.cdfs.add(Main.fileCdfController.create(entity))
+        entity.name = IOFile(path).nameWithoutExtension
+        entity.shortName = entity.name
         save(entity)
+
+        entity.cdfs = mutableListOf()
+        val cdf = Main.fileCdfController.create(entity)
+        cdf.path = path
+        Main.fileCdfController.save(cdf)
+        entity.cdfs.add(cdf)
+
+        Main.fileCdfController.save(entity.cdfs.first())
         Folders.values().forEach {
             Main.propertyCdfController.editOrCreate(entity::class.java.simpleName, entity.id, it.propertyCdfKey)
         }
+        Main.trackController.createTracksFromMediaInfo(entity)
+        initializeTransientFields(entity)
         return entity
     }
 

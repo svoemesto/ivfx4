@@ -49,9 +49,9 @@ class FrameController() {
 
     fun getListFramesExt(file: File): MutableList<FrameExt> {
         val listFrames = getListFrames(file)
-        val pathToFramesSmall = Main.fileController.getCdfFolder(file, Folders.FRAMES_SMALL) + IOFile.separator
-        val pathToFramesMedium = Main.fileController.getCdfFolder(file, Folders.FRAMES_MEDIUM) + IOFile.separator
-        val pathToFramesFull = Main.fileController.getCdfFolder(file, Folders.FRAMES_MEDIUM) + IOFile.separator
+        val pathToFramesSmall = file.folderFramesSmall + IOFile.separator
+        val pathToFramesMedium = file.folderFramesMedium + IOFile.separator
+        val pathToFramesFull = file.folderFramesFull + IOFile.separator
         var result: MutableList<FrameExt> = mutableListOf()
         listFrames.forEach { frame ->
             val fileName = "${file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
@@ -78,7 +78,7 @@ class FrameController() {
                 "(SELECT 0 a6 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 " +
                 "UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) t6 " +
                 "order by frameNumber " +
-                "limit ${Main.fileController.getFramesCount(file)}"
+                "limit ${file.framesCount}"
         val st = Main.connection.createStatement()
         st.execute(sql)
 
