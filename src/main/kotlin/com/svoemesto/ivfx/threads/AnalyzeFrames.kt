@@ -217,24 +217,6 @@ class AnalyzeFrames(var fileExt: FileExt,
         listFramesExt.forEach{ listFrames.add(it.frame)}
         Main.frameRepo.saveAll(listFrames)
 
-//        for (i in 0 until listFramesExt.size - 1) {
-//
-//            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
-//            val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-//            val percentage2: Double = ((currentBlock-1) + (i+1)/framesCount.toDouble() ) / countBlocks.toDouble()
-//            val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
-//            Platform.runLater {
-//                lbl1.text = textLbl1
-//                pb1.progress = percentage1
-//                lbl2.text = "Saving frames [$i/$framesCount]"
-//                pb2.progress = percentage2
-//            }
-//
-//            val frameExt: FrameExt = listFramesExt[i]
-//
-//            Main.frameController.save(frameExt.frame)
-//        }
-
         // 6. Создаем планы
         currentBlock++
         var firstFrameNumber = 1
@@ -287,7 +269,7 @@ class AnalyzeFrames(var fileExt: FileExt,
             Platform.runLater {
                 lbl1.text = textLbl1
                 pb1.progress = percentage1
-                lbl2.text = "Checking shots [$i/$framesCount]"
+                lbl2.text = "Checking shots [$i/${listShots.size}]"
                 pb2.progress = percentage2
             }
 
