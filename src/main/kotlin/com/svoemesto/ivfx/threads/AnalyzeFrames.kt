@@ -31,8 +31,8 @@ class AnalyzeFrames(var fileExt: FileExt,
         pb2.isVisible = true
 
         val mediaFile: String = fileExt.file.path
-        val fps: Double = Main.fileController.getFps(fileExt.file)
-        val framesCount: Int = Main.fileController.getFramesCount(fileExt.file)
+        val fps: Double = fileExt.file.fps
+        val framesCount: Int = fileExt.file.framesCount
 
         // создаем новые фреймы
         Main.frameController.createFrames(fileExt.file)

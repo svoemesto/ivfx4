@@ -3,18 +3,8 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.ReorderTypes
-import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
-import com.svoemesto.ivfx.repos.FileCdfRepo
-import com.svoemesto.ivfx.repos.FileRepo
-import com.svoemesto.ivfx.repos.FrameRepo
-import com.svoemesto.ivfx.repos.ProjectCdfRepo
-import com.svoemesto.ivfx.repos.ProjectRepo
-import com.svoemesto.ivfx.repos.PropertyCdfRepo
-import com.svoemesto.ivfx.repos.PropertyRepo
-import com.svoemesto.ivfx.repos.ShotRepo
-import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import java.io.IOException
@@ -48,8 +38,56 @@ class ProjectController() {
             project.cdfs = mutableListOf()
             project.cdfs.add(Main.projectCdfController.getProjectCdf(project))
             project.files = Main.fileController.getListFiles(project)
+
+            initializeTransientFields(project)
+
         }
         return result
+    }
+
+    fun initializeTransientFields(project: Project) {
+        project.folderLossless = getFolderLossless(project)
+        project.folderPreview = getFolderPreview(project)
+        project.folderFavorites = getFolderFavorites(project)
+        project.folderShots = getFolderShots(project)
+        project.folderFramesSmall = getFolderFramesSmall(project)
+        project.folderFramesMedium = getFolderFramesMedium(project)
+        project.folderFramesFull = getFolderFramesFull(project)
+    }
+
+    fun getFolderLossless(project: Project): String{
+        val value = Main.propertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.LOSSLESS.propertyCdfKey)
+        return if (value == "") project.folder + IOFile.separator + Folders.LOSSLESS.folderName else value
+    }
+
+    fun getFolderPreview(project: Project): String{
+        val value = Main.propertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.PREVIEW.propertyCdfKey)
+        return if (value == "") project.folder + IOFile.separator + Folders.PREVIEW.folderName else value
+    }
+
+    fun getFolderFavorites(project: Project): String{
+        val value = Main.propertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.FAVORITES.propertyCdfKey)
+        return if (value == "") project.folder + IOFile.separator + Folders.FAVORITES.folderName else value
+    }
+
+    fun getFolderShots(project: Project): String{
+        val value = Main.propertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.SHOTS.propertyCdfKey)
+        return if (value == "") project.folder + IOFile.separator + Folders.SHOTS.folderName else value
+    }
+
+    fun getFolderFramesSmall(project: Project): String{
+        val value = Main.propertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.FRAMES_SMALL.propertyCdfKey)
+        return if (value == "") project.folder + IOFile.separator + Folders.FRAMES_SMALL.folderName else value
+    }
+
+    fun getFolderFramesMedium(project: Project): String{
+        val value = Main.propertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.FRAMES_MEDIUM.propertyCdfKey)
+        return if (value == "") project.folder + IOFile.separator + Folders.FRAMES_MEDIUM.folderName else value
+    }
+
+    fun getFolderFramesFull(project: Project): String{
+        val value = Main.propertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.FRAMES_FULL.propertyCdfKey)
+        return if (value == "") project.folder + IOFile.separator + Folders.FRAMES_FULL.folderName else value
     }
 
     fun getProperties(project: Project) : List<Property> {

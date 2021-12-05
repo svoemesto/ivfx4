@@ -1228,11 +1228,7 @@ class ProjectEditFXController {
             if (foundFile != null) {
                 tblFiles?.selectionModel?.select(foundFile)
             } else {
-                val file = Main.fileController.create(currentProject!!)
-                file.path = ioFile.absolutePath
-                file.name = ioFile.nameWithoutExtension
-                Main.fileCdfController.save(file.cdfs.first())
-                Main.fileController.save(file)
+                val file = Main.fileController.create(currentProject!!, ioFile.absolutePath)
                 val id = file.id
                 listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
                 tblFiles?.items = listFiles
@@ -1258,12 +1254,7 @@ class ProjectEditFXController {
         if (directorySelected != null) {
             directorySelected.listFiles()?.forEach { ioFile ->
                 if (Main.fileController.getListFiles(currentProject!!).filter { it.path == ioFile.absolutePath }.count() == 0) {
-                    val file = Main.fileController.create(currentProject!!)
-                    file.path = ioFile.absolutePath
-                    file.name = ioFile.nameWithoutExtension
-                    Main.fileCdfController.save(file.cdfs.first())
-                    Main.fileController.save(file)
-                    Main.trackController.createTracksFromMediaInfo(file)
+                    val file = Main.fileController.create(currentProject!!, ioFile.absolutePath)
                 }
             }
             listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
