@@ -3,7 +3,6 @@ package com.svoemesto.ivfx
 import com.svoemesto.ivfx.fxcontrollers.DatabaseSelectFXController
 import com.svoemesto.ivfx.utils.ComputerIdentifier
 import org.h2.jdbc.JdbcSQLSyntaxErrorException
-import org.springframework.boot.autoconfigure.SpringBootApplication
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
@@ -29,7 +28,7 @@ fun main() {
 
 fun deleteH2Property(h2property: H2properties) {
     if (h2property.key != null) {
-        val st = getConnection().createStatement()
+        val st = getH2Connection().createStatement()
         var sql = "delete from tbl_properties where key = '${h2property.key}';"
         st.execute(sql)
     }
@@ -37,7 +36,7 @@ fun deleteH2Property(h2property: H2properties) {
 
 fun deleteH2Database(h2database: H2database) {
     if (h2database.id != null) {
-        val st = getConnection().createStatement()
+        val st = getH2Connection().createStatement()
         var sql = "delete from tbl_databases where id = ${h2database.id};"
         st.execute(sql)
     }
@@ -47,7 +46,7 @@ fun saveH2Property(h2property: H2properties) {
 
     if (h2property.key != null) {
 
-        val st = getConnection().createStatement()
+        val st = getH2Connection().createStatement()
         var sql = "select * from tbl_properties where key = '${h2property.key}';"
         val rs = st.executeQuery(sql)
         val valueToUpdate = if (h2property.value == null) "NULL" else "'${h2property.value}'"
@@ -63,7 +62,7 @@ fun saveH2Property(h2property: H2properties) {
 
 fun saveH2database(h2database: H2database) : Int{
 
-    var st = getConnection().createStatement()
+    var st = getH2Connection().createStatement()
     var sql: String
     var rs: ResultSet
 
@@ -123,7 +122,7 @@ fun saveH2database(h2database: H2database) : Int{
 
 fun getH2Property(key : String) : H2properties? {
     val h2property = H2properties()
-    val rs = getConnection().createStatement().executeQuery("select * from tbl_properties where key = '$key';")
+    val rs = getH2Connection().createStatement().executeQuery("select * from tbl_properties where key = '$key';")
     if (rs.next()) {
         h2property.key = rs.getString("key")
         h2property.value = rs.getString("value")
@@ -138,7 +137,7 @@ fun getPropertyValue(key : String) : String? {
 
 fun setPropertyValue(key : String, value : String?) {
 
-    val st = getConnection().createStatement()
+    val st = getH2Connection().createStatement()
     var sql = "select * from tbl_properties where key = '$key';"
     val rs = st.executeQuery(sql)
     val valueToUpdate = if (value == null) "NULL" else "'$value'"
@@ -165,7 +164,7 @@ fun setDatabaseAsCurrent(h2database: H2database) {
 
 fun getH2database(id: Int) : H2database? {
 
-    val st = getConnection().createStatement()
+    val st = getH2Connection().createStatement()
     var sql = "select * from tbl_databases where id = $id;"
     val rs = st.executeQuery(sql)
     if (rs.next()) {
@@ -188,7 +187,7 @@ fun getH2database(id: Int) : H2database? {
 fun getListH2Properties() : List<H2properties> {
 
     val result = mutableListOf<H2properties>()
-    val rs = getConnection().createStatement().executeQuery("select * from tbl_properties;")
+    val rs = getH2Connection().createStatement().executeQuery("select * from tbl_properties;")
     while (rs.next()) {
 
         val h2property = H2properties()
@@ -203,7 +202,7 @@ fun getListH2Properties() : List<H2properties> {
 
 fun getListH2databases() : List<H2database> {
     val result = mutableListOf<H2database>()
-    val rs = getConnection().createStatement().executeQuery("select * from tbl_databases;")
+    val rs = getH2Connection().createStatement().executeQuery("select * from tbl_databases;")
     while (rs.next()) {
         val h2database = H2database()
         h2database.id = rs.getInt("id")
@@ -218,6 +217,12 @@ fun getListH2databases() : List<H2database> {
 }
 
 fun getConnection() : Connection {
+    val currDb = getCurrentDatabase()
+    Class.forName(currDb?.driver).newInstance()
+    return DriverManager.getConnection(currDb?.url,currDb?.user,currDb?.password)
+}
+
+fun getH2Connection() : Connection {
 
     val drv = "org.h2.Driver"
     val url = "jdbc:h2:./h2db"
@@ -232,7 +237,7 @@ fun getConnection() : Connection {
 fun isTablePresent(tableName : String) : Boolean {
 
     try {
-        getConnection().createStatement().executeQuery("select * from $tableName")
+        getH2Connection().createStatement().executeQuery("select * from $tableName")
         println("Найдена таблица $tableName")
         return true
     } catch (e: JdbcSQLSyntaxErrorException) {
@@ -244,7 +249,7 @@ fun isTablePresent(tableName : String) : Boolean {
 
 fun createTableDatabases() {
 
-    var st = getConnection().createStatement()
+    var st = getH2Connection().createStatement()
     var sql = "create table tbl_databases (" +
             "id int auto_increment, " +
             "name varchar(255), " +
@@ -267,7 +272,7 @@ fun createTableDatabases() {
 
 fun createTableProperties() {
 
-    var st = getConnection().createStatement()
+    var st = getH2Connection().createStatement()
     var sql = "create table tbl_properties (" +
             "key varchar(255) not null, " +
             "value varchar(255)" +
