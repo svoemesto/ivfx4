@@ -175,6 +175,12 @@ class ProjectActionsFXController {
         colFileExtAF?.setCellValueFactory(PropertyValueFactory("hasAnalyzedFramesString"))
         tblFilesExt?.items = listFilesExt
 
+        pb1?.isVisible = false
+        pb2?.isVisible = false
+        lblPb1?.isVisible = false
+        lblPb2?.isVisible = false
+
+
     }
 
     @FXML
