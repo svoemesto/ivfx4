@@ -37,10 +37,10 @@ class Face {
     var frameNumber: Int = 0
 
     @Column(name = "tag_id", nullable = false, columnDefinition = "int default 0")
-    var tagId: Int = 0
+    var tagId: Long = 0
 
     @Column(name = "tag_recognized_id", nullable = false, columnDefinition = "int default 0")
-    var tagRecognizedId: Int = 0
+    var tagRecognizedId: Long = 0
 
     @Column(name = "recognize_probability")
     var recognizeProbability: Double = 0.0
@@ -59,7 +59,7 @@ class Face {
 
     @Lob
     @Column(name = "vector")
-    var vectorText: String = ""
+    var vectorText: String = "0.0"
 
     var vector: DoubleArray
         get() {
@@ -71,6 +71,6 @@ class Face {
             return result
         }
         set(value) {
-            vectorText = if (vector.isEmpty()) "" else value.joinToString(separator = "|")
+            vectorText = if (vector.isEmpty()) "" else value.joinToString(separator = "|", prefix = "", postfix = "")
             }
 }

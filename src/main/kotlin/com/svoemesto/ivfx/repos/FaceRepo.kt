@@ -23,5 +23,6 @@ interface FaceRepo : CrudRepository<Face, Long> {
     fun delete(frameId:Long)
 
     fun findByFileIdAndFrameNumber(fileId: Long, frameNumber: Int): Iterable<Face>
+    fun findByFileIdAndFrameNumberAndFaceNumberInFrame(fileId: Long, frameNumber: Int, faceNumberInFrame: Int): Iterable<Face>
 
 }

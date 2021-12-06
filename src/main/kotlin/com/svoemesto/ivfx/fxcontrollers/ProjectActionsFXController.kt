@@ -1,28 +1,10 @@
 package com.svoemesto.ivfx.fxcontrollers
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.SpringConfig
-import com.svoemesto.ivfx.controllers.FileCdfController
-import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.FileController.FileExt
-import com.svoemesto.ivfx.controllers.FrameController
-import com.svoemesto.ivfx.controllers.ProjectCdfController
-import com.svoemesto.ivfx.controllers.ProjectController
-import com.svoemesto.ivfx.controllers.PropertyCdfController
-import com.svoemesto.ivfx.controllers.PropertyController
-import com.svoemesto.ivfx.controllers.ShotController
-import com.svoemesto.ivfx.controllers.TrackController
 import com.svoemesto.ivfx.models.Project
-import com.svoemesto.ivfx.repos.FileCdfRepo
-import com.svoemesto.ivfx.repos.FileRepo
-import com.svoemesto.ivfx.repos.FrameRepo
-import com.svoemesto.ivfx.repos.ProjectCdfRepo
-import com.svoemesto.ivfx.repos.ProjectRepo
-import com.svoemesto.ivfx.repos.PropertyCdfRepo
-import com.svoemesto.ivfx.repos.PropertyRepo
-import com.svoemesto.ivfx.repos.ShotRepo
-import com.svoemesto.ivfx.repos.TrackRepo
 import com.svoemesto.ivfx.threads.AnalyzeFrames
+import com.svoemesto.ivfx.threads.CreateFaces
 import com.svoemesto.ivfx.threads.CreateFramesFull
 import com.svoemesto.ivfx.threads.CreateFramesMedium
 import com.svoemesto.ivfx.threads.CreateFramesSmall
@@ -48,7 +30,6 @@ import javafx.scene.control.TableView
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.stage.Modality
 import javafx.stage.Stage
-import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import java.io.IOException
 
 
@@ -84,6 +65,9 @@ class ProjectActionsFXController {
     private var colFileExtDF: TableColumn<FileExt, String>? = null
 
     @FXML
+    private var colFileExtCF: TableColumn<FileExt, String>? = null
+
+    @FXML
     private var checkReCreateIfExists: CheckBox? = null
 
     @FXML
@@ -109,6 +93,9 @@ class ProjectActionsFXController {
 
     @FXML
     private var checkDetectFaces: CheckBox? = null
+
+    @FXML
+    private var checkCreateFaces: CheckBox? = null
 
     @FXML
     private var pb1: ProgressBar? = null
@@ -171,8 +158,9 @@ class ProjectActionsFXController {
         colFileExtFS?.setCellValueFactory(PropertyValueFactory("hasFramesSmallString"))
         colFileExtFM?.setCellValueFactory(PropertyValueFactory("hasFramesMediumString"))
         colFileExtFF?.setCellValueFactory(PropertyValueFactory("hasFramesFullString"))
-        colFileExtDF?.setCellValueFactory(PropertyValueFactory("hasFacesString"))
         colFileExtAF?.setCellValueFactory(PropertyValueFactory("hasAnalyzedFramesString"))
+        colFileExtDF?.setCellValueFactory(PropertyValueFactory("hasDetectedFacesString"))
+        colFileExtCF?.setCellValueFactory(PropertyValueFactory("hasCreatedFacesString"))
         tblFilesExt?.items = listFilesExt
 
         pb1?.isVisible = false
@@ -195,7 +183,8 @@ class ProjectActionsFXController {
             if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium || (fileExt.hasFramesMedium && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull || (fileExt.hasFramesFull && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames || (fileExt.hasAnalyzedFrames && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkDetectFaces?.isSelected == true && (!fileExt.hasFaces || (fileExt.hasFaces && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces || (fileExt.hasDetectedFaces && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces || (fileExt.hasCreatedFaces && checkReCreateIfExists?.isSelected!!))) countActions++
         }
         var counterPb1 = 0
 
@@ -257,10 +246,19 @@ class ProjectActionsFXController {
                 )
             }
 
-            if (checkDetectFaces?.isSelected == true && (!fileExt.hasFaces || (fileExt.hasFaces && checkReCreateIfExists?.isSelected!!))) {
+            if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces || (fileExt.hasDetectedFaces && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
                     DetectFaces(fileExt!!, tblFilesExt!!,
+                        "File: ${fileExt.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces || (fileExt.hasCreatedFaces && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateFaces(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
