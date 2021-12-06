@@ -30,6 +30,7 @@
                               <TableColumn fx:id="colFileExtFF" minWidth="30.0" prefWidth="30.0" text="FF" />
                               <TableColumn fx:id="colFileExtAF" minWidth="30.0" prefWidth="30.0" text="AF" />
                               <TableColumn fx:id="colFileExtDF" minWidth="30.0" prefWidth="30.0" text="DF" />
+                              <TableColumn fx:id="colFileExtCF" minWidth="30.0" prefWidth="30.0" text="CF" />
                           </columns>
                         </TableView>
                      </children>
@@ -45,6 +46,7 @@
                         <CheckBox fx:id="checkCreateFramesFull" mnemonicParsing="false" text="Create frames full" />
                         <CheckBox fx:id="checkAnalyzeFrames" mnemonicParsing="false" text="Analyze frames and create shots" />
                         <CheckBox fx:id="checkDetectFaces" mnemonicParsing="false" text="Detect faces" />
+                        <CheckBox fx:id="checkCreateFaces" mnemonicParsing="false" text="Create faces" />
                      </children>
                   </VBox>
                </children>

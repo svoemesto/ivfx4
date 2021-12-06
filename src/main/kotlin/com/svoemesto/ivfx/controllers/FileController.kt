@@ -3,19 +3,9 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.ReorderTypes
-import com.svoemesto.ivfx.fxcontrollers.ProjectEditFXController
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
-import com.svoemesto.ivfx.repos.FileCdfRepo
-import com.svoemesto.ivfx.repos.FileRepo
-import com.svoemesto.ivfx.repos.FrameRepo
-import com.svoemesto.ivfx.repos.ProjectCdfRepo
-import com.svoemesto.ivfx.repos.ProjectRepo
-import com.svoemesto.ivfx.repos.PropertyCdfRepo
-import com.svoemesto.ivfx.repos.PropertyRepo
-import com.svoemesto.ivfx.repos.ShotRepo
-import com.svoemesto.ivfx.repos.TrackRepo
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
 import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
@@ -41,8 +31,10 @@ class FileController() {
         var hasFramesFullString: String = ""
         var hasAnalyzedFrames: Boolean = false
         var hasAnalyzedFramesString: String = ""
-        var hasFaces: Boolean = false
-        var hasFacesString: String = ""
+        var hasDetectedFaces: Boolean = false
+        var hasDetectedFacesString: String = ""
+        var hasCreatedFaces: Boolean = false
+        var hasCreatedFacesString: String = ""
         val order = file.order
         val name = file.name
     }
@@ -166,16 +158,20 @@ class FileController() {
         return Main.shotController.getListShots(file).isNotEmpty()
     }
 
-    fun hasFaces(file: File): Boolean {
+    fun hasDetectedFaces(file: File): Boolean {
         if (file.folderFramesFull != "") {
             val fld = file.folderFramesFull + ".faces"
             if (IOFile(fld).exists()) {
                 val fileNameRegexp = file.shortName.replace(".", "\\.").replace("-", "\\-")
-                val faceFilenameRegex = Regex("^\\b${fileNameRegexp}_frame_\\b\\d{6}_face_\\d{2}\\.\\bjpg\\b\$")
+                val faceFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}_face_\\d{2}\\.jpg\$")
                 return (IOFile(fld).listFiles { _, name -> name.contains(faceFilenameRegex) }?.size ?: 0) > 0
             }
         }
         return false
+    }
+
+    fun hasCreatedFaces(file: File): Boolean {
+        return Main.faceController.getListFaces(file).isNotEmpty()
     }
 
     fun getListFilesExt(project: Project): List<FileExt> {
@@ -195,8 +191,10 @@ class FileController() {
             fileExt.hasFramesFullString = if (fileExt.hasFramesFull) "✓" else "✗"
             fileExt.hasAnalyzedFrames = hasAnalyzedFrames(file)
             fileExt.hasAnalyzedFramesString = if (fileExt.hasAnalyzedFrames) "✓" else "✗"
-            fileExt.hasFaces = hasFaces(file)
-            fileExt.hasFacesString = if (fileExt.hasFaces) "✓" else "✗"
+            fileExt.hasDetectedFaces = hasDetectedFaces(file)
+            fileExt.hasDetectedFacesString = if (fileExt.hasDetectedFaces) "✓" else "✗"
+            fileExt.hasCreatedFaces = hasCreatedFaces(file)
+            fileExt.hasCreatedFacesString = if (fileExt.hasCreatedFaces) "✓" else "✗"
             resultedList.add(fileExt)
         }
         return resultedList
@@ -276,6 +274,7 @@ class FileController() {
     // удаление файла
     fun delete(file: File) {
         reOrder(ReorderTypes.MOVE_TO_LAST, file)
+        Main.faceController.deleteAll(file)
         Main.frameController.deleteAll(file)
         Main.trackController.deleteAll(file)
         Main.shotController.deleteAll(file)
@@ -283,6 +282,8 @@ class FileController() {
         Main.propertyController.deleteAll(file::class.java.simpleName, file.id)
         Main.propertyCdfController.deleteAll(file::class.java.simpleName, file.id)
         Main.fileCdfController.deleteAll(file)
+        Main.fileCdfController.deleteAll(file)
+
         Main.fileRepo.delete(file)
     }
 

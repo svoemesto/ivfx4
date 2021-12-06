@@ -2,27 +2,46 @@ package com.svoemesto.ivfx.controllers
 
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.Folders
-import com.svoemesto.ivfx.getH2Connection
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Property
-import com.svoemesto.ivfx.repos.FileCdfRepo
-import com.svoemesto.ivfx.repos.FileRepo
-import com.svoemesto.ivfx.repos.FrameRepo
-import com.svoemesto.ivfx.repos.ProjectCdfRepo
-import com.svoemesto.ivfx.repos.ProjectRepo
-import com.svoemesto.ivfx.repos.PropertyCdfRepo
-import com.svoemesto.ivfx.repos.PropertyRepo
-import com.svoemesto.ivfx.repos.ShotRepo
-import com.svoemesto.ivfx.repos.TrackRepo
+import com.svoemesto.ivfx.utils.ConvertToFxImage
+import javafx.scene.control.ContentDisplay
+import javafx.scene.control.Label
+import javafx.scene.image.ImageView
 import org.springframework.stereotype.Controller
+import java.io.IOException
+import javax.imageio.ImageIO
 import java.io.File as IOFile
-
 @Controller
 //@Scope("prototype")
 class FrameController() {
 
-    class FrameExt(val frame: Frame, val pathToSmall: String, val pathToMedium: String, val pathToFull: String)
+    class FrameExt(val frame: Frame, val pathToSmall: String, val pathToMedium: String, val pathToFull: String) {
+        var preview: ImageView? = null
+        var label: Label? = null
+    }
+
+    fun loadPreview(frameExt: FrameExt) {
+
+        var fileName: String = frameExt.pathToSmall
+        var file = IOFile(fileName)
+        frameExt.label = Label(frameExt.frame.frameNumber.toString())
+        frameExt.label!!.prefWidth = 135.0
+        if (!file.exists()) {
+//            fileName = frame.getFileNamePreviewStub()
+//            file = java.io.File(fileName)
+        } else {
+            try {
+                val bufferedImage = ImageIO.read(file)
+                frameExt.preview = ImageView(ConvertToFxImage.convertToFxImage(bufferedImage))
+                frameExt.label!!.setGraphic(frameExt.preview)
+                frameExt.label!!.setContentDisplay(ContentDisplay.TOP)
+            } catch (e: IOException) {
+            }
+        }
+
+    }
 
     fun getProperties(frame: Frame) : List<Property> {
         return Main.propertyRepo.findByParentClassAndParentId(frame::class.simpleName!!, frame.id).toList()

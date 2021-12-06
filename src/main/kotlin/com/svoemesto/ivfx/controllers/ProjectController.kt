@@ -8,6 +8,7 @@ import com.svoemesto.ivfx.models.Property
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import java.io.IOException
+import java.util.logging.Logger
 import java.io.File as IOFile
 
 @Controller
@@ -15,7 +16,12 @@ import java.io.File as IOFile
 @Transactional
 class ProjectController() {
 
+    companion object {
+        val LOG: Logger = Logger.getLogger(ProjectController::class.java.name)
+    }
+
     fun getCdfFolder(project: Project, folder: Folders, createIfNotExist: Boolean = false): String {
+        LOG.info("fun getCdfFolder started")
         if (!isPropertyCdfPresent(project, folder.propertyCdfKey)) {
             Main.propertyCdfController.getOrCreate(project::class.java.simpleName, project.id, folder.propertyCdfKey)
         }
@@ -33,6 +39,7 @@ class ProjectController() {
     }
 
     fun getListProjects(): List<Project> {
+        LOG.info("fun getListProjects started")
         val result = Main.projectRepo.findByOrderGreaterThanOrderByOrder(0).toList()
         result.forEach { project ->
             project.cdfs = mutableListOf()

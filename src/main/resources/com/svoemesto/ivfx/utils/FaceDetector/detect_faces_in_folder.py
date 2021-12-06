@@ -60,10 +60,10 @@ data_faces = []
 for i in range(0, len(listframes)):
     frame_info = listframes[i]
 
-    projectid = frame_info["projectid"]
-    fileid = frame_info["fileid"]
-    imagePath = frame_info["image_file"]
-    frameId = frame_info["frame_id"]
+    #projectid = frame_info["projectid"]
+    fileid = frame_info["fileId"]
+    imagePath = frame_info["pathToFrameFile"]
+    frameId = frame_info["frameNumber"]
 
 # for (i, imagePath) in enumerate(imagePaths):
 
@@ -130,19 +130,19 @@ for i in range(0, len(listframes)):
             # print(list(map(str, vec.flatten().tolist())))
 
             # создаем объект для лица и записываем в него все нужные атрибуты
-            face_data = {'fileid': fileid,
-                         'projectid': projectid,
-                         'image_file': imagePath,
-                         'face_id': face_count_in_image,
-                         'person_id': 0,
-                         'person_id_recognized': 0,
-                         'recognize_probability': 0.0,
-                         'frame_id': frameId,
-                         'face_file': face_file_name_and_path,
-                         'start_x': int(startX),
-                         'start_y': int(startY),
-                         'end_x': int(endX),
-                         'end_y': int(endY),
+            face_data = {'fileId': fileid,
+                         #'projectid': projectid,
+                         'pathToFrameFile': imagePath,
+                         'faceNumberInFrame': face_count_in_image,
+                         'tagId': 0,
+                         'tagRecognizedId': 0,
+                         'recognizeProbability': 0.0,
+                         'frameNumber': frameId,
+                         'pathToFaceFile': face_file_name_and_path,
+                         'startX': int(startX),
+                         'startY': int(startY),
+                         'endX': int(endX),
+                         'endY': int(endY),
                          'vector': vec.flatten().tolist()
                          }
             data_faces.append(face_data)

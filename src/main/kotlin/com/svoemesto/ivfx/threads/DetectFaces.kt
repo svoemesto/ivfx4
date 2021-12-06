@@ -1,7 +1,8 @@
 package com.svoemesto.ivfx.threads
 
+import com.google.gson.GsonBuilder
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.FileController
+import com.svoemesto.ivfx.controllers.FaceController.FaceExt
 import com.svoemesto.ivfx.controllers.FileController.FileExt
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.utils.FaceDetection
@@ -9,6 +10,10 @@ import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TableView
+import java.io.FileReader
+import java.io.FileWriter
+import java.io.IOException
+import java.io.File as IOFile
 
 class DetectFaces(var fileExt: FileExt,
                   val table: TableView<FileExt>,
@@ -22,13 +27,28 @@ class DetectFaces(var fileExt: FileExt,
 
         lbl1.isVisible = true
         pb1.isVisible = true
-        lbl2.isVisible = false
-        pb2.isVisible = false
-
+        lbl2.isVisible = true
+        pb2.isVisible = true
+        pb2.progress = ProgressBar.INDETERMINATE_PROGRESS
         Platform.runLater {
             lbl1.text = textLbl1
             pb1.progress = (numCurrentThread-1) / countThreads.toDouble()
+            lbl2.text = "Detecting faces..."
         }
+
+        val builder = GsonBuilder()
+        var gson = builder.create()
+        val pathToFileJSON: String = fileExt.file.folderFramesFull + IOFile.separator + "frames.json"
+
+        fileExt.file.shots = Main.shotController.getListShots(fileExt.file)
+        val arrFrameFaces: Array<FaceExt> = Main.faceController.getArrayFacesExt(fileExt.file)
+
+        try {
+            FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(arrFrameFaces, fileWriter) }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
 
         val faceDetectorPath = FaceDetection.FACE_DETECTOR_PATH
 
@@ -51,10 +71,27 @@ class DetectFaces(var fileExt: FileExt,
 
         println(cmdText)
 
-        RunCmd(cmdText).run()
+        val runCmd = RunCmd(cmdText)
+        runCmd.run()
 
-        fileExt.hasFaces = true
-        fileExt.hasFacesString = "✓"
+//        val pathToJsonFaces = fileExt.file.folderFramesFull + IOFile.separator + "faces.json"
+//
+//        try {
+//            FileReader(pathToJsonFaces).use { fileReader ->
+//                val facesExtArray: Array<FaceExt> = gson.fromJson(fileReader, Array<FaceExt>::class.java)
+//                facesExtArray.forEach { faceExt ->
+//                    faceExt.vectorText = if (faceExt.vector.isEmpty()) "" else faceExt.vector.joinToString(separator = "|", prefix = "", postfix = "")
+//                    Main.faceController.createOrUpdate(faceExt, fileExt.file)
+//                }
+//            }
+//        } catch (e: IOException) {
+//            e.printStackTrace()
+//        }
+
+        println("Это должно напечататься после завершения процесса cmd")
+
+        fileExt.hasDetectedFaces = true
+        fileExt.hasDetectedFacesString = "✓"
         table.refresh()
 
         lbl1.isVisible = false
