@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -392,15 +393,21 @@
                                     </VBox>
                                     <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                                        <children>
-                                          <TableView fx:id="tblFiles" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="250.0" prefHeight="10000.0" prefWidth="10000.0">
-                                            <columns>
-                                              <TableColumn fx:id="colFileOrder" maxWidth="40.0" prefWidth="40.0" text="#" />
-                                              <TableColumn fx:id="colFileName" maxWidth="190.0" prefWidth="190.0" text="Файл" />
-                                            </columns>
+                                          <VBox>
                                              <HBox.margin>
                                                 <Insets />
                                              </HBox.margin>
-                                          </TableView>
+                                             <children>
+                                                <TableView fx:id="tblFiles" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="250.0" prefHeight="10000.0" prefWidth="10000.0">
+                                                  <columns>
+                                                    <TableColumn fx:id="colFileOrder" maxWidth="40.0" prefWidth="40.0" text="#" />
+                                                    <TableColumn fx:id="colFileName" maxWidth="190.0" prefWidth="190.0" text="Файл" />
+                                                  </columns>
+                                                </TableView>
+                                                <ProgressBar fx:id="pbFiles" maxWidth="1.7976931348623157E308" progress="0.0" />
+                                                <Label fx:id="lblPbFiles" maxWidth="1.7976931348623157E308" text="Label" />
+                                             </children>
+                                          </VBox>
                                           <VBox alignment="CENTER" prefWidth="46.0">
                                              <children>
                                                 <Button fx:id="btnFileMoveToFirst" mnemonicParsing="false" onAction="#doFileMoveToFirst" prefHeight="46.0" prefWidth="46.0" text="⟰">

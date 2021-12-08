@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.fxcontrollers
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.ProjectController
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.getCurrentDatabase
 import com.svoemesto.ivfx.models.Project
@@ -95,7 +96,7 @@ class ProjectSelectFXController {
         btnMoveToLast?.isDisable = true
         btnMoveDown?.isDisable = true
 
-        listProjects = FXCollections.observableArrayList(Main.projectController.getListProjects())
+        listProjects = FXCollections.observableArrayList(ProjectController.getListProjects())
 
         colOrder?.setCellValueFactory(PropertyValueFactory("order"))
         colName?.setCellValueFactory(PropertyValueFactory("name"))
@@ -152,8 +153,8 @@ class ProjectSelectFXController {
 
     fun doMove(reorderType: ReorderTypes) {
         val id = currentProject?.id
-        currentProject?.let { Main.projectController.reOrder(reorderType, it) }
-        listProjects = FXCollections.observableArrayList(Main.projectController.getListProjects())
+        currentProject?.let { ProjectController.reOrder(reorderType, it) }
+        listProjects = FXCollections.observableArrayList(ProjectController.getListProjects())
         tblProjects?.items = listProjects
         currentProject = listProjects.filter { it.id == id }.first()
         tblProjects?.selectionModel?.select(currentProject)

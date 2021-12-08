@@ -82,13 +82,4 @@ class File {
             }
         }
 
-    @Transient var folderPreview: String = ""
-    @Transient var folderLossless: String = ""
-    @Transient var folderFavorites: String = ""
-    @Transient var folderShots: String = ""
-    @Transient var folderFramesSmall: String = ""
-    @Transient var folderFramesMedium: String = ""
-    @Transient var folderFramesFull: String = ""
-    @Transient var fps: Double = 23.976
-    @Transient var framesCount: Int = 0
 }
