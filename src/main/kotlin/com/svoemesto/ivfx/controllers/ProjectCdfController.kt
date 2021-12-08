@@ -10,33 +10,39 @@ import org.springframework.stereotype.Controller
 //@Scope("prototype")
 class ProjectCdfController() {
 
-    fun getProjectCdf(project: Project): ProjectCdf {
-        val cdf = Main.projectCdfRepo.findByProjectIdAndComputerId(project.id, Main.ccid).firstOrNull()
-        if (cdf != null) cdf.project = project
-        return cdf ?: create(project)
-    }
+    companion object {
 
-    fun create(project: Project): ProjectCdf {
-        val entity = ProjectCdf()
-        entity.project = project
-        entity.computerId = Main.ccid
-        Main.projectCdfRepo.save(entity)
-        return entity
-    }
+        fun getProjectCdf(project: Project): ProjectCdf {
+            val cdf = Main.projectCdfRepo.findByProjectIdAndComputerId(project.id, Main.ccid).firstOrNull()
+            if (cdf != null) cdf.project = project
+            return cdf ?: create(project)
+        }
 
-    fun save(projectCdf: ProjectCdf) {
-        Main.projectCdfRepo.save(projectCdf)
-    }
+        fun create(project: Project): ProjectCdf {
+            val entity = ProjectCdf()
+            entity.project = project
+            entity.computerId = Main.ccid
+            Main.projectCdfRepo.save(entity)
+            return entity
+        }
 
-    fun delete(projectCdf: ProjectCdf) {
-        Main.propertyController.deleteAll(projectCdf::class.java.simpleName, projectCdf.id)
-        Main.propertyCdfController.deleteAll(projectCdf::class.java.simpleName, projectCdf.id)
-        Main.projectCdfRepo.delete(projectCdf)
-    }
+        fun save(projectCdf: ProjectCdf) {
+            Main.projectCdfRepo.save(projectCdf)
+        }
 
-    fun deleteAll(project: Project) {
-        Main.projectCdfRepo.findByProjectId(project.id).forEach { projectCdf ->
-            delete(projectCdf)
+        fun delete(projectCdf: ProjectCdf) {
+            PropertyController.deleteAll(projectCdf::class.java.simpleName, projectCdf.id)
+            PropertyCdfController.deleteAll(projectCdf::class.java.simpleName, projectCdf.id)
+            Main.projectCdfRepo.delete(projectCdf)
+        }
+
+        fun deleteAll(project: Project) {
+            Main.projectCdfRepo.findByProjectId(project.id).forEach { projectCdf ->
+                delete(projectCdf)
+            }
         }
     }
+
+
+
 }

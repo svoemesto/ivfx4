@@ -1,10 +1,12 @@
-package com.svoemesto.ivfx.threads
+package com.svoemesto.ivfx.threads.projectactions
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.FileController.FileExt
-import com.svoemesto.ivfx.controllers.FrameController.FrameExt
+import com.svoemesto.ivfx.controllers.FrameController
+import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Shot
+import com.svoemesto.ivfx.modelsext.FileExt
+import com.svoemesto.ivfx.modelsext.FrameExt
 import com.svoemesto.ivfx.utils.getListIFrames
 import javafx.application.Platform
 import javafx.scene.control.Label
@@ -12,7 +14,6 @@ import javafx.scene.control.ProgressBar
 import javafx.scene.control.TableView
 import org.sikuli.basics.Settings
 import org.sikuli.script.Finder
-import org.sikuli.script.Match
 import org.sikuli.script.Pattern
 
 class AnalyzeFrames(var fileExt: FileExt,
@@ -31,11 +32,11 @@ class AnalyzeFrames(var fileExt: FileExt,
         pb2.isVisible = true
 
         val mediaFile: String = fileExt.file.path
-        val fps: Double = fileExt.file.fps
-        val framesCount: Int = fileExt.file.framesCount
+        val fps: Double = fileExt.fps
+        val framesCount: Int = fileExt.framesCount
 
         // создаем новые фреймы
-        Main.frameController.createFrames(fileExt.file)
+        FrameController.createFrames(fileExt)
 
         Settings.MinSimilarity = 0.0
         var simScore: Double
@@ -53,7 +54,7 @@ class AnalyzeFrames(var fileExt: FileExt,
 
         // 1. создаем список кадров и заполяем его номером, файлом и признаком isIFrame
         currentBlock++
-        val listFramesExt = Main.frameController.getListFramesExt(fileExt.file)
+        val listFramesExt = FrameController.getListFramesExt(fileExt)
         for (frameNumber in 1..framesCount) {
             val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
@@ -224,7 +225,7 @@ class AnalyzeFrames(var fileExt: FileExt,
         var currentFrameNumber: Int
         var currentIFrame = 1
         var previousIFrame = 1
-        val listShotsTmp: List<Shot> = Main.shotController.getListShots(fileExt.file)
+        val listShotsTmp: List<Shot> = ShotController.getListShots(fileExt.file)
         val listShots: MutableList<Shot> = mutableListOf()
 
         for (i in 0 until listFramesExt.size - 1) {
@@ -280,13 +281,13 @@ class AnalyzeFrames(var fileExt: FileExt,
                 if (shot.firstFrameNumber == shotTmp.firstFrameNumber && shot.lastFrameNumber == shotTmp.lastFrameNumber) {
                     if (shot.nearestIFrame != shotTmp.nearestIFrame) {
                         shotTmp.nearestIFrame = shot.nearestIFrame
-                        Main.shotController.save(shotTmp)
+                        ShotController.save(shotTmp)
                     }
                     isFound = true
                     return@forEach
                 }
             }
-            if (!isFound) Main.shotController.save(shot)
+            if (!isFound) ShotController.save(shot)
         }
 
         fileExt.hasAnalyzedFrames = true

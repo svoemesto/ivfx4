@@ -1,9 +1,6 @@
-package com.svoemesto.ivfx.threads
+package com.svoemesto.ivfx.threads.projectactions
 
-import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.FileController
-import com.svoemesto.ivfx.controllers.FileController.FileExt
-import com.svoemesto.ivfx.enums.Folders
+import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
 import javafx.application.Platform
 import javafx.scene.control.Label
@@ -18,8 +15,8 @@ import net.bramp.ffmpeg.probe.FFmpegProbeResult
 import net.bramp.ffmpeg.probe.FFmpegStream
 import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
-import java.io.File as IOFile
 import java.util.concurrent.TimeUnit
+import java.io.File as IOFile
 
 class CreateFramesSmall(var fileExt: FileExt,
                         val table: TableView<FileExt>,
@@ -36,8 +33,10 @@ class CreateFramesSmall(var fileExt: FileExt,
         pb2.isVisible = true
 
         val fileInput = fileExt.file.path
-        val fileOutput = Main.fileController.getCdfFolder(fileExt.file, Folders.FRAMES_SMALL,  true) + IOFile.separator +
-                fileExt.file.shortName + "_frame_%06d.jpg"
+        if (!IOFile(fileExt.folderFramesSmall).exists()) IOFile(fileExt.folderFramesSmall).mkdir()
+        val fileOutput = fileExt.folderFramesSmall  + IOFile.separator + fileExt.file.shortName + "_frame_%06d.jpg"
+//        val fileOutput = Main.fileController.getCdfFolder(fileExt.file, Folders.FRAMES_SMALL,  true) + IOFile.separator +
+//                fileExt.file.shortName + "_frame_%06d.jpg"
 
         val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
         val ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)

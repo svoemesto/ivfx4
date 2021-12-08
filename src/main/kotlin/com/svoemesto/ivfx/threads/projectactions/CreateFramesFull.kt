@@ -1,8 +1,6 @@
-package com.svoemesto.ivfx.threads
+package com.svoemesto.ivfx.threads.projectactions
 
-import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.FileController
-import com.svoemesto.ivfx.controllers.FileController.FileExt
+import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
 import javafx.application.Platform
 import javafx.scene.control.Label
@@ -18,14 +16,15 @@ import net.bramp.ffmpeg.probe.FFmpegStream
 import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
 import java.util.concurrent.TimeUnit
+import java.io.File as IOFile
 
-class CreatePreview(var fileExt: FileExt,
-                    val table: TableView<FileExt>,
-                    val textLbl1: String,
-                    val numCurrentThread: Int,
-                    val countThreads: Int,
-                    var lbl1: Label, var pb1: ProgressBar,
-                    var lbl2: Label, var pb2: ProgressBar): Thread(), Runnable {
+class CreateFramesFull(var fileExt: FileExt,
+                       val table: TableView<FileExt>,
+                       val textLbl1: String,
+                       val numCurrentThread: Int,
+                       val countThreads: Int,
+                       var lbl1: Label, var pb1: ProgressBar,
+                       var lbl2: Label, var pb2: ProgressBar): Thread(), Runnable {
     override fun run() {
 
         lbl1.isVisible = true
@@ -34,15 +33,20 @@ class CreatePreview(var fileExt: FileExt,
         pb2.isVisible = true
 
         val fileInput = fileExt.file.path
-        val fileOutput = Main.fileController.getPreview(fileExt.file, true)
+        if (!IOFile(fileExt.folderFramesFull).exists()) IOFile(fileExt.folderFramesFull).mkdir()
+        val fileOutput = fileExt.folderFramesFull + IOFile.separator + fileExt.file.shortName + "_frame_%06d.jpg"
+//        val fileOutput = Main.fileController.getCdfFolder(fileExt.file, Folders.FRAMES_FULL,  true) + IOFile.separator +
+//                fileExt.file.shortName + "_frame_%06d.jpg"
 
         val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
         val ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
 
         val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(fileInput)
 
-        val w = 720
-        val h = 400
+        val countFrames = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
+
+        val w = 1920
+        val h = 1080
 
         val fileWidth: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.width!!
         val fileHeight: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.height!!
@@ -57,17 +61,14 @@ class CreatePreview(var fileExt: FileExt,
             "\"scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black\""
         }
 
+
         val builder = FFmpegBuilder()
             .setInput(fileInput)
             .overrideOutputFiles(true)
             .addOutput(fileOutput)
+            .setFrames(countFrames?:1)
+            .addExtraArgs("-qscale:v","2")
             .setVideoResolution(w,h)
-            .setVideoBitRate(500000)
-            .setVideoCodec("libx264")
-            .setAudioCodec("aac")
-            .setAudioBitRate(196608)
-            .setAudioSampleRate(48000)
-            .setAudioChannels(2)
             .setVideoFilter(filter)
             .done()
 
@@ -102,8 +103,8 @@ class CreatePreview(var fileExt: FileExt,
 
         job.run()
 
-        fileExt.hasPreview = true
-        fileExt.hasPreviewString = "✓"
+        fileExt.hasFramesFull = true
+        fileExt.hasFramesFullString = "✓"
         table.refresh()
 
         lbl1.isVisible = false

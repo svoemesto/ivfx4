@@ -1,17 +1,17 @@
 package com.svoemesto.ivfx.fxcontrollers
 
-import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.FileController.FileExt
+import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.models.Project
-import com.svoemesto.ivfx.threads.AnalyzeFrames
-import com.svoemesto.ivfx.threads.CreateFaces
-import com.svoemesto.ivfx.threads.CreateFramesFull
-import com.svoemesto.ivfx.threads.CreateFramesMedium
-import com.svoemesto.ivfx.threads.CreateFramesSmall
-import com.svoemesto.ivfx.threads.CreateLossless
-import com.svoemesto.ivfx.threads.CreatePreview
-import com.svoemesto.ivfx.threads.DetectFaces
+import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunListThreads
+import com.svoemesto.ivfx.threads.projectactions.AnalyzeFrames
+import com.svoemesto.ivfx.threads.projectactions.CreateFaces
+import com.svoemesto.ivfx.threads.projectactions.CreateFramesFull
+import com.svoemesto.ivfx.threads.projectactions.CreateFramesMedium
+import com.svoemesto.ivfx.threads.projectactions.CreateFramesSmall
+import com.svoemesto.ivfx.threads.projectactions.CreateLossless
+import com.svoemesto.ivfx.threads.projectactions.CreatePreview
+import com.svoemesto.ivfx.threads.projectactions.DetectFaces
 import javafx.application.HostServices
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -150,9 +150,9 @@ class ProjectActionsFXController {
 
         tblFilesExt?.selectionModel?.selectionMode = SelectionMode.MULTIPLE
 
-        listFilesExt = FXCollections.observableArrayList(Main.fileController.getListFilesExt(currentProject))
-        colFileExtOrder?.setCellValueFactory(PropertyValueFactory("order"))
-        colFileExtName?.setCellValueFactory(PropertyValueFactory("name"))
+        listFilesExt = FXCollections.observableArrayList(FileController.getListFilesExt(currentProject))
+        colFileExtOrder?.setCellValueFactory(PropertyValueFactory("fileOrder"))
+        colFileExtName?.setCellValueFactory(PropertyValueFactory("fileName"))
         colFileExtPW?.setCellValueFactory(PropertyValueFactory("hasPreviewString"))
         colFileExtLL?.setCellValueFactory(PropertyValueFactory("hasLosslessString"))
         colFileExtFS?.setCellValueFactory(PropertyValueFactory("hasFramesSmallString"))
@@ -196,7 +196,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     CreatePreview(fileExt!!, tblFilesExt!!,
-                    "File: ${fileExt.name}, Action: Create Preview, Issue: [${counterPb1}/${countActions}]",
+                    "File: ${fileExt.file.name}, Action: Create Preview, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
@@ -205,7 +205,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     CreateLossless(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.name}, Action: Create Lossless, Issue: [${counterPb1}/${countActions}]",
+                        "File: ${fileExt.file.name}, Action: Create Lossless, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
@@ -214,7 +214,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     CreateFramesSmall(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.name}, Action: Create Frames (small size 175x35), Issue: [${counterPb1}/${countActions}]",
+                        "File: ${fileExt.file.name}, Action: Create Frames (small size 175x35), Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
@@ -223,7 +223,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     CreateFramesMedium(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.name}, Action: Create Frames (medium size 720x400), Issue: [${counterPb1}/${countActions}]",
+                        "File: ${fileExt.file.name}, Action: Create Frames (medium size 720x400), Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
@@ -232,7 +232,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     CreateFramesFull(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.name}, Action: Create Frames (full size 1920x1080), Issue: [${counterPb1}/${countActions}]",
+                        "File: ${fileExt.file.name}, Action: Create Frames (full size 1920x1080), Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
@@ -241,7 +241,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     AnalyzeFrames(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.name}, Action: Analyze Frames, Issue: [${counterPb1}/${countActions}]",
+                        "File: ${fileExt.file.name}, Action: Analyze Frames, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
@@ -250,7 +250,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     DetectFaces(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
+                        "File: ${fileExt.file.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
@@ -259,7 +259,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     CreateFaces(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
+                        "File: ${fileExt.file.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }

@@ -1,16 +1,16 @@
-package com.svoemesto.ivfx.threads
+package com.svoemesto.ivfx.threads.projectactions
 
 import com.google.gson.GsonBuilder
-import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.controllers.FaceController.FaceExt
-import com.svoemesto.ivfx.controllers.FileController.FileExt
-import com.svoemesto.ivfx.enums.Folders
+import com.svoemesto.ivfx.controllers.ShotController
+import com.svoemesto.ivfx.modelsext.FileExt
+import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.utils.FaceDetection
 import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TableView
-import java.io.FileReader
 import java.io.FileWriter
 import java.io.IOException
 import java.io.File as IOFile
@@ -38,10 +38,11 @@ class DetectFaces(var fileExt: FileExt,
 
         val builder = GsonBuilder()
         var gson = builder.create()
-        val pathToFileJSON: String = fileExt.file.folderFramesFull + IOFile.separator + "frames.json"
+        val pathToFileJSON: String = fileExt.folderFramesFull + IOFile.separator + "frames.json"
+//        val pathToFileJSON: String = fileExt.file.folderFramesFull + IOFile.separator + "frames.json"
 
-        fileExt.file.shots = Main.shotController.getListShots(fileExt.file)
-        val arrFrameFaces: Array<FaceExt> = Main.faceController.getArrayFacesExt(fileExt.file)
+        fileExt.file.shots = ShotController.getListShots(fileExt.file)
+        val arrFrameFaces: Array<FaceExt> = FaceController.getArrayFacesExt(fileExt)
 
         try {
             FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(arrFrameFaces, fileWriter) }
@@ -59,7 +60,8 @@ class DetectFaces(var fileExt: FileExt,
         param.add("py")
         param.add("\"${faceDetectorPath}/detect_faces_in_folder.py\"")
         param.add("-i")
-        param.add("\"${Main.fileController.getCdfFolder(fileExt.file, Folders.FRAMES_FULL)}\"")
+        param.add("\"${fileExt.folderFramesFull}\"")
+//        param.add("\"${Main.fileController.getCdfFolder(fileExt.file, Folders.FRAMES_FULL)}\"")
         param.add("-d")
         param.add("\"${faceDetectorPath}/face_detection_model\"")
         param.add("-m")

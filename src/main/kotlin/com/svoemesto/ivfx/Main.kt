@@ -42,18 +42,6 @@ class Main {
         val frameRepo = context.getBean("frameRepo", FrameRepo::class.java)
         val shotRepo = context.getBean("shotRepo", ShotRepo::class.java)
         val faceRepo = context.getBean("faceRepo", FaceRepo::class.java)
-
-        val propertyController = PropertyController()
-        val propertyCdfController = PropertyCdfController()
-        val projectController = ProjectController()
-        val projectCdfController = ProjectCdfController()
-        val fileController = FileController()
-        val fileCdfController = FileCdfController()
-        val trackController = TrackController()
-        val frameController = FrameController()
-        val shotController = ShotController()
-        val faceController = FaceController()
-
     }
 
 

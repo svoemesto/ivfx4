@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.utils
 
 import java.util.regex.Pattern
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
 
@@ -54,6 +55,24 @@ fun getFrameNumberByDuration(duration: Int, fps: Double): Int {
     return doubleFrames.roundToInt()
 }
 
+fun convertDurationToString(duration: Int): String {
+    val hours = duration / 3600000
+    val minutes = (duration - hours * 3600000) / 60000
+    val seconds = (duration - hours * 3600000 - minutes * 60000) / 1000
+    val milliseconds = duration - hours * 3600000 - minutes * 60000 - seconds * 1000
+    return hours.toString() + ":" + String.format("%02d", minutes) + ":" + String.format(
+        "%02d",
+        seconds
+    ) + "." + String.format("%03d", milliseconds)
+}
+
+fun getDurationByFrameNumber(frameNumber: Int, fps: Double): Int {
+    val dur1fr = 1000 / fps
+    val countFramesBefore = frameNumber - 0
+    var durDouble = countFramesBefore * dur1fr
+    if (durDouble < 0) durDouble = 0.0
+    return floor(durDouble).toInt()
+}
 fun main() {
 
 }

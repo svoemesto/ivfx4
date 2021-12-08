@@ -1,9 +1,9 @@
-package com.svoemesto.ivfx.threads
+package com.svoemesto.ivfx.threads.projectactions
 
 import com.google.gson.GsonBuilder
-import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.controllers.FaceController.FaceExt
-import com.svoemesto.ivfx.controllers.FileController.FileExt
+import com.svoemesto.ivfx.modelsext.FileExt
 import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
@@ -30,7 +30,7 @@ class CreateFaces(var fileExt: FileExt,
         val builder = GsonBuilder()
         val gson = builder.create()
 
-        val pathToJsonFaces = fileExt.file.folderFramesFull + IOFile.separator + "faces.json"
+        val pathToJsonFaces = fileExt.folderFramesFull + IOFile.separator + "faces.json"
 
         var countBlocks = 1
         var currentBlock = 1
@@ -53,7 +53,7 @@ class CreateFaces(var fileExt: FileExt,
 
                     val faceExt = facesExtArray[i]
                     faceExt.vectorText = faceExt.vector.joinToString(separator = "|", prefix = "", postfix = "")
-                    Main.faceController.createOrUpdate(faceExt, fileExt.file)
+                    FaceController.createOrUpdate(faceExt, fileExt)
 
                 }
 

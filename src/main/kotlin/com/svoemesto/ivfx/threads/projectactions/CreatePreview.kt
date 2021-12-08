@@ -1,12 +1,6 @@
-package com.svoemesto.ivfx.threads
+package com.svoemesto.ivfx.threads.projectactions
 
-import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.FileController
-import com.svoemesto.ivfx.controllers.FileController.FileExt
-import com.svoemesto.ivfx.controllers.PropertyController
-import com.svoemesto.ivfx.enums.AudioCodecs
-import com.svoemesto.ivfx.enums.LosslessContainers
-import com.svoemesto.ivfx.enums.LosslessVideoCodecs
+import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils
 import javafx.application.Platform
 import javafx.scene.control.Label
@@ -17,21 +11,20 @@ import net.bramp.ffmpeg.FFmpegExecutor
 import net.bramp.ffmpeg.FFmpegUtils
 import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.builder.FFmpegBuilder
-import net.bramp.ffmpeg.builder.FFmpegOutputBuilder
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
 import net.bramp.ffmpeg.probe.FFmpegStream
 import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
+import java.io.File
 import java.util.concurrent.TimeUnit
 
-class CreateLossless(var fileExt: FileExt,
-                     val table: TableView<FileExt>,
-                     val textLbl1: String,
-                     val numCurrentThread: Int,
-                     val countThreads: Int,
-                     var lbl1: Label, var pb1: ProgressBar,
-                     var lbl2: Label, var pb2: ProgressBar): Thread(), Runnable {
-
+class CreatePreview(var fileExt: FileExt,
+                    val table: TableView<FileExt>,
+                    val textLbl1: String,
+                    val numCurrentThread: Int,
+                    val countThreads: Int,
+                    var lbl1: Label, var pb1: ProgressBar,
+                    var lbl2: Label, var pb2: ProgressBar): Thread(), Runnable {
     override fun run() {
 
         lbl1.isVisible = true
@@ -40,15 +33,17 @@ class CreateLossless(var fileExt: FileExt,
         pb2.isVisible = true
 
         val fileInput = fileExt.file.path
-        val fileOutput = Main.fileController.getLossless(fileExt.file, true)
+        if (!File(fileExt.folderPreview).exists()) File(fileExt.folderPreview).mkdir()
+        val fileOutput = fileExt.pathToPreviewFile
+//        val fileOutput = Main.fileController.getPreview(fileExt.file, true)
 
         val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
         val ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
 
         val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(fileInput)
 
-        val w = fileExt.file.project.width
-        val h = fileExt.file.project.height
+        val w = 720
+        val h = 400
 
         val fileWidth: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.width!!
         val fileHeight: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.height!!
@@ -63,44 +58,19 @@ class CreateLossless(var fileExt: FileExt,
             "\"scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black\""
         }
 
-        val builderOutput = FFmpegOutputBuilder()
-
         val builder = FFmpegBuilder()
             .setInput(fileInput)
             .overrideOutputFiles(true)
-            .addOutput(builderOutput)
-
-        builderOutput.setFilename(fileOutput)
-        builderOutput.addExtraArgs("-map", "0:v:0")
-
-        fileExt.file.tracks.filter { it.type == "Audio" && it.use }.forEach { track ->
-            var typeOrder = Main.propertyController.getOrCreate(track::class.java.simpleName, track.id, "@typeorder")
-            if (typeOrder == "") typeOrder = "1"
-            builderOutput.addExtraArgs("-map", "0:a:${(typeOrder.toInt())-1}")
-        }
-
-        builderOutput.setVideoResolution(w,h)
-
-        if (fileExt.file.project.lossLessContainer == LosslessContainers.MXF.name) {
-            builderOutput.setVideoCodec(LosslessVideoCodecs.DNX.codec)
-                .addExtraArgs("-b:v","36M")
-                .setAudioCodec(AudioCodecs.PMC.codec)
-                .setAudioSampleRate(48000)
-        } else {
-            if (fileExt.file.project.lossLessCodec == LosslessVideoCodecs.RAW.name) {
-                builderOutput.setVideoCodec(LosslessVideoCodecs.RAW.codec)
-                    .addExtraArgs("-pix_fmt","yuv420p")
-            } else if (fileExt.file.project.lossLessCodec == LosslessVideoCodecs.DNX.name) {
-                builderOutput.setVideoCodec(LosslessVideoCodecs.DNX.codec)
-                    .addExtraArgs("-b:v","36M")
-            }
-            builderOutput.setAudioCodec("aac")
-                .setAudioBitRate(320000)
-                .setAudioSampleRate(48000)
-        }
-
-        builderOutput.setVideoFilter(filter)
-
+            .addOutput(fileOutput)
+            .setVideoResolution(w,h)
+            .setVideoBitRate(500000)
+            .setVideoCodec("libx264")
+            .setAudioCodec("aac")
+            .setAudioBitRate(196608)
+            .setAudioSampleRate(48000)
+            .setAudioChannels(2)
+            .setVideoFilter(filter)
+            .done()
 
         val executor = FFmpegExecutor(ffmpeg, ffprobe)
 
@@ -133,8 +103,8 @@ class CreateLossless(var fileExt: FileExt,
 
         job.run()
 
-        fileExt.hasLossless = true
-        fileExt.hasLosslessString = "✓"
+        fileExt.hasPreview = true
+        fileExt.hasPreviewString = "✓"
         table.refresh()
 
         lbl1.isVisible = false
