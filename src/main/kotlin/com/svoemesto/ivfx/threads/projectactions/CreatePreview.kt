@@ -33,7 +33,7 @@ class CreatePreview(var fileExt: FileExt,
         pb2.isVisible = true
 
         val fileInput = fileExt.file.path
-        if (!File(fileExt.folderPreview).exists()) File(fileExt.folderPreview).mkdir()
+        if (!File(fileExt.folderPreview!!).exists()) File(fileExt.folderPreview!!).mkdir()
         val fileOutput = fileExt.pathToPreviewFile
 //        val fileOutput = Main.fileController.getPreview(fileExt.file, true)
 
@@ -104,7 +104,7 @@ class CreatePreview(var fileExt: FileExt,
         job.run()
 
         fileExt.hasPreview = true
-        fileExt.hasPreviewString = "✓"
+//        fileExt.hasPreviewString = "✓"
         table.refresh()
 
         lbl1.isVisible = false

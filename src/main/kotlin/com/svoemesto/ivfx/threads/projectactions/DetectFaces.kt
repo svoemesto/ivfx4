@@ -93,7 +93,7 @@ class DetectFaces(var fileExt: FileExt,
         println("Это должно напечататься после завершения процесса cmd")
 
         fileExt.hasDetectedFaces = true
-        fileExt.hasDetectedFacesString = "✓"
+//        fileExt.hasDetectedFacesString = "✓"
         table.refresh()
 
         lbl1.isVisible = false

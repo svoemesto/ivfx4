@@ -89,7 +89,7 @@ class CreateFramesSmall(var fileExt: FileExt,
         job.run()
 
         fileExt.hasFramesSmall = true
-        fileExt.hasFramesSmallString = "✓"
+//        fileExt.hasFramesSmallString = "✓"
         table.refresh()
 
         lbl1.isVisible = false

@@ -63,7 +63,7 @@ class CreateFaces(var fileExt: FileExt,
         }
 
         fileExt.hasCreatedFaces = true
-        fileExt.hasCreatedFacesString = "✓"
+//        fileExt.hasCreatedFacesString = "✓"
         table.refresh()
 
         lbl1.isVisible = false

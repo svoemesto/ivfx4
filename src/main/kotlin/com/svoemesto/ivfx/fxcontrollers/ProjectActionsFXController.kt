@@ -119,8 +119,9 @@ class ProjectActionsFXController {
         private var currentFileExt: FileExt? = null
         private var listFilesExt: ObservableList<FileExt> = FXCollections.observableArrayList()
 
-        fun actionsProject(project: Project, hostServices: HostServices? = null) {
+        fun actionsProject(project: Project, listFilesExt: ObservableList<FileExt>, hostServices: HostServices? = null) {
             currentProject = project
+            this.listFilesExt = listFilesExt
             mainStage = Stage()
             try {
                 val root = FXMLLoader.load<Parent>(ProjectEditFXController::class.java.getResource("project-actions-view.fxml"))
@@ -150,7 +151,7 @@ class ProjectActionsFXController {
 
         tblFilesExt?.selectionModel?.selectionMode = SelectionMode.MULTIPLE
 
-        listFilesExt = FXCollections.observableArrayList(FileController.getListFilesExt(currentProject))
+//        listFilesExt = FXCollections.observableArrayList(FileController.getListFilesExt(currentProject))
         colFileExtOrder?.setCellValueFactory(PropertyValueFactory("fileOrder"))
         colFileExtName?.setCellValueFactory(PropertyValueFactory("fileName"))
         colFileExtPW?.setCellValueFactory(PropertyValueFactory("hasPreviewString"))
@@ -177,14 +178,14 @@ class ProjectActionsFXController {
         var countActions = 0
 
         tblFilesExt?.selectionModel?.selectedItems?.forEach { fileExt ->
-            if (checkCreatePreview?.isSelected == true && (!fileExt.hasPreview || (fileExt.hasPreview && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateLossless?.isSelected == true && (!fileExt.hasLossless || (fileExt.hasLossless && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall || (fileExt.hasFramesSmall && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium || (fileExt.hasFramesMedium && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull || (fileExt.hasFramesFull && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames || (fileExt.hasAnalyzedFrames && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces || (fileExt.hasDetectedFaces && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces || (fileExt.hasCreatedFaces && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreatePreview?.isSelected == true && (!fileExt.hasPreview!! || (fileExt.hasPreview!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateLossless?.isSelected == true && (!fileExt.hasLossless!! || (fileExt.hasLossless!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall!! || (fileExt.hasFramesSmall!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium!! || (fileExt.hasFramesMedium!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull!! || (fileExt.hasFramesFull!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames!! || (fileExt.hasAnalyzedFrames!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces!! || (fileExt.hasDetectedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
         }
         var counterPb1 = 0
 
@@ -192,7 +193,7 @@ class ProjectActionsFXController {
 
         tblFilesExt?.selectionModel?.selectedItems?.forEach { fileExt ->
 
-            if (checkCreatePreview?.isSelected == true && (!fileExt.hasPreview || (fileExt.hasPreview && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreatePreview?.isSelected == true && (!fileExt.hasPreview!! || (fileExt.hasPreview!! && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
                     CreatePreview(fileExt!!, tblFilesExt!!,
@@ -201,7 +202,7 @@ class ProjectActionsFXController {
                 )
             }
 
-            if (checkCreateLossless?.isSelected == true && (!fileExt.hasLossless || (fileExt.hasLossless && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateLossless?.isSelected == true && (!fileExt.hasLossless!! || (fileExt.hasLossless!! && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
                     CreateLossless(fileExt!!, tblFilesExt!!,
@@ -210,7 +211,7 @@ class ProjectActionsFXController {
                 )
             }
 
-            if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall || (fileExt.hasFramesSmall && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall!! || (fileExt.hasFramesSmall!! && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
                     CreateFramesSmall(fileExt!!, tblFilesExt!!,
@@ -219,7 +220,7 @@ class ProjectActionsFXController {
                 )
             }
 
-            if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium || (fileExt.hasFramesMedium && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium!! || (fileExt.hasFramesMedium!! && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
                     CreateFramesMedium(fileExt!!, tblFilesExt!!,
@@ -228,7 +229,7 @@ class ProjectActionsFXController {
                 )
             }
 
-            if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull || (fileExt.hasFramesFull && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull!! || (fileExt.hasFramesFull!! && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
                     CreateFramesFull(fileExt!!, tblFilesExt!!,
@@ -237,7 +238,7 @@ class ProjectActionsFXController {
                 )
             }
 
-            if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames || (fileExt.hasAnalyzedFrames && checkReCreateIfExists?.isSelected!!))) {
+            if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames!! || (fileExt.hasAnalyzedFrames!! && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
                     AnalyzeFrames(fileExt!!, tblFilesExt!!,
@@ -246,7 +247,7 @@ class ProjectActionsFXController {
                 )
             }
 
-            if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces || (fileExt.hasDetectedFaces && checkReCreateIfExists?.isSelected!!))) {
+            if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces!! || (fileExt.hasDetectedFaces!! && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
                     DetectFaces(fileExt!!, tblFilesExt!!,
@@ -255,7 +256,7 @@ class ProjectActionsFXController {
                 )
             }
 
-            if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces || (fileExt.hasCreatedFaces && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
                     CreateFaces(fileExt!!, tblFilesExt!!,

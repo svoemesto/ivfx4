@@ -135,7 +135,7 @@ class CreateLossless(var fileExt: FileExt,
         job.run()
 
         fileExt.hasLossless = true
-        fileExt.hasLosslessString = "✓"
+//        fileExt.hasLosslessString = "✓"
         table.refresh()
 
         lbl1.isVisible = false
