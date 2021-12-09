@@ -46,5 +46,21 @@ class Shot {
     @Column(name = "nearest_i_frame", columnDefinition = "int default 0")
     var nearestIFrame: Int = 0
 
+    @Column(name = "is_body_scene", columnDefinition = "boolean default false")
+    var isBodyScene: Boolean = false
 
+    @Column(name = "is_start_scene", columnDefinition = "boolean default false")
+    var isStartScene: Boolean = false
+
+    @Column(name = "is_end_scene", columnDefinition = "boolean default false")
+    var isEndScene: Boolean = false
+
+    @Column(name = "is_body_event", columnDefinition = "boolean default false")
+    var isBodyEvent: Boolean = false
+
+    @Column(name = "is_start_event", columnDefinition = "boolean default false")
+    var isStartEvent: Boolean = false
+
+    @Column(name = "is_end_event", columnDefinition = "boolean default false")
+    var isEndEvent: Boolean = false
 }

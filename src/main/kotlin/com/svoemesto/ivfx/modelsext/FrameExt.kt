@@ -14,6 +14,8 @@ data class FrameExt(val frame: Frame,
 
     companion object {
         val pathToStubSmall: String = FrameExt::class.java.getResource("blank_frame_small.jpg")!!.toString()
+        val pathToStubMedium: String = FrameExt::class.java.getResource("blank_frame_medium.jpg")!!.toString()
+        val pathToStubFull: String = FrameExt::class.java.getResource("blank_frame_full.jpg")!!.toString()
     }
 
     val pathToSmall: String get() = "${fileExt.folderFramesSmall}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
