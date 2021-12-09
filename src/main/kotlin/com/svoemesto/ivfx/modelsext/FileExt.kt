@@ -110,6 +110,30 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
         }
     val hasCreatedFacesString: String get() = if (hasCreatedFaces!!) "✓" else "✗"
 
+    fun resetFieldsLinkedShortName() {
+        folderPreview = null
+        folderLossless = null
+        folderFavorites = null
+        folderShots = null
+        folderFramesSmall = null
+        folderFramesMedium = null
+        folderFramesFull = null
+        pathToLosslessFile = null
+        pathToPreviewFile = null
+        hasPreview = null
+        hasLossless = null
+        hasFramesSmall = null
+        hasFramesMedium = null
+        hasFramesFull = null
+        hasAnalyzedFrames = null
+        hasDetectedFaces = null
+        hasCreatedFaces = null
+    }
+
+    fun resetFieldsLinkedPath() {
+        fps = -1.0
+        framesCount = -1
+    }
     override fun compareTo(other: FileExt): Int {
         return this.fileOrder - other.fileOrder
     }
