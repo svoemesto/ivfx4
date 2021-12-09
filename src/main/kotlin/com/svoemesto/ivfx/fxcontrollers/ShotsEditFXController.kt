@@ -2,19 +2,19 @@ package com.svoemesto.ivfx.fxcontrollers
 
 import com.sun.javafx.scene.control.skin.VirtualFlow
 import com.svoemesto.ivfx.controllers.FrameController
-import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
 import com.svoemesto.ivfx.modelsext.MatrixFrame
 import com.svoemesto.ivfx.modelsext.MatrixPage
 import com.svoemesto.ivfx.modelsext.MatrixPage.Companion.createPages
+import com.svoemesto.ivfx.threads.RunListThreads
+import com.svoemesto.ivfx.threads.loadlists.LoadListFramesExt
 import com.svoemesto.ivfx.utils.ConvertToFxImage
-import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.convertDurationToString
-import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.getDurationByFrameNumber
 import com.svoemesto.ivfx.utils.OverlayImage
 import javafx.application.HostServices
 import javafx.application.Platform
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -26,7 +26,6 @@ import javafx.geometry.Pos
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Button
-import javafx.scene.control.ContentDisplay
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
@@ -78,6 +77,9 @@ class ShotsEditFXController {
     private var pb: ProgressBar? = null
 
     @FXML
+    private var lblPb: Label? = null
+
+    @FXML
     private val slider: Slider? = null
 
     companion object {
@@ -90,7 +92,7 @@ class ShotsEditFXController {
         private var listMatrixPages: ObservableList<MatrixPage> = FXCollections.observableArrayList()
         private var countColumnsInPage = 0
         private var countRowsInPage = 0
-
+        private val runListThreadsFramesFlagIsDone = SimpleBooleanProperty(false)
 
         private const val fxBorderDefault = "-fx-border-color:#0f0f0f;-fx-border-width:1" // стиль бордюра лейбла по-умолчанию
         private const val fxBorderFocused = "-fx-border-color:YELLOW;-fx-border-width:1" // стиль бордюра лейбла в фокусе
@@ -111,7 +113,7 @@ class ShotsEditFXController {
         private var countLoadedPages = 0
 
         @Volatile
-        private var listFramesExt: MutableList<FrameExt> = mutableListOf()
+        private var listFramesExt: ObservableList<FrameExt> = FXCollections.observableArrayList()
 
         @Volatile
         private var listShots: MutableList<Shot> = mutableListOf()
@@ -147,7 +149,21 @@ class ShotsEditFXController {
 
         mainStage?.title = "Редактор планов. Файл: ${currentFileExt!!.file.name}"
 
-        listFramesExt = FrameController.getListFramesExt(currentFileExt!!)
+
+        var listThreads: MutableList<Thread> = mutableListOf()
+        listThreads.add(LoadListFramesExt(listFramesExt, currentFileExt!!, pb, lblPb))
+        val runListThreadsFrames = RunListThreads(listThreads, runListThreadsFramesFlagIsDone)
+        runListThreadsFrames.start()
+
+        runListThreadsFramesFlagIsDone.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                listMatrixPages = createPages(listFramesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
+                tblPages!!.items = listMatrixPages
+                runListThreadsFramesFlagIsDone.set(false)
+            }
+        }
+
+//        listFramesExt = FrameController.getListFramesExt(currentFileExt!!)
 //        listShots = ShotController.getListShots(currentFileExt!!.file)
 
         isWorking = true
@@ -448,40 +464,44 @@ class ShotsEditFXController {
 
 
     fun listenToChangePaneSize() {
-        val paneWidth: Double = paneCenter!!.getWidth() // ширина центрального пэйна
-        val paneHeight: Double = paneCenter!!.getHeight() // высота центрального пейна
-        val widthPadding = (pictW + 2) * 2 + 20 // по ширине двойной отступ
-        val heightPadding = (pictH + 2) * 2 + 20 // по высоте двойной отступ
-        if (paneWidth > widthPadding && paneHeight > heightPadding) {
-            val prevCountColumnsInPage = countColumnsInPage
-            val prevCountRowsInPage = countRowsInPage
-            countColumnsInPage =
-                ((paneWidth - widthPadding) / (pictW + 2)).toInt() // количество столбцов, которое влезет на экран
-            countRowsInPage =
-                ((paneHeight - heightPadding) / (pictH + 2)).toInt() // количество строк, которое влезет на экран
 
-            // если значения кол-ва столбцов и/или строк изменилось при ресайзе
-            if (prevCountColumnsInPage != countColumnsInPage || prevCountRowsInPage != countRowsInPage) {
-                createPages(listFramesExt, paneWidth, paneHeight, pictW, pictH) // заново создаем список страниц
+        if (runListThreadsFramesFlagIsDone.value) {
+            val paneWidth: Double = paneCenter!!.getWidth() // ширина центрального пэйна
+            val paneHeight: Double = paneCenter!!.getHeight() // высота центрального пейна
+            val widthPadding = (pictW + 2) * 2 + 20 // по ширине двойной отступ
+            val heightPadding = (pictH + 2) * 2 + 20 // по высоте двойной отступ
+            if (paneWidth > widthPadding && paneHeight > heightPadding) {
+                val prevCountColumnsInPage = countColumnsInPage
+                val prevCountRowsInPage = countRowsInPage
+                countColumnsInPage =
+                    ((paneWidth - widthPadding) / (pictW + 2)).toInt() // количество столбцов, которое влезет на экран
+                countRowsInPage =
+                    ((paneHeight - heightPadding) / (pictH + 2)).toInt() // количество строк, которое влезет на экран
 
-                // если список страниц не пустой
-                if (listMatrixPages.size > 0) {
-                    tblPages!!.setItems(listMatrixPages) // запихиваем список в таблицу
-                    tblPages!!.refresh() // рефрешим таблицу
-                    val currPage: MatrixPage? = getPageByFrame(initFrameNumber) // узнаем, в какой странице сидит инитный фрейм
-                    slider?.setMin(-(listMatrixPages.size - 1).toDouble())
-                    slider?.setMax(0.0)
-                    for (i in listMatrixPages.indices) {
-                        if (currPage === listMatrixPages.get(i)) {
-                            slider?.setValue(-(i + 1).toDouble())
-                            break
+                // если значения кол-ва столбцов и/или строк изменилось при ресайзе
+                if (prevCountColumnsInPage != countColumnsInPage || prevCountRowsInPage != countRowsInPage) {
+                    listMatrixPages = createPages(listFramesExt, paneWidth, paneHeight, pictW, pictH) // заново создаем список страниц
+
+                    // если список страниц не пустой
+                    if (listMatrixPages.size > 0) {
+                        tblPages!!.setItems(listMatrixPages) // запихиваем список в таблицу
+                        tblPages!!.refresh() // рефрешим таблицу
+                        val currPage: MatrixPage? = getPageByFrame(initFrameNumber) // узнаем, в какой странице сидит инитный фрейм
+                        slider?.setMin(-(listMatrixPages.size - 1).toDouble())
+                        slider?.setMax(0.0)
+                        for (i in listMatrixPages.indices) {
+                            if (currPage === listMatrixPages.get(i)) {
+                                slider?.setValue(-(i + 1).toDouble())
+                                break
+                            }
                         }
+                        tblPages!!.selectionModel.select(currPage) // переходим на эту страницу в таблице
+                        tblPagesSmartScroll(currPage)
                     }
-                    tblPages!!.selectionModel.select(currPage) // переходим на эту страницу в таблице
-                    tblPagesSmartScroll(currPage)
                 }
             }
         }
+
     }
 
 }
