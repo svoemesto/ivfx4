@@ -671,7 +671,7 @@ class ProjectEditFXController {
             btnFilePropertyCdfMoveToLast?.isDisable = currentFilePropertyCdf == null || currentFilePropertyCdf == listFilePropertiesCdf.last()
             btnFilePropertyCdfMoveDown?.isDisable = currentFilePropertyCdf == null || currentFilePropertyCdf == listFilePropertiesCdf.last()
 
-            fldFilePropertyCdfKey?.isDisable = currentFilePropertyCdf == null
+            fldFilePropertyCdfKey?.isDisable = currentFilePropertyCdf == null || Folders.values().any { it.propertyCdfKey == currentFilePropertyCdf!!.key }
             fldFilePropertyCdfValue?.isDisable = currentFilePropertyCdf == null
             btnBrowseFilePropertyCdfValue?.isDisable = currentFilePropertyCdf == null
 
@@ -710,7 +710,7 @@ class ProjectEditFXController {
             btnProjectPropertyCdfMoveToLast?.isDisable = currentProjectPropertyCdf == null || currentProjectPropertyCdf == listProjectPropertiesCdf.last()
             btnProjectPropertyCdfMoveDown?.isDisable = currentProjectPropertyCdf == null || currentProjectPropertyCdf == listProjectPropertiesCdf.last()
 
-            fldProjectPropertyCdfKey?.isDisable = currentProjectPropertyCdf == null
+            fldProjectPropertyCdfKey?.isDisable = currentProjectPropertyCdf == null || Folders.values().any { it.propertyCdfKey == currentProjectPropertyCdf!!.key }
             fldProjectPropertyCdfValue?.isDisable = currentProjectPropertyCdf == null
             btnBrowseProjectPropertyCdfValue?.isDisable = currentProjectPropertyCdf == null
 
@@ -1024,12 +1024,14 @@ class ProjectEditFXController {
             tmp = fldFileShortName?.text ?: ""
             if (tmp != currentFileExt!!.file.shortName) {
                 currentFileExt!!.file.shortName = tmp
+                currentFileExt!!.resetFieldsLinkedShortName()
                 needToSave = true
             }
 
             tmp = fldFilePath?.text ?: ""
             if (tmp != currentFileExt!!.file.path) {
                 currentFileExt!!.file.path = tmp
+                currentFileExt!!.resetFieldsLinkedPath()
                 needToSave = true
             }
 
