@@ -950,6 +950,23 @@ class ProjectEditFXController {
             tmp = fldFilePropertyCdfValue?.text ?: ""
             if (tmp != currentFilePropertyCdf?.value) {
                 currentFilePropertyCdf?.value = tmp
+                when(currentFilePropertyCdf?.key) {
+                    Folders.PREVIEW.propertyCdfKey -> { currentFileExt!!.folderPreview = null
+                        currentFileExt!!.hasPreview = null }
+                    Folders.LOSSLESS.propertyCdfKey -> { currentFileExt!!.folderLossless = null
+                        currentFileExt!!.hasLossless = null }
+                    Folders.FAVORITES.propertyCdfKey -> currentFileExt!!.folderFavorites = null
+                    Folders.SHOTS.propertyCdfKey -> currentFileExt!!.folderShots = null
+                    Folders.FRAMES_SMALL.propertyCdfKey -> { currentFileExt!!.folderFramesSmall = null
+                        currentFileExt!!.hasFramesSmall = null }
+                    Folders.FRAMES_MEDIUM.propertyCdfKey -> { currentFileExt!!.folderFramesMedium = null
+                        currentFileExt!!.hasFramesMedium = null }
+                    Folders.FRAMES_FULL.propertyCdfKey -> { currentFileExt!!.folderFramesFull = null
+                        currentFileExt!!.hasFramesFull = null
+                        currentFileExt!!.hasDetectedFaces = null
+                        currentFileExt!!.hasCreatedFaces = null
+                    }
+                }
                 needToSave = true
             }
 

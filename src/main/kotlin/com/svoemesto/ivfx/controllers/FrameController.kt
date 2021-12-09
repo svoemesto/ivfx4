@@ -67,22 +67,17 @@ class FrameController() {
 
         fun getListFramesExt(fileExt: FileExt): MutableList<FrameExt> {
             val listFrames = getListFrames(fileExt.file)
-            val pathToFramesSmall = fileExt.folderFramesSmall + IOFile.separator
-            val pathToFramesMedium = fileExt.folderFramesMedium + IOFile.separator
-            val pathToFramesFull = fileExt.folderFramesFull + IOFile.separator
-            var result: MutableList<FrameExt> = mutableListOf()
+            val result: MutableList<FrameExt> = mutableListOf()
             listFrames.forEach { frame ->
-                val fileName = "${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
-                result.add(FrameExt(frame, fileExt, pathToFramesSmall + fileName, pathToFramesMedium + fileName, pathToFramesFull + fileName ))
+                result.add(FrameExt(frame, fileExt))
             }
             return result
         }
 
         fun createFrames(fileExt: FileExt) {
             deleteAll(fileExt.file)
-//        Main.frameRepo.createFrames(file.id, Main.fileController.getFramesCount(file))
 
-            var sql = "insert into tbl_frames (frame_number, file_id, sim_score_next_1, sim_score_next_2, sim_score_next_3, sim_score_prev_1, sim_score_prev_2, sim_score_prev_3, diff_next_1, diff_next_2, diff_prev_1, diff_prev_2) SELECT distinct (a1 + a2*10 + a3*100 + a4*1000 + a5*10000 + a6*100000)+1 as frameNumber, ${fileExt.file.id} as file_id, 0,0,0,0,0,0,0,0,0,0 " +
+            val sql = "insert into tbl_frames (frame_number, file_id, sim_score_next_1, sim_score_next_2, sim_score_next_3, sim_score_prev_1, sim_score_prev_2, sim_score_prev_3, diff_next_1, diff_next_2, diff_prev_1, diff_prev_2) SELECT distinct (a1 + a2*10 + a3*100 + a4*1000 + a5*10000 + a6*100000)+1 as frameNumber, ${fileExt.file.id} as file_id, 0,0,0,0,0,0,0,0,0,0 " +
                     "FROM (SELECT 0 a1 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 " +
                     "UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) t1 cross JOIN " +
                     "(SELECT 0 a2 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 " +
@@ -116,16 +111,10 @@ class FrameController() {
         }
 
         fun delete(frame: Frame) {
-//        Main.propertyController.deleteAll(frame::class.java.simpleName, frame.id)
-//        Main.propertyCdfController.deleteAll(frame::class.java.simpleName, frame.id)
             Main.frameRepo.delete(frame)
         }
 
         fun deleteAll(file: File) {
-//        getListFrames(file).forEach { frame ->
-//            Main.propertyController.deleteAll(frame::class.java.simpleName, frame.id)
-//            Main.propertyCdfController.deleteAll(frame::class.java.simpleName, frame.id)
-//        }
             Main.frameRepo.deleteAll(file.id)
         }
         fun create(file: File, frameNumber: Int): Frame {
@@ -135,18 +124,6 @@ class FrameController() {
             save(entity)
             return entity
         }
-
-//    fun getFileNameFrameSmall(frame: Frame): String {
-//        return "${Main.fileController.getCdfFolder(frame.file, Folders.FRAMES_SMALL)}${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
-//    }
-//
-//    fun getFileNameFrameMedium(frame: Frame): String {
-//        return "${Main.fileController.getCdfFolder(frame.file, Folders.FRAMES_MEDIUM)}${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
-//    }
-//
-//    fun getFileNameFrameFull(frame: Frame): String {
-//        return "${Main.fileController.getCdfFolder(frame.file, Folders.FRAMES_FULL)}${IOFile.separator}${frame.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
-//    }
 
     }
 
