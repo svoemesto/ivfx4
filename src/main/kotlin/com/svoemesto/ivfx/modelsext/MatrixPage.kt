@@ -30,7 +30,7 @@ class MatrixPage {
             val countColumnsInPage = ((paneW - ((picW + 2) * 2 + 20)) / (picW + 2)).toInt()
             val countRowsInPage = ((paneH - ((picH + 2) * 2 + 20)) / (picH + 2)).toInt()
             val listMatrixPages: ObservableList<MatrixPage> = FXCollections.observableArrayList()
-            val matrixPage = MatrixPage()
+            var matrixPage = MatrixPage()
             var currentColumn = 1
             var currentRow = 1
             var wasAddedNewPage = false
@@ -79,6 +79,7 @@ class MatrixPage {
                     matrixPage.countColumns = countColumnsInPage
                     matrixPage.countRows = countRowsInPage
                     listMatrixPages.add(matrixPage)
+                    matrixPage = MatrixPage()
                     wasAddedNewPage = true
                 }
 
