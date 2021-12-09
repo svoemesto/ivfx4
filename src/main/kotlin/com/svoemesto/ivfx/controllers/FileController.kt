@@ -38,37 +38,37 @@ class FileController() {
         }
 
         fun getFolderLossless(fileExt: FileExt): String{
-            val value = PropertyCdfController.getOrCreate(fileExt::class.java.simpleName, fileExt.file.id, Folders.LOSSLESS.propertyCdfKey)
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.LOSSLESS.propertyCdfKey)
             return if (value == "") fileExt.projectExt.folderLossless + IOFile.separator + fileExt.file.shortName else value
         }
 
         fun getFolderPreview(fileExt: FileExt): String{
-            val value = PropertyCdfController.getOrCreate(fileExt::class.java.simpleName, fileExt.file.id, Folders.PREVIEW.propertyCdfKey)
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.PREVIEW.propertyCdfKey)
             return if (value == "") fileExt.projectExt.folderPreview + IOFile.separator + fileExt.file.shortName else value
         }
 
         fun getFolderFavorites(fileExt: FileExt): String{
-            val value = PropertyCdfController.getOrCreate(fileExt::class.java.simpleName, fileExt.file.id, Folders.FAVORITES.propertyCdfKey)
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.FAVORITES.propertyCdfKey)
             return if (value == "") fileExt.projectExt.folderFavorites + IOFile.separator + fileExt.file.shortName else value
         }
 
         fun getFolderShots(fileExt: FileExt): String{
-            val value = PropertyCdfController.getOrCreate(fileExt::class.java.simpleName, fileExt.file.id, Folders.SHOTS.propertyCdfKey)
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.SHOTS.propertyCdfKey)
             return if (value == "") fileExt.projectExt.folderShots + IOFile.separator + fileExt.file.shortName else value
         }
 
         fun getFolderFramesSmall(fileExt: FileExt): String{
-            val value = PropertyCdfController.getOrCreate(fileExt::class.java.simpleName, fileExt.file.id, Folders.FRAMES_SMALL.propertyCdfKey)
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.FRAMES_SMALL.propertyCdfKey)
             return if (value == "") fileExt.projectExt.folderFramesSmall + IOFile.separator + fileExt.file.shortName else value
         }
 
         fun getFolderFramesMedium(fileExt: FileExt): String{
-            val value = PropertyCdfController.getOrCreate(fileExt::class.java.simpleName, fileExt.file.id, Folders.FRAMES_MEDIUM.propertyCdfKey)
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.FRAMES_MEDIUM.propertyCdfKey)
             return if (value == "") fileExt.projectExt.folderFramesMedium + IOFile.separator + fileExt.file.shortName else value
         }
 
         fun getFolderFramesFull(fileExt: FileExt): String{
-            val value = PropertyCdfController.getOrCreate(fileExt::class.java.simpleName, fileExt.file.id, Folders.FRAMES_FULL.propertyCdfKey)
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.FRAMES_FULL.propertyCdfKey)
             return if (value == "") fileExt.projectExt.folderFramesFull + IOFile.separator + fileExt.file.shortName else value
         }
 

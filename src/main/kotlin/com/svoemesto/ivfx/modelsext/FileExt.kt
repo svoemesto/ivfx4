@@ -3,36 +3,115 @@ package com.svoemesto.ivfx.modelsext
 import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.models.File
 
-data class FileExt(val file: File, val projectExt: ProjectExt) {
-//    var projectExt: ProjectExt = ProjectExt(file.project)
-    var fileName: String = file.name
-    var fileOrder: Int = file.order
-    var fps: Double = FileController.getFps(file)
-    var framesCount: Int = FileController.getFramesCount(file)
-    var folderPreview: String = FileController.getFolderPreview(this)
-    var folderLossless: String = FileController.getFolderLossless(this)
-    var folderFavorites: String = FileController.getFolderFavorites(this)
-    var folderShots: String = FileController.getFolderShots(this)
-    var folderFramesSmall: String = FileController.getFolderFramesSmall(this)
-    var folderFramesMedium: String = FileController.getFolderFramesMedium(this)
-    var folderFramesFull: String = FileController.getFolderFramesFull(this)
-    var pathToLosslessFile: String = FileController.getLossless(this)
-    var pathToPreviewFile: String = FileController.getPreview(this)
-    var hasPreview: Boolean = FileController.hasPreview(this)
-    var hasPreviewString: String = if (hasPreview) "✓" else "✗"
-    var hasLossless: Boolean = FileController.hasLossless(this)
-    var hasLosslessString: String = if (hasLossless) "✓" else "✗"
-    var hasFramesSmall: Boolean = FileController.hasFramesSmall(this)
-    var hasFramesSmallString: String = if (hasFramesSmall) "✓" else "✗"
-    var hasFramesMedium: Boolean = FileController.hasFramesMedium(this)
-    var hasFramesMediumString: String = if (hasFramesMedium) "✓" else "✗"
-    var hasFramesFull: Boolean = FileController.hasFramesFull(this)
-    var hasFramesFullString: String = if (hasFramesFull) "✓" else "✗"
-    var hasAnalyzedFrames: Boolean = FileController.hasAnalyzedFrames(file)
-    var hasAnalyzedFramesString: String = if (hasAnalyzedFrames) "✓" else "✗"
-    var hasDetectedFaces: Boolean = FileController.hasDetectedFaces(this)
-    var hasDetectedFacesString: String = if (hasDetectedFaces) "✓" else "✗"
-    var hasCreatedFaces: Boolean = FileController.hasCreatedFaces(file)
-    var hasCreatedFacesString: String = if (hasCreatedFaces) "✓" else "✗"
+data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<FileExt> {
+    val fileName: String get() = file.name
+    val fileOrder: Int get() = file.order
+    var fps: Double = -1.0
+        get() {
+            if (field < 0) field = FileController.getFps(file)
+            return field
+        }
+    var framesCount: Int = -1
+        get() {
+            if (field < 0) field = FileController.getFramesCount(file)
+            return field
+        }
+    var folderPreview: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderPreview(this)
+            return field
+        }
+    var folderLossless: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderLossless(this)
+            return field
+        }
+    var folderFavorites: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderFavorites(this)
+            return field
+        }
+    var folderShots: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderShots(this)
+            return field
+        }
+    var folderFramesSmall: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderFramesSmall(this)
+            return field
+        }
+    var folderFramesMedium: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderFramesMedium(this)
+            return field
+        }
+    var folderFramesFull: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderFramesFull(this)
+            return field
+        }
+    var pathToLosslessFile: String? = null
+        get() {
+            if (field == null) field = FileController.getLossless(this)
+            return field
+        }
+    var pathToPreviewFile: String? = null
+        get() {
+            if (field == null) field = FileController.getPreview(this)
+            return field
+        }
+    var hasPreview: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasPreview(this)
+            return field
+        }
+    val hasPreviewString: String get() = if (hasPreview!!) "✓" else "✗"
+    var hasLossless: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasLossless(this)
+            return field
+        }
+    val hasLosslessString: String get() = if (hasLossless!!) "✓" else "✗"
+    var hasFramesSmall: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasFramesSmall(this)
+            return field
+        }
+    val hasFramesSmallString: String get() = if (hasFramesSmall!!) "✓" else "✗"
+    var hasFramesMedium: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasFramesMedium(this)
+            return field
+        }
+    val hasFramesMediumString: String get() = if (hasFramesMedium!!) "✓" else "✗"
+    var hasFramesFull: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasFramesFull(this)
+            return field
+        }
+    val hasFramesFullString: String get() = if (hasFramesFull!!) "✓" else "✗"
+    var hasAnalyzedFrames: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasAnalyzedFrames(file)
+            return field
+        }
+    val hasAnalyzedFramesString: String get() = if (hasAnalyzedFrames!!) "✓" else "✗"
+    var hasDetectedFaces: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasDetectedFaces(this)
+            return field
+        }
+    val hasDetectedFacesString: String get() = if (hasDetectedFaces!!) "✓" else "✗"
+    var hasCreatedFaces: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasCreatedFaces(file)
+            return field
+        }
+    val hasCreatedFacesString: String get() = if (hasCreatedFaces!!) "✓" else "✗"
+
+    override fun compareTo(other: FileExt): Int {
+        return this.fileOrder - other.fileOrder
+    }
 
 }

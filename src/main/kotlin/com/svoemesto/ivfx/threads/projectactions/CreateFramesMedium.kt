@@ -104,7 +104,7 @@ class CreateFramesMedium(var fileExt: FileExt,
         job.run()
 
         fileExt.hasFramesMedium = true
-        fileExt.hasFramesMediumString = "✓"
+//        fileExt.hasFramesMediumString = "✓"
         table.refresh()
 
         lbl1.isVisible = false

@@ -291,7 +291,7 @@ class AnalyzeFrames(var fileExt: FileExt,
         }
 
         fileExt.hasAnalyzedFrames = true
-        fileExt.hasAnalyzedFramesString = "✓"
+//        fileExt.hasAnalyzedFramesString = "✓"
         table.refresh()
 
         lbl1.isVisible = false

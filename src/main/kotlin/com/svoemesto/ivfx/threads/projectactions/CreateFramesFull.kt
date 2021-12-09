@@ -104,7 +104,7 @@ class CreateFramesFull(var fileExt: FileExt,
         job.run()
 
         fileExt.hasFramesFull = true
-        fileExt.hasFramesFullString = "✓"
+//        fileExt.hasFramesFullString = "✓"
         table.refresh()
 
         lbl1.isVisible = false
