@@ -24,7 +24,9 @@ import com.svoemesto.ivfx.models.Track
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import com.svoemesto.ivfx.setPropertyValue
+import com.svoemesto.ivfx.threads.RunListThreads
 import com.svoemesto.ivfx.threads.loadlists.LoadListFilesExt
+import com.svoemesto.ivfx.threads.updatelists.UpdateListFilesExt
 import javafx.application.HostServices
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -530,8 +532,11 @@ class ProjectEditFXController {
         cbProjectLosslessCodec?.selectionModel?.select(currentProjectExt!!.project.lossLessCodec)
         cbProjectLosslessContainer?.selectionModel?.select(currentProjectExt!!.project.lossLessContainer)
 
+        val listThreads: MutableList<Thread> = mutableListOf()
+        listThreads.add(LoadListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles))
+        listThreads.add(UpdateListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles))
+        RunListThreads(listThreads).start()
 
-        LoadListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles).start()
 //        listFilesExt = FXCollections.observableArrayList(FileController.getListFiles(currentProjectExt!!))
 //        listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
 
