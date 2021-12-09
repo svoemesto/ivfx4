@@ -7,7 +7,7 @@ import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
-import com.svoemesto.ivfx.utils.getListIFrames
+import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.getListIFrames
 import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar

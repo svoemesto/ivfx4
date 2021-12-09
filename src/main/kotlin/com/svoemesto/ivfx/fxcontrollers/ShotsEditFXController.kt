@@ -7,9 +7,9 @@ import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
 import com.svoemesto.ivfx.utils.ConvertToFxImage
+import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.convertDurationToString
+import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.getDurationByFrameNumber
 import com.svoemesto.ivfx.utils.OverlayImage
-import com.svoemesto.ivfx.utils.convertDurationToString
-import com.svoemesto.ivfx.utils.getDurationByFrameNumber
 import javafx.application.HostServices
 import javafx.application.Platform
 import javafx.beans.value.ObservableValue
