@@ -1,10 +1,5 @@
 package com.svoemesto.ivfx.threads.updatelists
 
-import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.FileCdfController
-import com.svoemesto.ivfx.controllers.FileController
-import com.svoemesto.ivfx.controllers.ProjectController
-import com.svoemesto.ivfx.controllers.TrackController
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import javafx.application.Platform
@@ -20,10 +15,10 @@ class UpdateListFilesExt(
     ) : Thread(), Runnable {
 
     override fun run() {
-        loadList()
+        updateList()
     }
 
-    private fun loadList() {
+    private fun updateList() {
 
         Platform.runLater {
             if (pb != null) pb!!.isVisible = true
@@ -35,7 +30,6 @@ class UpdateListFilesExt(
                 if (pb!=null) pb!!.progress = i.toDouble()/list.count()
                 if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/list.count().toDouble())} Updating: ${fileExt.file.name} ($i/${list.count()})"
             }
-            val fileExt = list[i]
 
             fileExt.fps
             fileExt.framesCount

@@ -20,7 +20,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1502.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.ProjectEditFXController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1100.0" prefWidth="1502.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.ProjectEditFXController">
    <children>
       <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="2.0">
         <menus>
@@ -404,8 +404,6 @@
                                                     <TableColumn fx:id="colFileName" maxWidth="190.0" prefWidth="190.0" text="Файл" />
                                                   </columns>
                                                 </TableView>
-                                                <ProgressBar fx:id="pbFiles" maxWidth="1.7976931348623157E308" progress="0.0" />
-                                                <Label fx:id="lblPbFiles" maxWidth="1.7976931348623157E308" text="Label" />
                                              </children>
                                           </VBox>
                                           <VBox alignment="CENTER" prefWidth="46.0">
@@ -489,6 +487,8 @@
                                     </HBox>
                                  </children>
                               </HBox>
+                              <ProgressBar fx:id="pbFiles" maxWidth="1.7976931348623157E308" progress="0.0" />
+                              <Label fx:id="lblPbFiles" maxWidth="1.7976931348623157E308" text="Label" />
                            </children>
                            <padding>
                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
