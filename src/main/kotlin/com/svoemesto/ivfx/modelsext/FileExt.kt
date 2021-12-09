@@ -1,7 +1,10 @@
 package com.svoemesto.ivfx.modelsext
 
 import com.svoemesto.ivfx.controllers.FileController
+import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.models.File
+import javafx.collections.FXCollections
+import javafx.collections.ObservableList
 
 data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<FileExt> {
     val fileName: String get() = file.name
@@ -109,6 +112,7 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
             return field
         }
     val hasCreatedFacesString: String get() = if (hasCreatedFaces!!) "✓" else "✗"
+    var framesExt: ObservableList<FrameExt> = FXCollections.observableArrayList()
 
     fun resetFieldsLinkedShortName() {
         folderPreview = null

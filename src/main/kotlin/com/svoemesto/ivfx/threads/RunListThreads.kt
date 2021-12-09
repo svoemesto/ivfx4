@@ -1,6 +1,8 @@
 package com.svoemesto.ivfx.threads
 
-class RunListThreads(private val listThreads: List<Thread>): Thread(), Runnable {
+import javafx.beans.property.SimpleBooleanProperty
+
+class RunListThreads(private val listThreads: List<Thread>, private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)): Thread(), Runnable {
     override fun run() {
         var runningThread: Thread? = null
         var countStartedThreads = 0
@@ -18,5 +20,14 @@ class RunListThreads(private val listThreads: List<Thread>): Thread(), Runnable 
                 runningThread.start()
             }
         }
+        if (runningThread != null) {
+            while (runningThread.isAlive) {
+                sleep(100)
+            }
+        }
+
+        println("RunListThreads DONE")
+        flagIsDone.set(true)
+
     }
 }
