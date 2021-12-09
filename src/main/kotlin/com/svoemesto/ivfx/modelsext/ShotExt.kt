@@ -22,7 +22,7 @@ data class ShotExt(
     val shot: Shot,
     val fileExt: FileExt,
     val firstFrameExt: FrameExt,
-    val lastFrameExt: FrameExt,
+    val lastFrameExt: FrameExt
 ) {
     val start: String get() = convertDurationToString(getDurationByFrameNumber(shot.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(shot.lastFrameNumber, fileExt.fps))
