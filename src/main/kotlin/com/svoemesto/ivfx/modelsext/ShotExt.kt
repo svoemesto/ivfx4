@@ -27,12 +27,12 @@ data class ShotExt(
     val start: String get() = convertDurationToString(getDurationByFrameNumber(shot.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(shot.lastFrameNumber, fileExt.fps))
     val duration: Int get() = getDurationByFrameNumber(shot.lastFrameNumber - shot.firstFrameNumber + 1, fileExt.fps)
-    var previewFirst: Array<ImageView?>? = null
+    var previewsFirst: Array<ImageView?>? = null
         get() {
             if (field == null) {
                 field = arrayOfNulls(3)
-                var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(firstFrameExt.pathToSmall).exists()) firstFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                 for (i in 0..2) {
+                    var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(firstFrameExt.pathToSmall).exists()) firstFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, start)
                     if (shot.isBodyScene) bi = setOverlayIsBodyScene(bi)
                     if (shot.isStartScene) bi = setOverlayIsStartScene(bi)
@@ -42,12 +42,12 @@ data class ShotExt(
             }
             return field
         }
-    var previewLast: Array<ImageView?>? = null
+    var previewsLast: Array<ImageView?>? = null
         get() {
             if (field == null) {
                 field = arrayOfNulls(3)
-                var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(lastFrameExt.pathToSmall).exists()) lastFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                 for (i in 0..2) {
+                    var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(lastFrameExt.pathToSmall).exists()) lastFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, start)
                     if (shot.isBodyEvent) bi = setOverlayIsBodyEvent(bi)
                     if (shot.isStartEvent) bi = setOverlayIsStartEvent(bi)
@@ -57,7 +57,7 @@ data class ShotExt(
             }
             return field
         }
-    var labelFirst: Array<Label?>? = null
+    var labelsFirst: Array<Label?>? = null
         get() {
             if (field == null) {
                 field = arrayOfNulls(3)
@@ -66,13 +66,13 @@ data class ShotExt(
                     field!![i]?.setMinSize(135.0,75.0)
                     field!![i]?.setMaxSize(135.0,75.0)
                     field!![i]?.setPrefSize(135.0,75.0)
-                    field!![i]?.graphic = previewFirst?.get(i)
+                    field!![i]?.graphic = previewsFirst?.get(i)
                     field!![i]?.contentDisplay = ContentDisplay.TOP
                 }
             }
             return field
         }
-    var labelLast: Array<Label?>? = null
+    var labelsLast: Array<Label?>? = null
         get() {
             if (field == null) {
                 field = arrayOfNulls(3)
@@ -81,11 +81,16 @@ data class ShotExt(
                     field!![i]?.setMinSize(135.0,75.0)
                     field!![i]?.setMaxSize(135.0,75.0)
                     field!![i]?.setPrefSize(135.0,75.0)
-                    field!![i]?.graphic = previewLast?.get(i)
+                    field!![i]?.graphic = previewsLast?.get(i)
                     field!![i]?.contentDisplay = ContentDisplay.TOP
                 }
             }
             return field
         }
-
+    val labelFirst1: Label? get() = labelsFirst?.get(0)
+    val labelFirst2: Label? get() = labelsFirst?.get(1)
+    val labelFirst3: Label? get() = labelsFirst?.get(2)
+    val labelLast1: Label? get() = labelsLast?.get(0)
+    val labelLast2: Label? get() = labelsLast?.get(1)
+    val labelLast3: Label? get() = labelsLast?.get(2)
 }
