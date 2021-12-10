@@ -297,6 +297,7 @@ class ShotsEditFXController {
         pane.children.clear() // очищаем пэйн от старых лейблов
         for (matrixFrame in listMatrixFrames) {
             val lbl: Label = matrixFrame.frameExt?.label!!
+//            val lbl: Label = Label()
             val x: Double = widthPadding + matrixFrame.column * (pictW + 2) // X = отступ по ширине + столбец*ширину картинки
             val y: Double = heightPadding + matrixFrame.row * (pictH + 2) //Y = отступ по высоте + строка*высоту картинки
             lbl.translateX = x
@@ -307,85 +308,47 @@ class ShotsEditFXController {
             var currImage: BufferedImage? = null
             var resultImage: BufferedImage? = null
 
-            // если кадр ключевой
-            if (matrixFrame.frameExt!!.frame.isIFrame) {
-                if (currImage == null) {
-                    try {
-                        currImage = ImageIO.read(IOFile(matrixFrame.frameExt!!.pathToSmall))
-                        resultImage = OverlayImage.setOverlayIFrame(currImage)
-                        currImage = resultImage
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                }
+            var flagPrevFrameIsFind = false
+            var flagPrevFrameIsManualAdd = false
+            var flagPrevFrameIsManualCancel = false
+            var flagNextFrameIsFind = false
+            var flagNextFrameIsManualAdd = false
+            var flagNextFrameIsManualCancel = false
+            val flagCurrFrameIsIFrame = matrixFrame.frameExt!!.frame.isIFrame
+            val flagCurrFrameIsFind = matrixFrame.frameExt!!.frame.isFind
+            val flagCurrFrameIsManualAdd = matrixFrame.frameExt!!.frame.isManualAdd
+            val flagCurrFrameIsManualCancel = matrixFrame.frameExt!!.frame.isManualCancel
+            if (listMatrixFrames.indexOf(matrixFrame) + 1 < listMatrixFrames.size) {
+                flagNextFrameIsFind = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isFind
+                flagNextFrameIsManualAdd = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isManualAdd
+                flagNextFrameIsManualCancel = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isManualCancel
+            }
+            if (listMatrixFrames.indexOf(matrixFrame)>0) {
+                flagPrevFrameIsFind = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) - 1].frameExt!!.frame.isFind
+                flagPrevFrameIsManualAdd = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) - 1].frameExt!!.frame.isManualAdd
+                flagPrevFrameIsManualCancel = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) - 1].frameExt!!.frame.isManualCancel
             }
 
-            // если кадр найденый
-            if (matrixFrame.frameExt!!.frame.isFind) {
-                if (currImage == null) {
-                    try {
-                        currImage = ImageIO.read(IOFile(matrixFrame.frameExt!!.pathToSmall))
-                        if (!matrixFrame.frameExt!!.frame.isManualCancel) { // и не отменен
-                            resultImage = OverlayImage.setOverlayFirstFrameFound(currImage)
-                            currImage = resultImage
-                        } else { // и отменен
-                            resultImage = OverlayImage.cancelOverlayFirstFrameManual(currImage)
-                            currImage = resultImage
-                        }
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            // если следующий кадр найденый
-            if (listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isFind) {
-                if (currImage == null) {
-                    try {
-                        currImage = ImageIO.read(IOFile(matrixFrame.frameExt!!.pathToSmall))
-                        if (!listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isManualCancel) { // и не отменен
-                            resultImage = OverlayImage.setOverlayLastFrameFound(currImage)
-                            currImage = resultImage
-                        } else { // и отменен
-                            resultImage = OverlayImage.cancelOverlayLastFrameManual(currImage)
-                            currImage = resultImage
-                        }
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            // если кадр установлен вручную
-            if (matrixFrame.frameExt!!.frame.isManualAdd) {
-                if (currImage == null) {
-                    try {
-                        currImage = ImageIO.read(IOFile(matrixFrame.frameExt!!.pathToSmall))
-                        resultImage = OverlayImage.setOverlayFirstFrameManual(currImage)
-                        currImage = resultImage
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            // если следующий кадр устанвлен вручную
-            if (currImage == null) {
+            if (flagPrevFrameIsFind || flagPrevFrameIsManualAdd || flagPrevFrameIsManualCancel ||
+                flagNextFrameIsFind || flagNextFrameIsManualAdd || flagNextFrameIsManualCancel ||
+                flagCurrFrameIsIFrame || flagCurrFrameIsFind || flagCurrFrameIsManualAdd || flagCurrFrameIsManualCancel) {
                 try {
-                    currImage = ImageIO.read(IOFile(matrixFrame.frameExt!!.pathToSmall))
-                    if (listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isManualAdd) {
-                        resultImage = OverlayImage.setOverlayLastFrameManual(currImage)
-                        currImage = resultImage
-                    }
+                    resultImage = ImageIO.read(IOFile(matrixFrame.frameExt!!.pathToSmall))
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
             }
 
+            if (flagCurrFrameIsIFrame) resultImage = OverlayImage.setOverlayIFrame(resultImage!!)
+            if (flagCurrFrameIsFind) resultImage = if (flagCurrFrameIsManualCancel) OverlayImage.cancelOverlayFirstFrameManual(resultImage!!) else OverlayImage.setOverlayFirstFrameFound(resultImage!!)
+            if (flagNextFrameIsFind) resultImage = if (flagNextFrameIsManualCancel) OverlayImage.cancelOverlayLastFrameManual(resultImage!!) else OverlayImage.setOverlayLastFrameFound(resultImage!!)
+            if (flagCurrFrameIsManualAdd) resultImage = OverlayImage.setOverlayFirstFrameManual(resultImage!!)
+            if (flagNextFrameIsManualAdd) resultImage = OverlayImage.setOverlayLastFrameManual(resultImage!!)
+
             if (resultImage != null) {
                 val screenImageView = ImageView(ConvertToFxImage.convertToFxImage(resultImage)) // загружаем ресайзный буфер в новый вьювер
-                screenImageView.fitWidth = pictW.toDouble() // устанавливаем ширину вьювера
-                screenImageView.fitHeight = pictH.toDouble() // устанавливаем высоту вьювера
+                screenImageView.fitWidth = pictW // устанавливаем ширину вьювера
+                screenImageView.fitHeight = pictH // устанавливаем высоту вьювера
                 lbl.graphic = null //сбрасываем графику лейбла
                 lbl.graphic = screenImageView // устанавливаем вьювер источником графики для лейбла
             }
@@ -444,7 +407,7 @@ class ShotsEditFXController {
                             }
                         }
 //                        actualizeShots(matrixFrame.frameExt)
-                        initFrameNumber = currentMatrixPage?.firstFrameNumber!!
+                        initFrameNumber = currentMatrixPage?.firstFrameNumber!!+1
                         listMatrixPages = createPages(listFramesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
                         tblPages!!.items = listMatrixPages
                         currentMatrixPage = getPageByFrame(initFrameNumber)
