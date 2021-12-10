@@ -113,6 +113,7 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
         }
     val hasCreatedFacesString: String get() = if (hasCreatedFaces!!) "✓" else "✗"
     var framesExt: ObservableList<FrameExt> = FXCollections.observableArrayList()
+    var shotsExt: ObservableList<ShotExt> = FXCollections.observableArrayList()
 
     fun resetFieldsLinkedShortName() {
         folderPreview = null

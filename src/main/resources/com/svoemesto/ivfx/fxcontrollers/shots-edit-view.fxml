@@ -20,17 +20,27 @@
          <children>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="730.0" minWidth="720.0" prefHeight="200.0" prefWidth="100.0">
                <children>
-                  <TableView fx:id="tblPages" maxHeight="1.7976931348623157E308" prefHeight="5000.0" prefWidth="200.0">
-                    <columns>
-                      <TableColumn fx:id="colDurationStart" prefWidth="75.0" text="Время: с" />
-                      <TableColumn fx:id="colDurationEnd" prefWidth="75.0" text="Время: по" />
-                        <TableColumn fx:id="colFrameStart" prefWidth="65.0" text="Кадры: с" />
-                        <TableColumn fx:id="colFrameEnd" prefWidth="65.0" text="Кадры: по" />
-                    </columns>
+                  <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                      <VBox.margin>
                         <Insets />
                      </VBox.margin>
-                  </TableView>
+                     <children>
+                        <TableView fx:id="tblPages" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="5000.0" prefWidth="300.0">
+                          <columns>
+                            <TableColumn fx:id="colDurationStart" prefWidth="75.0" text="Время: с" />
+                            <TableColumn fx:id="colDurationEnd" prefWidth="75.0" text="Время: по" />
+                              <TableColumn fx:id="colFrameStart" prefWidth="65.0" text="Кадры: с" />
+                              <TableColumn fx:id="colFrameEnd" prefWidth="65.0" text="Кадры: по" />
+                          </columns>
+                        </TableView>
+                        <TableView fx:id="tblShots" maxHeight="1.7976931348623157E308" maxWidth="290.0" minWidth="290.0" prefHeight="5000.0" prefWidth="290.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                          <columns>
+                            <TableColumn fx:id="colShotFrom" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FROM" />
+                            <TableColumn fx:id="colShotTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </HBox>
                   <Label fx:id="lblFrameFull" maxHeight="400.0" maxWidth="720.0" minHeight="400.0" minWidth="720.0" prefHeight="400.0" prefWidth="720.0" style="-fx-background-color: black;">
                      <VBox.margin>
                         <Insets bottom="5.0" top="5.0" />
