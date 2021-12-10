@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.fxcontrollers
 import com.sun.javafx.scene.control.skin.TableViewSkin
 import com.sun.javafx.scene.control.skin.VirtualFlow
 import com.svoemesto.ivfx.controllers.FrameController
+import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
 import com.svoemesto.ivfx.modelsext.MatrixFrame
@@ -109,6 +110,11 @@ class ShotsEditFXController {
         private var countRowsInPage = 0
         private val runListThreadsFramesFlagIsDone = SimpleBooleanProperty(false)
 
+        private val sbpCurrentMatrixPageWasChanged = SimpleBooleanProperty(false)
+        private val sbpCurrentMatrixFrameWasChanged = SimpleBooleanProperty(false)
+        private val sbpCurrentShotExtWasChanged = SimpleBooleanProperty(false)
+        private val sbpNeedCreatePagesWasChanged = SimpleBooleanProperty(false)
+
         private const val fxBorderDefault = "-fx-border-color:#0f0f0f;-fx-border-width:1" // стиль бордюра лейбла по-умолчанию
         private const val fxBorderFocused = "-fx-border-color:YELLOW;-fx-border-width:1" // стиль бордюра лейбла в фокусе
         private const val fxBorderSelected = "-fx-border-color:RED;-fx-border-width:1" // стиль бордюра лейбла выбранного
@@ -125,6 +131,11 @@ class ShotsEditFXController {
         private var currentNumPage = 0
         private var flowTblPages: VirtualFlow<*>? = null
         private var flowTblShots: VirtualFlow<*>? = null
+
+        private var wasClickTablePages = false
+        private var wasClickTableShots = false
+        private var wasClickFrameLabel = false
+
 
         @Volatile
         private var countLoadedPages = 0
@@ -205,33 +216,45 @@ class ShotsEditFXController {
         tblPages!!.selectionModel.selectedItemProperty()
             .addListener { v: ObservableValue<out MatrixPage?>?, oldValue: MatrixPage?, newValue: MatrixPage? ->
                 if (newValue != null) {
-                    currentMatrixPage = newValue // текущая страница = выбранной
-                    if (currentMatrixPage !== getPageByFrame(initFrameNumber)) {
-                        // если инитный фрейм не в текущей странице - назначаем инитным фреймом первый фрейм текущей страницы
-                        initFrameNumber = currentMatrixPage!!.firstFrameNumber!!
+                    if (wasClickTablePages) {
+                        wasClickTablePages = false
+                        goToFrame(newValue.matrixFrames.first())
+                    } else {
+                        tblPagesSmartScroll(newValue)
                     }
-                    for (i in listMatrixPages.indices) {
-                        if (currentMatrixPage === listMatrixPages[i]) {
-                            currentNumPage = i + 1
-                            slider?.value = -currentNumPage.toDouble()
-                            break
-                        }
-                    }
-                    showPage(currentMatrixPage!!)
-                    if (currentMatrixFrame == null || currentMatrixFrame!!.matrixPage != currentMatrixPage) {
-                        goToFrame(currentMatrixPage!!.matrixFrames.first())
-                    }
-
                 }
             }
+
+        tblPages!!.onMouseEntered = EventHandler {
+            wasClickTablePages = true
+        }
+
+        //событие "уход мыши"
+        tblPages!!.onMouseExited = EventHandler {
+            wasClickTablePages = false
+        }
+
 
         tblShots!!.selectionModel.selectedItemProperty()
             .addListener { v: ObservableValue<out ShotExt?>?, oldValue: ShotExt?, newValue: ShotExt? ->
-                if (newValue != null && newValue != currentShotExt) {
-                    currentShotExt = newValue // текущая страница = выбранной
-                    goToFrame(currentShotExt!!.firstFrameExt)
+                if (newValue != null) {
+                    if (wasClickTableShots) {
+                        wasClickTableShots = false
+                        goToFrame(getMatrixFrameByFrameExt(newValue.firstFrameExt))
+                    } else {
+                        tblShotsSmartScroll(newValue)
+                    }
                 }
             }
+
+        tblShots!!.onMouseEntered = EventHandler {
+            wasClickTableShots = true
+        }
+
+        //событие "уход мыши"
+        tblShots!!.onMouseExited = EventHandler {
+            wasClickTableShots = false
+        }
 
         // событие отслеживани видимости на экране текущего персонажа в таблице tblPages
         tblPages!!.skinProperty()
@@ -274,7 +297,10 @@ class ShotsEditFXController {
         // прокрутка колеса мыши над CenterPane
 
         // прокрутка колеса мыши над CenterPane
-        paneCenter!!.setOnScroll(EventHandler { e: ScrollEvent ->
+        paneCenter!!.setOnScroll { e: ScrollEvent ->
+            wasClickFrameLabel = false
+            wasClickTablePages = false
+            wasClickTableShots = false
             val delta = if (e.deltaY > 0) -1 else 1
             if (isPressedControl) {
 //                if (delta > 0) {
@@ -283,10 +309,67 @@ class ShotsEditFXController {
 //                    goToPreviousShot()
 //                }
             } else {
-                val frameToGo = if (delta < 0) getPrevMatrixFrame(currentMatrixPage!!.matrixFrames.first()) else getNextMatrixFrame(currentMatrixPage!!.matrixFrames.last())
-                if (currentMatrixPage != frameToGo.matrixPage) goToFrame(frameToGo)
+                if (currentMatrixPage == null) {
+                    goToFrame(listMatrixPages.first().matrixFrames.first())
+                } else {
+                    val frameToGo = if (delta < 0) getPrevMatrixFrame(currentMatrixPage!!.matrixFrames.first()) else getNextMatrixFrame(currentMatrixPage!!.matrixFrames.last())
+                    goToFrame(frameToGo)
+                }
             }
-        })
+        }
+
+
+        sbpNeedCreatePagesWasChanged.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                sbpNeedCreatePagesWasChanged.value = false
+                listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.width, paneCenter!!.height, pictW, pictH)
+            }
+        }
+
+        sbpCurrentMatrixPageWasChanged.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                sbpCurrentMatrixPageWasChanged.value = false
+                if (currentMatrixPage != null) {
+                    showPage(currentMatrixPage!!)
+                    tblPages!!.selectionModel.select(currentMatrixPage!!)
+                }
+            }
+        }
+
+        sbpCurrentMatrixFrameWasChanged.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                sbpCurrentMatrixFrameWasChanged.value = false
+                goToFrame(currentMatrixFrame)
+            }
+        }
+
+        sbpCurrentShotExtWasChanged.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                sbpCurrentShotExtWasChanged.value = false
+                tblShots!!.selectionModel.select(currentShotExt!!)
+            }
+        }
+
+        tblPages!!.onMouseClicked = EventHandler { mouseEvent ->
+            if (mouseEvent.button == MouseButton.PRIMARY) {
+                if (mouseEvent.clickCount == 1) {
+                    wasClickTablePages = true
+                    wasClickFrameLabel = false
+                    wasClickTableShots = false
+                }
+            }
+        }
+
+        tblShots!!.onMouseClicked = EventHandler { mouseEvent ->
+            if (mouseEvent.button == MouseButton.PRIMARY) {
+                if (mouseEvent.clickCount == 1) {
+                    wasClickTableShots = true
+                    wasClickFrameLabel = false
+                    wasClickTablePages = false
+                }
+            }
+        }
+
     }
 
     @FXML
@@ -308,24 +391,6 @@ class ShotsEditFXController {
         }
         return listMatrixPages[listMatrixPages.indexOf(matrixFrame.matrixPage)-1].matrixFrames.last()
     }
-
-//    fun goToNextShot() {
-//        var matrixFrame: MatrixFrame? = currentMatrixFrame?.nextMatrixFrame ?: return
-//        while (!matrixFrame?.frameExt?.frame?.isFinalFind!!) {
-//            matrixFrame = matrixFrame.nextMatrixFrame
-//            if (matrixFrame == null) return
-//        }
-//        goToFrame(matrixFrame)
-//    }
-//
-//    fun goToPreviousShot() {
-//        var matrixFrame: MatrixFrame? = currentMatrixFrame?.prevMatrixFrame ?: return
-//        while (!matrixFrame?.frameExt?.frame?.isFinalFind!!) {
-//            matrixFrame = matrixFrame.prevMatrixFrame
-//            if (matrixFrame == null) return
-//        }
-//        goToFrame(matrixFrame)
-//    }
 
     fun loadPictureToFullFrameLabel(matrixFrame: MatrixFrame?) {
 
@@ -350,49 +415,106 @@ class ShotsEditFXController {
         }
     }
 
-    fun goToFrame(frameExt: FrameExt) {
+    fun splitOrUnionShots(matrixFrame: MatrixFrame) {
+        val shotExt = getShotExtByFrameNumber(matrixFrame.frameNumber!!)
+        if (shotExt != null) {
+            val frameNumber = matrixFrame.frameNumber
+            if (matrixFrame.frameExt!!.frame.isFinalFind && shotExt.firstFrameExt.frame.frameNumber != matrixFrame.frameNumber) {
+                // split
+                val lastFrameNumber = shotExt.lastFrameExt.frame.frameNumber
+                val lastFrameExt = currentFileExt!!.framesExt.first{it.frame.frameNumber == lastFrameNumber}
+                shotExt.shot.lastFrameNumber = matrixFrame.frameNumber!! - 1
+                shotExt.lastFrameExt = currentFileExt!!.framesExt.first{it.frame.frameNumber == matrixFrame.frameNumber!! - 1}
+                shotExt.previewsLast = null
+                shotExt.labelsLast = null
+                ShotController.save(shotExt.shot)
+                val shot = ShotController.getOrCreate(currentFileExt!!.file, matrixFrame.frameNumber!!, lastFrameNumber)
+                val addedShotExt = ShotExt(shot, currentFileExt!!, matrixFrame.frameExt!!, lastFrameExt)
+                currentFileExt!!.shotsExt.add(addedShotExt)
+                currentFileExt!!.shotsExt.sort()
 
+            } else if (!matrixFrame.frameExt!!.frame.isFinalFind && shotExt.firstFrameExt.frame.frameNumber == matrixFrame.frameNumber) {
+                // union
+                val unionShot = getShotExtByFrameNumber(matrixFrame.frameNumber!!-1)
+                if (unionShot != null) {
+                    unionShot.shot.lastFrameNumber = shotExt.shot.lastFrameNumber
+                    unionShot.lastFrameExt = shotExt.lastFrameExt
+                    unionShot.previewsLast = null
+                    unionShot.labelsLast = null
+                    ShotController.save(unionShot.shot)
+                    currentFileExt!!.shotsExt.remove(shotExt)
+                    currentFileExt!!.shotsExt.sort()
+                    ShotController.delete(shotExt.shot)
+                } else {
+                    println("Проблема: не найден план для объединения!")
+                }
+            } else {
+                //do nothing
+                return
+            }
+
+            listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
+            currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber!!)
+            currentMatrixPage = getPageByFrame(frameNumber)
+            currentShotExt = getShotExtByFrameNumber(frameNumber)
+            showPage(currentMatrixPage!!)
+            goToFrame(currentMatrixFrame)
+
+        } else {
+            println("Проблема: не найден план!")
+        }
+
+    }
+
+    fun getMatrixFrameByFrameExt(frameExt: FrameExt): MatrixFrame? {
         val lst: MutableList<MatrixFrame> = mutableListOf()
         listMatrixPages.forEach { matrixPage ->
             lst.addAll(matrixPage.matrixFrames.filter { matrixFrame -> matrixFrame.frameExt == frameExt })
         }
-        if (lst.size > 0) goToFrame(lst[0])
+        return if (lst.size > 0) lst[0] else null
+    }
 
+    fun getMatrixFrameByFrameNumber(frameNumber: Int): MatrixFrame? {
+        val lst: MutableList<MatrixFrame> = mutableListOf()
+        listMatrixPages.forEach { matrixPage ->
+            lst.addAll(matrixPage.matrixFrames.filter { matrixFrame -> matrixFrame.frameExt!!.frame.frameNumber == frameNumber })
+        }
+        return if (lst.size > 0) lst[0] else null
+    }
+
+    fun goToFrame(frameNumber: Int) {
+        goToFrame(getMatrixFrameByFrameNumber(frameNumber))
+    }
+
+    fun goToFrame(frameExt: FrameExt) {
+        goToFrame(getMatrixFrameByFrameExt(frameExt))
     }
 
     fun goToFrame(matrixFrame: MatrixFrame?) {
         Platform.runLater {
             if (matrixFrame != null) {
-                if (matrixFrame != currentMatrixFrame) {
-                    // если новый фрейм находится на текущей странице
-                    currentMatrixFrame?.frameExt?.labelSmall?.style = fxBorderDefault
-                    currentMatrixFrame = matrixFrame
-                    if (matrixFrame.matrixPage == currentMatrixPage) {
-                        currentMatrixFrame?.frameExt?.labelSmall?.style = fxBorderDefault
-                    } else {
-                        currentMatrixPage = matrixFrame.matrixPage
-                        tblPages!!.selectionModel.select(currentMatrixPage)
-                        tblPagesSmartScroll(currentMatrixPage)
-                    }
-
-                    goToShot(currentMatrixFrame)
-                    currentMatrixFrame?.frameExt?.labelSmall?.style = fxBorderSelected
-                    loadPictureToFullFrameLabel(currentMatrixFrame)
+                currentMatrixFrame?.frameExt?.labelSmall?.style = fxBorderDefault
+                currentMatrixFrame = matrixFrame
+                if (currentMatrixFrame!!.matrixPage != currentMatrixPage) {
+                    currentMatrixPage = currentMatrixFrame!!.matrixPage
+                    showPage(currentMatrixPage!!)
+                    tblPages!!.selectionModel.select(currentMatrixPage)
                 }
+                currentShotExt = getShotExtByFrameNumber(currentMatrixFrame!!.frameNumber!!)
+                tblShots!!.selectionModel.select(currentShotExt)
+
+                currentMatrixFrame?.frameExt?.labelSmall?.style = fxBorderSelected
+                loadPictureToFullFrameLabel(currentMatrixFrame)
             }
         }
     }
 
     fun goToShot(matrixFrame: MatrixFrame?) {
         if (matrixFrame != null) {
-            val shotExt = currentFileExt!!.shotsExt.first {
-                matrixFrame.frameNumber!! >= it.firstFrameExt.frame.frameNumber &&
-                matrixFrame.frameNumber!! <= it.lastFrameExt.frame.frameNumber
-            }
+            val shotExt = getShotExtByFrameNumber(matrixFrame.frameNumber!!)
             if (shotExt != currentShotExt) {
                 currentShotExt = shotExt
-                tblShots!!.selectionModel.select(currentShotExt)
-                tblShotsSmartScroll(currentShotExt)
+                sbpCurrentShotExtWasChanged.value = true
             }
         }
     }
@@ -422,11 +544,9 @@ class ShotsEditFXController {
         val heightPadding = 10 // по высоте двойной отступ
         val widthPadding = 10 // по ширине двойной отступ
         val pane: Pane = paneCenter!!
-        val listMatrixFrames: List<MatrixFrame> = matrixPage.matrixFrames
         pane.children.clear() // очищаем пэйн от старых лейблов
-        for (matrixFrame in listMatrixFrames) {
+        for (matrixFrame in matrixPage.matrixFrames) {
             val lbl: Label = matrixFrame.frameExt?.labelSmall!!
-//            val lbl: Label = Label()
             val x: Double = widthPadding + matrixFrame.column * (pictW + 2) // X = отступ по ширине + столбец*ширину картинки
             val y: Double = heightPadding + matrixFrame.row * (pictH + 2) //Y = отступ по высоте + строка*высоту картинки
             lbl.translateX = x
@@ -434,7 +554,6 @@ class ShotsEditFXController {
             lbl.setPrefSize(pictW, pictH) //устанавливаем ширину и высоту лейбла
             lbl.style = fxBorderDefault //устанавливаем стиль бордюра по-дефолту
             lbl.alignment = Pos.CENTER //устанавливаем позиционирование по центру
-            var currImage: BufferedImage? = null
             var resultImage: BufferedImage? = null
 
             var flagPrevFrameIsFind = false
@@ -447,25 +566,22 @@ class ShotsEditFXController {
             val flagCurrFrameIsFind = matrixFrame.frameExt!!.frame.isFind
             val flagCurrFrameIsManualAdd = matrixFrame.frameExt!!.frame.isManualAdd
             val flagCurrFrameIsManualCancel = matrixFrame.frameExt!!.frame.isManualCancel
-            if (listMatrixFrames.indexOf(matrixFrame) + 1 < listMatrixFrames.size) {
-                flagNextFrameIsFind = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isFind
-                flagNextFrameIsManualAdd = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isManualAdd
-                flagNextFrameIsManualCancel = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isManualCancel
+
+            if (matrixPage.matrixFrames.indexOf(matrixFrame) + 1 < matrixPage.matrixFrames.size) {
+                flagNextFrameIsFind = matrixPage.matrixFrames[matrixPage.matrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isFind
+                flagNextFrameIsManualAdd = matrixPage.matrixFrames[matrixPage.matrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isManualAdd
+                flagNextFrameIsManualCancel = matrixPage.matrixFrames[matrixPage.matrixFrames.indexOf(matrixFrame) + 1].frameExt!!.frame.isManualCancel
             }
-            if (listMatrixFrames.indexOf(matrixFrame)>0) {
-                flagPrevFrameIsFind = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) - 1].frameExt!!.frame.isFind
-                flagPrevFrameIsManualAdd = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) - 1].frameExt!!.frame.isManualAdd
-                flagPrevFrameIsManualCancel = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) - 1].frameExt!!.frame.isManualCancel
+            if (matrixPage.matrixFrames.indexOf(matrixFrame)>0) {
+                flagPrevFrameIsFind = matrixPage.matrixFrames[matrixPage.matrixFrames.indexOf(matrixFrame) - 1].frameExt!!.frame.isFind
+                flagPrevFrameIsManualAdd = matrixPage.matrixFrames[matrixPage.matrixFrames.indexOf(matrixFrame) - 1].frameExt!!.frame.isManualAdd
+                flagPrevFrameIsManualCancel = matrixPage.matrixFrames[matrixPage.matrixFrames.indexOf(matrixFrame) - 1].frameExt!!.frame.isManualCancel
             }
 
             if (flagPrevFrameIsFind || flagPrevFrameIsManualAdd || flagPrevFrameIsManualCancel ||
                 flagNextFrameIsFind || flagNextFrameIsManualAdd || flagNextFrameIsManualCancel ||
                 flagCurrFrameIsIFrame || flagCurrFrameIsFind || flagCurrFrameIsManualAdd || flagCurrFrameIsManualCancel) {
-                try {
-                    resultImage = ImageIO.read(IOFile(matrixFrame.frameExt!!.pathToSmall))
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
+                resultImage = ImageIO.read(IOFile(matrixFrame.frameExt!!.pathToSmall))
             }
 
             if (flagCurrFrameIsIFrame) resultImage = OverlayImage.setOverlayIFrame(resultImage!!)
@@ -481,6 +597,7 @@ class ShotsEditFXController {
                 lbl.graphic = null //сбрасываем графику лейбла
                 lbl.graphic = screenImageView // устанавливаем вьювер источником графики для лейбла
             }
+
             pane.children.add(lbl)
 
             //событие "наведение мыши"
@@ -491,11 +608,7 @@ class ShotsEditFXController {
 
             //событие "уход мыши"
             lbl.onMouseExited = EventHandler {
-                if (matrixFrame === currentMatrixFrame) {
-                    lbl.style = fxBorderSelected
-                } else {
-                    lbl.style = fxBorderDefault
-                }
+                lbl.style = if (matrixFrame == currentMatrixFrame) fxBorderSelected else fxBorderDefault
             }
 
             lbl.onMouseClicked = EventHandler { mouseEvent ->
@@ -503,9 +616,13 @@ class ShotsEditFXController {
                 //событие двойного клика
                 if (mouseEvent.button == MouseButton.PRIMARY) {
                     if (mouseEvent.clickCount == 1) {
+                        wasClickTablePages = false
+                        wasClickTableShots = false
+                        wasClickFrameLabel = true
                         currentMatrixFrame?.frameExt?.labelSmall?.style = fxBorderDefault
                         currentMatrixFrame = matrixFrame
-                        goToShot(currentMatrixFrame)
+                        currentShotExt = getShotExtByFrameNumber(matrixFrame.frameNumber!!)
+                        tblShots!!.selectionModel.select(currentShotExt)
                         loadPictureToFullFrameLabel(currentMatrixFrame)
                     }
                     if (mouseEvent.clickCount == 2) {
@@ -514,35 +631,28 @@ class ShotsEditFXController {
                                 matrixFrame.frameExt!!.frame.isManualCancel = true // отменяем
                                 matrixFrame.frameExt!!.frame.isFinalFind = false
                                 FrameController.save(matrixFrame.frameExt!!.frame)
+                                splitOrUnionShots(matrixFrame)
                             } else { // и отменен вручную
                                 matrixFrame.frameExt!!.frame.isManualCancel = false // восстанавливаем отметку
                                 matrixFrame.frameExt!!.frame.isFinalFind = true
                                 FrameController.save(matrixFrame.frameExt!!.frame)
+                                splitOrUnionShots(matrixFrame)
                             }
                         } else { // не найден
                             if (!matrixFrame.frameExt!!.frame.isManualAdd) { // и не отменен вручную
                                 matrixFrame.frameExt!!.frame.isManualAdd = true // отмечаем
                                 matrixFrame.frameExt!!.frame.isFinalFind = true
                                 FrameController.save(matrixFrame.frameExt!!.frame)
+                                splitOrUnionShots(matrixFrame)
                             } else { // и отменен вручную
                                 matrixFrame.frameExt!!.frame.isManualAdd = false // снимаем отметку
                                 matrixFrame.frameExt!!.frame.isFinalFind = false
-//                                matrixFrame.frameExt!!.label?.graphic = null
                                 matrixFrame.frameExt!!.labelSmall?.graphic = matrixFrame.frameExt!!.previewSmall
-                                if (listMatrixFrames[listMatrixFrames.indexOf(matrixFrame)-1] != null) {
-//                                    matrixFrame.prevMatrixFrame!!.frameExt?.label?.graphic = null
-                                    listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) - 1].frameExt?.labelSmall?.graphic = listMatrixFrames[listMatrixFrames.indexOf(matrixFrame) - 1].frameExt?.previewSmall
-                                }
+                                matrixPage.matrixFrames[matrixPage.matrixFrames.indexOf(matrixFrame) - 1].frameExt?.labelSmall?.graphic = matrixPage.matrixFrames[matrixPage.matrixFrames.indexOf(matrixFrame) - 1].frameExt?.previewSmall
                                 FrameController.save(matrixFrame.frameExt!!.frame)
+                                splitOrUnionShots(matrixFrame)
                             }
                         }
-//                        actualizeShots(matrixFrame.frameExt)
-//                        initFrameNumber = currentMatrixPage?.firstFrameNumber!!+1
-                        listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
-                        tblPages!!.items = listMatrixPages
-//                        currentMatrixPage = getPageByFrame(initFrameNumber)
-                        currentMatrixPage = getPageByFrame(currentMatrixFrame?.frameNumber!!)
-                        tblPages!!.selectionModel.select(currentMatrixPage)
                     }
                 }
             }
@@ -556,6 +666,11 @@ class ShotsEditFXController {
         return null
     }
 
+    fun getShotExtByFrameNumber(frameNumber: Int): ShotExt? {
+        return currentFileExt!!.shotsExt.filter {
+            frameNumber >= it.firstFrameExt.frame.frameNumber &&
+            frameNumber <= it.lastFrameExt.frame.frameNumber }.firstOrNull()
+    }
 
     fun listenToChangePaneSize() {
 
@@ -575,23 +690,24 @@ class ShotsEditFXController {
                 // если значения кол-ва столбцов и/или строк изменилось при ресайзе
                 if (prevCountColumnsInPage != countColumnsInPage || prevCountRowsInPage != countRowsInPage) {
                     listMatrixPages = createPages(currentFileExt!!.framesExt, paneWidth, paneHeight, pictW, pictH) // заново создаем список страниц
-
-                    // если список страниц не пустой
-                    if (listMatrixPages.size > 0) {
-                        tblPages!!.setItems(listMatrixPages) // запихиваем список в таблицу
-                        tblPages!!.refresh() // рефрешим таблицу
-                        val currPage: MatrixPage? = getPageByFrame(initFrameNumber) // узнаем, в какой странице сидит инитный фрейм
-                        slider?.setMin(-(listMatrixPages.size - 1).toDouble())
-                        slider?.setMax(0.0)
-                        for (i in listMatrixPages.indices) {
-                            if (currPage === listMatrixPages.get(i)) {
-                                slider?.setValue(-(i + 1).toDouble())
-                                break
-                            }
-                        }
-                        tblPages!!.selectionModel.select(currPage) // переходим на эту страницу в таблице
-                        tblPagesSmartScroll(currPage)
-                    }
+                    if (currentMatrixPage == null) currentMatrixPage = listMatrixPages.first()
+                    sbpCurrentMatrixPageWasChanged.value = true
+//                    // если список страниц не пустой
+//                    if (listMatrixPages.size > 0) {
+//                        tblPages!!.setItems(listMatrixPages) // запихиваем список в таблицу
+//                        tblPages!!.refresh() // рефрешим таблицу
+//                        val currPage: MatrixPage? = getPageByFrame(initFrameNumber) // узнаем, в какой странице сидит инитный фрейм
+//                        slider?.setMin(-(listMatrixPages.size - 1).toDouble())
+//                        slider?.setMax(0.0)
+//                        for (i in listMatrixPages.indices) {
+//                            if (currPage === listMatrixPages.get(i)) {
+//                                slider?.setValue(-(i + 1).toDouble())
+//                                break
+//                            }
+//                        }
+//                        tblPages!!.selectionModel.select(currPage) // переходим на эту страницу в таблице
+//                        tblPagesSmartScroll(currPage)
+//                    }
                 }
             }
         }

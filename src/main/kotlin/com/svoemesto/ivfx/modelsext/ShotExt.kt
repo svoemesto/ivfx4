@@ -21,9 +21,9 @@ import java.io.File as IOFile
 data class ShotExt(
     val shot: Shot,
     val fileExt: FileExt,
-    val firstFrameExt: FrameExt,
-    val lastFrameExt: FrameExt
-) {
+    var firstFrameExt: FrameExt,
+    var lastFrameExt: FrameExt
+): Comparable<ShotExt> {
     val start: String get() = convertDurationToString(getDurationByFrameNumber(shot.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(shot.lastFrameNumber, fileExt.fps))
     val duration: Int get() = getDurationByFrameNumber(shot.lastFrameNumber - shot.firstFrameNumber + 1, fileExt.fps)
@@ -48,7 +48,7 @@ data class ShotExt(
                 field = arrayOfNulls(3)
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(lastFrameExt.pathToSmall).exists()) lastFrameExt.pathToSmall else FrameExt.pathToStubSmall))
-                    bi = setOverlayUnderlineText(bi, start)
+                    bi = setOverlayUnderlineText(bi, end)
                     if (shot.isBodyEvent) bi = setOverlayIsBodyEvent(bi)
                     if (shot.isStartEvent) bi = setOverlayIsStartEvent(bi)
                     if (shot.isEndEvent) bi = setOverlayIsEndEvent(bi)
@@ -93,4 +93,8 @@ data class ShotExt(
     val labelLast1: Label? get() = labelsLast?.get(0)
     val labelLast2: Label? get() = labelsLast?.get(1)
     val labelLast3: Label? get() = labelsLast?.get(2)
+
+    override fun compareTo(other: ShotExt): Int {
+        return this.shot.firstFrameNumber - other.shot.firstFrameNumber
+    }
 }
