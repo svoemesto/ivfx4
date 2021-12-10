@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.modelsext
 import com.svoemesto.ivfx.fxcontrollers.ProjectEditFXController
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.utils.ConvertToFxImage
+import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay
 import javafx.scene.control.Label
 import javafx.scene.image.ImageView
@@ -31,10 +32,14 @@ data class FrameExt(val frame: Frame,
     var label: Label? = null
         get() {
             if (field == null) {
-                field = Label(frame.frameNumber.toString())
-                field!!.prefWidth = 135.0
+//                field = Label(frame.frameNumber.toString())
+                field = Label()
+                field!!.setPrefSize(135.0, 75.0)
+//                field!!.prefWidth = 135.0
+//                field!!.prefHeight = 75.0
                 field!!.graphic = preview
-                field!!.contentDisplay = ContentDisplay.TOP
+//                field!!.contentDisplay = ContentDisplay.TOP
+                field!!.alignment = Pos.CENTER
             }
             return field
         }
