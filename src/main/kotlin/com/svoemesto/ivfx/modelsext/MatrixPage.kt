@@ -34,25 +34,42 @@ class MatrixPage {
             var currentColumn = 1
             var currentRow = 1
             var wasAddedNewPage = false
-            var zeroMatrixFrame: MatrixFrame?
+            var alfaMatrixFrame: MatrixFrame?
+            var omegaMatrixFrame: MatrixFrame?
             for ((i, currFrameExt) in listFramesExt.withIndex()) {
                 val prevFrameExt = if (i > 0) listFramesExt[i-1] else null
                 val nextFrameExt = if (i < (listFramesExt.size - 1)) listFramesExt[i+1] else null
                 if (wasAddedNewPage) {
                     wasAddedNewPage = false
-                    zeroMatrixFrame = MatrixFrame()
-                    zeroMatrixFrame.frameExt = prevFrameExt
-                    if (zeroMatrixFrame.frameExt?.frame?.isFinalFind == true) {
+
+                    omegaMatrixFrame = MatrixFrame()
+                    omegaMatrixFrame.frameExt = currFrameExt
+                    if (currFrameExt.frame.isFinalFind == true) {
+                        currentColumn = listMatrixPages.last().matrixFrames.last().column
+                        currentRow = listMatrixPages.last().matrixFrames.last().row + 1
+                    } else {
+                        currentColumn = listMatrixPages.last().matrixFrames.last().column + 1
+                        currentRow = listMatrixPages.last().matrixFrames.last().row
+                    }
+                    omegaMatrixFrame.column = currentColumn
+                    omegaMatrixFrame.row = currentRow
+                    omegaMatrixFrame.matrixPage = listMatrixPages.last()
+                    listMatrixPages.last().matrixFrames.add(omegaMatrixFrame)
+
+                    alfaMatrixFrame = MatrixFrame()
+                    alfaMatrixFrame.frameExt = prevFrameExt
+                    if (currFrameExt.frame.isFinalFind == true) {
                         currentColumn = 1
                         currentRow = 0
                     } else {
                         currentColumn = 0
                         currentRow = 1
                     }
-                    zeroMatrixFrame.column = currentColumn
-                    zeroMatrixFrame.row = currentRow
-                    zeroMatrixFrame.matrixPage = matrixPage
-                    matrixPage.matrixFrames.add(zeroMatrixFrame)
+                    alfaMatrixFrame.column = currentColumn
+                    alfaMatrixFrame.row = currentRow
+                    alfaMatrixFrame.matrixPage = matrixPage
+                    matrixPage.matrixFrames.add(alfaMatrixFrame)
+
                     currentColumn = 1
                     currentRow = 1
                 }
