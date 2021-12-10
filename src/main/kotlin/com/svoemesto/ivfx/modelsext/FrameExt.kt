@@ -1,10 +1,8 @@
 package com.svoemesto.ivfx.modelsext
 
-import com.svoemesto.ivfx.fxcontrollers.ProjectEditFXController
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import javafx.geometry.Pos
-import javafx.scene.control.ContentDisplay
 import javafx.scene.control.Label
 import javafx.scene.image.ImageView
 import javax.imageio.ImageIO
@@ -22,23 +20,36 @@ data class FrameExt(val frame: Frame,
     val pathToSmall: String get() = "${fileExt.folderFramesSmall}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     val pathToMedium: String get() = "${fileExt.folderFramesMedium}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     val pathToFull: String get() = "${fileExt.folderFramesFull}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
-    var preview: ImageView? = null
+    var previewSmall: ImageView? = null
         get() {
             if (field == null) {
                 field = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(if (IOFile(pathToSmall).exists()) pathToSmall else pathToStubSmall))))
             }
             return field
         }
-    var label: Label? = null
+    var labelSmall: Label? = null
         get() {
             if (field == null) {
-//                field = Label(frame.frameNumber.toString())
                 field = Label()
                 field!!.setPrefSize(135.0, 75.0)
-//                field!!.prefWidth = 135.0
-//                field!!.prefHeight = 75.0
-                field!!.graphic = preview
-//                field!!.contentDisplay = ContentDisplay.TOP
+                field!!.graphic = previewSmall
+                field!!.alignment = Pos.CENTER
+            }
+            return field
+        }
+    var previewMedium: ImageView? = null
+        get() {
+            if (field == null) {
+                field = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(if (IOFile(pathToMedium).exists()) pathToMedium else pathToStubMedium))))
+            }
+            return field
+        }
+    var labelMedium: Label? = null
+        get() {
+            if (field == null) {
+                field = Label()
+                field!!.setPrefSize(720.0, 400.0)
+                field!!.graphic = previewMedium
                 field!!.alignment = Pos.CENTER
             }
             return field

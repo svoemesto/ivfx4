@@ -25,17 +25,17 @@ class FrameController() {
 
             var fileName: String = frameExt.pathToSmall
             var file = IOFile(fileName)
-            frameExt.label = Label(frameExt.frame.frameNumber.toString())
-            frameExt.label!!.prefWidth = 135.0
+            frameExt.labelSmall = Label(frameExt.frame.frameNumber.toString())
+            frameExt.labelSmall!!.prefWidth = 135.0
             if (!file.exists()) {
 //            fileName = frame.getFileNamePreviewStub()
 //            file = java.io.File(fileName)
             } else {
                 try {
                     val bufferedImage = ImageIO.read(file)
-                    frameExt.preview = ImageView(ConvertToFxImage.convertToFxImage(bufferedImage))
-                    frameExt.label!!.setGraphic(frameExt.preview)
-                    frameExt.label!!.setContentDisplay(ContentDisplay.TOP)
+                    frameExt.previewSmall = ImageView(ConvertToFxImage.convertToFxImage(bufferedImage))
+                    frameExt.labelSmall!!.setGraphic(frameExt.previewSmall)
+                    frameExt.labelSmall!!.setContentDisplay(ContentDisplay.TOP)
                 } catch (e: IOException) {
                 }
             }
