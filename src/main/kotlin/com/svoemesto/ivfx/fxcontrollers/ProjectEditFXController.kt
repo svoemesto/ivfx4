@@ -1515,7 +1515,7 @@ class ProjectEditFXController {
 
             btnFilePropertyAdd?.contextMenu = menu
             val screenBounds: Bounds = btnFilePropertyAdd!!.localToScreen(btnFilePropertyAdd!!.boundsInLocal)
-            menu.show(mainStage, screenBounds.getMinX()+screenBounds.getWidth(), screenBounds.getMinY())
+            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
 
         }
     }

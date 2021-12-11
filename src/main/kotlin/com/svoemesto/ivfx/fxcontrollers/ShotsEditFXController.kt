@@ -4,6 +4,7 @@ import com.sun.javafx.scene.control.skin.TableViewSkin
 import com.sun.javafx.scene.control.skin.VirtualFlow
 import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.controllers.ShotController
+import com.svoemesto.ivfx.enums.ShotTypePerson
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
 import com.svoemesto.ivfx.modelsext.MatrixFrame
@@ -27,12 +28,14 @@ import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
+import javafx.geometry.Bounds
 import javafx.geometry.Pos
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
+import javafx.scene.control.MenuItem
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Skin
@@ -41,6 +44,7 @@ import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.image.ImageView
+import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import javafx.scene.input.ScrollEvent
 import javafx.scene.layout.Pane
@@ -82,6 +86,9 @@ class ShotsEditFXController {
     private var colShotType: TableColumn<ShotExt, String>? = null
 
     @FXML
+    private var colButtonGetType: TableColumn<ShotExt, String>? = null
+
+    @FXML
     private var lblFrameFull: Label? = null
 
     @FXML
@@ -114,6 +121,8 @@ class ShotsEditFXController {
         private val sbpCurrentMatrixFrameWasChanged = SimpleBooleanProperty(false)
         private val sbpCurrentShotExtWasChanged = SimpleBooleanProperty(false)
         private val sbpNeedCreatePagesWasChanged = SimpleBooleanProperty(false)
+        private var isPressedPlayForward = SimpleBooleanProperty(false)
+        private var isPressedPlayBackward = SimpleBooleanProperty(false)
 
         private var hostServices: HostServices? = null
         private var currentFileExt: FileExt? = null
@@ -147,6 +156,7 @@ class ShotsEditFXController {
                 mainStage?.scene = Scene(root)
                 this.hostServices = hostServices
                 mainStage?.initModality(Modality.APPLICATION_MODAL)
+                onStart()
                 mainStage?.showAndWait()
 
             } catch (e: IOException) {
@@ -157,6 +167,21 @@ class ShotsEditFXController {
 
         }
 
+        fun onStart() {
+
+            mainStage?.scene!!.onKeyPressed = EventHandler { event ->
+                if (event.code == KeyCode.CONTROL) isPressedControl = true
+                if (event.code == KeyCode.Z) isPressedPlayBackward.set(true)
+                if (event.code == KeyCode.X) isPressedPlayForward.set(true)
+            }
+
+            mainStage?.scene!!.onKeyReleased = EventHandler { event ->
+                if (event.code == KeyCode.CONTROL) isPressedControl = false
+                if (event.code == KeyCode.Z) isPressedPlayBackward.set(false)
+                if (event.code == KeyCode.X) isPressedPlayForward.set(false)
+            }
+
+        }
     }
 
     @FXML
@@ -205,6 +230,11 @@ class ShotsEditFXController {
 
         runListThreadsFramesFlagIsDone.addListener { observable, oldValue, newValue ->
             if (newValue == true) {
+
+                currentFileExt!!.shotsExt.forEach { shotExt ->
+                    shotExt.buttonGetType.setOnAction { onActionButtonGetShotType(shotExt) }
+                }
+
                 listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
                 tblPages!!.items = listMatrixPages
                 listThreads = mutableListOf()
@@ -226,7 +256,25 @@ class ShotsEditFXController {
         colShotFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
         colShotTo?.cellValueFactory = PropertyValueFactory("labelLast1")
         colShotType?.cellValueFactory = PropertyValueFactory("labelType")
+        colButtonGetType?.cellValueFactory = PropertyValueFactory("buttonGetType")
+
         tblShots!!.items = currentFileExt!!.shotsExt
+
+//        val contextMenuShotType = ContextMenu()
+//        ShotTypePerson.values().forEach { shotTypePerson ->
+//            var contextMenuShotTypeItem = MenuItem("", ImageView(shotTypePerson.pathToPicture))
+//            contextMenuShotTypeItem.onAction = EventHandler { e: ActionEvent? ->
+//                if (currentShotExt != null) {
+//                    currentShotExt!!.shot.typePerson = shotTypePerson
+//                    ShotController.save(currentShotExt!!.shot)
+//                    tblShots!!.refresh()
+//                }
+//            }
+//            contextMenuShotType.items.add(contextMenuShotTypeItem)
+//        }
+//        btnOK!!.contextMenu = contextMenuShotType
+//        val screenBounds: Bounds = btnOK!!.localToScreen(btnOK!!.boundsInLocal)
+//        contextMenuShotType.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
 
         slider?.min = -(listMatrixPages.size - 1).toDouble()
         slider?.max = 0.0
@@ -263,6 +311,7 @@ class ShotsEditFXController {
                     } else {
                         tblShotsSmartScroll(newValue)
                     }
+
                 }
             }
 
@@ -322,17 +371,40 @@ class ShotsEditFXController {
             wasClickTableShots = false
             val delta = if (e.deltaY > 0) -1 else 1
             if (isPressedControl) {
-//                if (delta > 0) {
-//                    goToNextShot()
-//                } else {
-//                    goToPreviousShot()
-//                }
+                if (currentShotExt != null) {
+                    if (delta > 0) {
+                        goToFrame(currentShotExt!!.lastFrameExt.frame.frameNumber + 1)
+                    } else {
+                        goToFrame(currentShotExt!!.firstFrameExt.frame.frameNumber - 1)
+                    }
+                }
             } else {
                 if (currentMatrixPage == null) {
                     goToFrame(listMatrixPages.first().matrixFrames.first())
                 } else {
                     val frameToGo = if (delta < 0) getPrevMatrixFrame(currentMatrixPage!!.matrixFrames.first()) else getNextMatrixFrame(currentMatrixPage!!.matrixFrames.last())
                     goToFrame(frameToGo)
+                }
+            }
+        }
+
+        lblFrameFull!!.setOnScroll { e: ScrollEvent ->
+            val delta = if (e.deltaY > 0) -1 else 1
+            if (isPressedControl) {
+                if (currentShotExt != null) {
+                    if (delta > 0) {
+                        goToFrame(currentShotExt!!.lastFrameExt.frame.frameNumber + 1)
+                    } else {
+                        goToFrame(currentShotExt!!.firstFrameExt.frame.frameNumber - 1)
+                    }
+                }
+            } else {
+                if (currentMatrixFrame != null) {
+                    if (delta > 0) {
+                        goToFrame(currentMatrixFrame?.frameNumber!!+1)
+                    } else {
+                        goToFrame(currentMatrixFrame?.frameNumber!!-1)
+                    }
                 }
             }
         }
@@ -392,6 +464,8 @@ class ShotsEditFXController {
 
     }
 
+
+
     @FXML
     fun doOK(event: ActionEvent?) {
         isWorking = false
@@ -450,6 +524,7 @@ class ShotsEditFXController {
                 ShotController.save(shotExt.shot)
                 val shot = ShotController.getOrCreate(currentFileExt!!.file, matrixFrame.frameNumber!!, lastFrameNumber)
                 val addedShotExt = ShotExt(shot, currentFileExt!!, matrixFrame.frameExt!!, lastFrameExt)
+                addedShotExt.buttonGetType.setOnAction { onActionButtonGetShotType(addedShotExt) }
                 currentFileExt!!.shotsExt.add(addedShotExt)
                 currentFileExt!!.shotsExt.sort()
 
@@ -531,15 +606,16 @@ class ShotsEditFXController {
         }
     }
 
-    fun goToShot(matrixFrame: MatrixFrame?) {
-        if (matrixFrame != null) {
-            val shotExt = getShotExtByFrameNumber(matrixFrame.frameNumber!!)
-            if (shotExt != currentShotExt) {
-                currentShotExt = shotExt
-                sbpCurrentShotExtWasChanged.value = true
-            }
-        }
-    }
+
+//    fun goToShot(matrixFrame: MatrixFrame?) {
+//        if (matrixFrame != null) {
+//            val shotExt = getShotExtByFrameNumber(matrixFrame.frameNumber!!)
+//            if (shotExt != currentShotExt) {
+//                currentShotExt = shotExt
+//                sbpCurrentShotExtWasChanged.value = true
+//            }
+//        }
+//    }
 
     fun tblPagesSmartScroll(matrixPage: MatrixPage?) {
         if (flowTblPages != null && flowTblPages!!.cellCount > 0) {
@@ -725,6 +801,27 @@ class ShotsEditFXController {
             }
         }
 
+    }
+
+    fun onActionButtonGetShotType(shotExt: ShotExt) {
+        val contextMenuShotType = ContextMenu()
+        ShotTypePerson.values().forEach { shotTypePerson ->
+            println(shotTypePerson.pathToPicture)
+            val imageView = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(shotTypePerson.pathToPicture))))
+            val contextMenuShotTypeItem = MenuItem(null, imageView)
+            contextMenuShotTypeItem.onAction = EventHandler { e: ActionEvent? ->
+                shotExt.shot.typePerson = shotTypePerson
+                ShotController.save(shotExt.shot)
+                shotExt.previewType = null
+                shotExt.labelType = null
+                shotExt.labelType
+                tblShots!!.refresh()
+            }
+            contextMenuShotType.items.add(contextMenuShotTypeItem)
+        }
+        shotExt.buttonGetType.contextMenu = contextMenuShotType
+        val screenBounds: Bounds = shotExt.buttonGetType.localToScreen(shotExt.buttonGetType.boundsInLocal)
+        contextMenuShotType.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
     }
 
 }

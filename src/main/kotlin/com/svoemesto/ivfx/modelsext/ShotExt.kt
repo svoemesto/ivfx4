@@ -12,6 +12,7 @@ import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsStartEvent
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsStartScene
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayUnderlineText
 import javafx.geometry.Pos
+import javafx.scene.control.Button
 import javafx.scene.control.ContentDisplay
 import javafx.scene.control.Label
 import javafx.scene.image.ImageView
@@ -112,7 +113,7 @@ data class ShotExt(
     val labelLast1: Label? get() = labelsLast?.get(0)
     val labelLast2: Label? get() = labelsLast?.get(1)
     val labelLast3: Label? get() = labelsLast?.get(2)
-
+    var buttonGetType: Button = Button()
     override fun compareTo(other: ShotExt): Int {
         return this.shot.firstFrameNumber - other.shot.firstFrameNumber
     }
