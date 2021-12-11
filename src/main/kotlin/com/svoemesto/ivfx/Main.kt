@@ -19,6 +19,8 @@ import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.ShotRepo
+import com.svoemesto.ivfx.repos.TagChildRepo
+import com.svoemesto.ivfx.repos.TagRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
@@ -42,6 +44,8 @@ class Main {
         val frameRepo = context.getBean("frameRepo", FrameRepo::class.java)
         val shotRepo = context.getBean("shotRepo", ShotRepo::class.java)
         val faceRepo = context.getBean("faceRepo", FaceRepo::class.java)
+        val tagRepo = context.getBean("tagRepo", TagRepo::class.java)
+        val tagChildRepo = context.getBean("tagChildRepo", TagChildRepo::class.java)
     }
 
 
