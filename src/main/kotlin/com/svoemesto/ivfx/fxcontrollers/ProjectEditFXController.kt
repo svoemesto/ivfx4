@@ -444,8 +444,16 @@ class ProjectEditFXController {
 
         println("Инициализация ProjectEditFXController.")
 
+        tblFiles?.placeholder = Label("Project not selected or don't have any files.")
+        tblProjectProperties?.placeholder = Label("Project not selected or don't have any properties.")
+        tblFileProperties?.placeholder = Label("File not selected or don't have any properties.")
+        tblProjectPropertiesCdf?.placeholder = Label("Project not selected or don't have any computer-depended properties.")
+        tblFilePropertiesCdf?.placeholder = Label("File not selected or don't have any computer-depended properties.")
+        tblTracks?.placeholder = Label("File not selected or don't have any tracks.")
+        tblTrackProperties?.placeholder = Label("Track not selected or don't have any properties..")
+
         menuDatabase?.text = getCurrentDatabase()?.name
-        mainStage?.setTitle(if (currentProjectExt == null) "Откройте или создайте проект." else "Проект: ${currentProjectExt!!.project.name}")
+        mainStage?.title = if (currentProjectExt == null) "Откройте или создайте проект." else "Проект: ${currentProjectExt!!.project.name}"
         menuDeleteProject?.isDisable = currentProjectExt == null
         menuActions?.isDisable = currentProjectExt == null
         menuEditShots?.isDisable = currentFileExt == null

@@ -48,6 +48,7 @@ class UpdateListFilesExt(
             fileExt.hasFramesMedium
             fileExt.hasFramesFull
             fileExt.hasAnalyzedFrames
+            fileExt.hasCreatedShots
             fileExt.hasDetectedFaces
             fileExt.hasCreatedFaces
 

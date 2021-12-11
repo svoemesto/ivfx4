@@ -34,6 +34,7 @@ import javafx.scene.control.Button
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
+import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Skin
 import javafx.scene.control.Slider
 import javafx.scene.control.TableColumn
@@ -99,32 +100,30 @@ class ShotsEditFXController {
     private val slider: Slider? = null
 
     companion object {
+        private const val fxBorderDefault = "-fx-border-color:#0f0f0f;-fx-border-width:1" // стиль бордюра лейбла по-умолчанию
+        private const val fxBorderFocused = "-fx-border-color:YELLOW;-fx-border-width:1" // стиль бордюра лейбла в фокусе
+        private const val fxBorderSelected = "-fx-border-color:RED;-fx-border-width:1" // стиль бордюра лейбла выбранного
+        private const val pictW = 135.0 // ширина картинки
+        private const val pictH = 75.0 // высота картинки
 
-        private var hostServices: HostServices? = null
-        private var currentFileExt: FileExt? = null
-        private var mainStage: Stage? = null
-
-        private var initFrameNumber: Int = 1
-        private var listMatrixPages: ObservableList<MatrixPage> = FXCollections.observableArrayList()
-        private var countColumnsInPage = 0
-        private var countRowsInPage = 0
         private val runListThreadsFramesFlagIsDone = SimpleBooleanProperty(false)
-
         private val sbpCurrentMatrixPageWasChanged = SimpleBooleanProperty(false)
         private val sbpCurrentMatrixFrameWasChanged = SimpleBooleanProperty(false)
         private val sbpCurrentShotExtWasChanged = SimpleBooleanProperty(false)
         private val sbpNeedCreatePagesWasChanged = SimpleBooleanProperty(false)
 
-        private const val fxBorderDefault = "-fx-border-color:#0f0f0f;-fx-border-width:1" // стиль бордюра лейбла по-умолчанию
-        private const val fxBorderFocused = "-fx-border-color:YELLOW;-fx-border-width:1" // стиль бордюра лейбла в фокусе
-        private const val fxBorderSelected = "-fx-border-color:RED;-fx-border-width:1" // стиль бордюра лейбла выбранного
-        private const val COUNT_LOADED_PAGE_BEFORE_CURRENT = 50
-        private const val COUNT_LOADED_PAGE_AFTER_CURRENT = 100
+        private var hostServices: HostServices? = null
+        private var currentFileExt: FileExt? = null
+        private var mainStage: Stage? = null
+
+        private var listMatrixPages: ObservableList<MatrixPage> = FXCollections.observableArrayList()
+        private var countColumnsInPage = 0
+        private var countRowsInPage = 0
+
         private var isWorking = false
         private var isPressedControl = false
         private var isPlayingForward = false
-        private const val pictW = 135.0 // ширина картинки
-        private const val pictH = 75.0 // высота картинки
+
         private var currentMatrixPage: MatrixPage? = null
         private var currentMatrixFrame: MatrixFrame? = null
         private var currentShotExt: ShotExt? = null
@@ -136,15 +135,6 @@ class ShotsEditFXController {
         private var wasClickTableShots = false
         private var wasClickFrameLabel = false
 
-
-        @Volatile
-        private var countLoadedPages = 0
-
-//        @Volatile
-//        private var listFramesExt: ObservableList<FrameExt> = FXCollections.observableArrayList()
-//
-//        @Volatile
-//        private var listShotsExt: ObservableList<ShotExt> = FXCollections.observableArrayList()
 
         fun editShots(fileExt: FileExt, hostServices: HostServices? = null) {
             currentFileExt = fileExt
@@ -175,8 +165,34 @@ class ShotsEditFXController {
 
         println("Инициализация ShotsEditFXController.")
 
-        mainStage?.title = "Редактор планов. Файл: ${currentFileExt!!.file.name}"
+        /**
+         * Первичная инициализация переменных. Нужна для правильно работы при повторном открытии формы
+         */
+        listMatrixPages = FXCollections.observableArrayList()
+        countColumnsInPage = 0
+        countRowsInPage = 0
+        isWorking = false
+        isPressedControl = false
+        isPlayingForward = false
+        currentMatrixPage = null
+        currentMatrixFrame = null
+        currentShotExt = null
+        currentNumPage = 0
+        flowTblPages = null
+        flowTblShots = null
+        wasClickTablePages = false
+        wasClickTableShots = false
+        wasClickFrameLabel = false
+        runListThreadsFramesFlagIsDone.value = false
+        sbpCurrentMatrixPageWasChanged.value = false
+        sbpCurrentMatrixFrameWasChanged.value = false
+        sbpCurrentShotExtWasChanged.value = false
+        sbpNeedCreatePagesWasChanged.value = false
 
+        tblPages?.placeholder = ProgressIndicator(-1.0)
+        tblShots?.placeholder = ProgressIndicator(-1.0)
+
+        mainStage?.title = "Редактор планов. Файл: ${currentFileExt!!.file.name}"
 
         var listThreads: MutableList<Thread> = mutableListOf()
         listThreads.add(LoadListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb))
@@ -188,7 +204,6 @@ class ShotsEditFXController {
             if (newValue == true) {
                 listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
                 tblPages!!.items = listMatrixPages
-//                runListThreadsFramesFlagIsDone.set(false)
                 listThreads = mutableListOf()
                 listThreads.add(UpdateListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb))
                 runListThreadsFrames = RunListThreads(listThreads)
@@ -323,6 +338,7 @@ class ShotsEditFXController {
             if (newValue == true) {
                 sbpNeedCreatePagesWasChanged.value = false
                 listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.width, paneCenter!!.height, pictW, pictH)
+                tblPages!!.items = listMatrixPages
             }
         }
 
@@ -454,10 +470,12 @@ class ShotsEditFXController {
             }
 
             listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
+            tblPages!!.items = listMatrixPages
             currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber!!)
             currentMatrixPage = getPageByFrame(frameNumber)
             currentShotExt = getShotExtByFrameNumber(frameNumber)
             showPage(currentMatrixPage!!)
+            tblPages!!.selectionModel.select(currentMatrixPage)
             goToFrame(currentMatrixFrame)
 
         } else {
@@ -689,25 +707,16 @@ class ShotsEditFXController {
 
                 // если значения кол-ва столбцов и/или строк изменилось при ресайзе
                 if (prevCountColumnsInPage != countColumnsInPage || prevCountRowsInPage != countRowsInPage) {
-                    listMatrixPages = createPages(currentFileExt!!.framesExt, paneWidth, paneHeight, pictW, pictH) // заново создаем список страниц
-                    if (currentMatrixPage == null) currentMatrixPage = listMatrixPages.first()
-                    sbpCurrentMatrixPageWasChanged.value = true
-//                    // если список страниц не пустой
-//                    if (listMatrixPages.size > 0) {
-//                        tblPages!!.setItems(listMatrixPages) // запихиваем список в таблицу
-//                        tblPages!!.refresh() // рефрешим таблицу
-//                        val currPage: MatrixPage? = getPageByFrame(initFrameNumber) // узнаем, в какой странице сидит инитный фрейм
-//                        slider?.setMin(-(listMatrixPages.size - 1).toDouble())
-//                        slider?.setMax(0.0)
-//                        for (i in listMatrixPages.indices) {
-//                            if (currPage === listMatrixPages.get(i)) {
-//                                slider?.setValue(-(i + 1).toDouble())
-//                                break
-//                            }
-//                        }
-//                        tblPages!!.selectionModel.select(currPage) // переходим на эту страницу в таблице
-//                        tblPagesSmartScroll(currPage)
-//                    }
+                    val frameNumber = currentMatrixFrame?.frameNumber ?: 1
+                    listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
+                    tblPages!!.items = listMatrixPages
+                    currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber!!)
+                    currentMatrixPage = getPageByFrame(frameNumber)
+                    currentShotExt = getShotExtByFrameNumber(frameNumber)
+                    showPage(currentMatrixPage!!)
+                    tblPages!!.selectionModel.select(currentMatrixPage)
+                    goToFrame(currentMatrixFrame)
+
                 }
             }
         }

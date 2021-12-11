@@ -30,8 +30,11 @@ class UpdateListFramesExt(
                 if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/list.count().toDouble())}, updating frame ($i/${list.count()}) ${fileExt.file.name}"
             }
 
-            frameExt.labelSmall
-//            frameExt.labelMedium
+            try {
+                frameExt.labelSmall
+            } catch (e: IllegalStateException) {
+                break
+            }
 
         }
         Platform.runLater {

@@ -11,6 +11,7 @@ import com.svoemesto.ivfx.threads.projectactions.CreateFramesMedium
 import com.svoemesto.ivfx.threads.projectactions.CreateFramesSmall
 import com.svoemesto.ivfx.threads.projectactions.CreateLossless
 import com.svoemesto.ivfx.threads.projectactions.CreatePreview
+import com.svoemesto.ivfx.threads.projectactions.CreateShots
 import com.svoemesto.ivfx.threads.projectactions.DetectFaces
 import javafx.application.HostServices
 import javafx.collections.FXCollections
@@ -62,6 +63,9 @@ class ProjectActionsFXController {
     private var colFileExtAF: TableColumn<FileExt, String>? = null
 
     @FXML
+    private var colFileExtCS: TableColumn<FileExt, String>? = null
+
+    @FXML
     private var colFileExtDF: TableColumn<FileExt, String>? = null
 
     @FXML
@@ -90,6 +94,9 @@ class ProjectActionsFXController {
 
     @FXML
     private var checkAnalyzeFrames: CheckBox? = null
+
+    @FXML
+    private var checkCreateShots: CheckBox? = null
 
     @FXML
     private var checkDetectFaces: CheckBox? = null
@@ -152,16 +159,17 @@ class ProjectActionsFXController {
         tblFilesExt?.selectionModel?.selectionMode = SelectionMode.MULTIPLE
 
 //        listFilesExt = FXCollections.observableArrayList(FileController.getListFilesExt(currentProject))
-        colFileExtOrder?.setCellValueFactory(PropertyValueFactory("fileOrder"))
-        colFileExtName?.setCellValueFactory(PropertyValueFactory("fileName"))
-        colFileExtPW?.setCellValueFactory(PropertyValueFactory("hasPreviewString"))
-        colFileExtLL?.setCellValueFactory(PropertyValueFactory("hasLosslessString"))
-        colFileExtFS?.setCellValueFactory(PropertyValueFactory("hasFramesSmallString"))
-        colFileExtFM?.setCellValueFactory(PropertyValueFactory("hasFramesMediumString"))
-        colFileExtFF?.setCellValueFactory(PropertyValueFactory("hasFramesFullString"))
-        colFileExtAF?.setCellValueFactory(PropertyValueFactory("hasAnalyzedFramesString"))
-        colFileExtDF?.setCellValueFactory(PropertyValueFactory("hasDetectedFacesString"))
-        colFileExtCF?.setCellValueFactory(PropertyValueFactory("hasCreatedFacesString"))
+        colFileExtOrder?.cellValueFactory = PropertyValueFactory("fileOrder")
+        colFileExtName?.cellValueFactory = PropertyValueFactory("fileName")
+        colFileExtPW?.cellValueFactory = PropertyValueFactory("hasPreviewString")
+        colFileExtLL?.cellValueFactory = PropertyValueFactory("hasLosslessString")
+        colFileExtFS?.cellValueFactory = PropertyValueFactory("hasFramesSmallString")
+        colFileExtFM?.cellValueFactory = PropertyValueFactory("hasFramesMediumString")
+        colFileExtFF?.cellValueFactory = PropertyValueFactory("hasFramesFullString")
+        colFileExtAF?.cellValueFactory = PropertyValueFactory("hasAnalyzedFramesString")
+        colFileExtCS?.cellValueFactory = PropertyValueFactory("hasCreatedShotsString")
+        colFileExtDF?.cellValueFactory = PropertyValueFactory("hasDetectedFacesString")
+        colFileExtCF?.cellValueFactory = PropertyValueFactory("hasCreatedFacesString")
         tblFilesExt?.items = listFilesExt
 
         pb1?.isVisible = false
@@ -184,6 +192,7 @@ class ProjectActionsFXController {
             if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium!! || (fileExt.hasFramesMedium!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull!! || (fileExt.hasFramesFull!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames!! || (fileExt.hasAnalyzedFrames!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateShots?.isSelected == true && (!fileExt.hasCreatedShots!! || (fileExt.hasCreatedShots!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces!! || (fileExt.hasDetectedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
         }
@@ -243,6 +252,15 @@ class ProjectActionsFXController {
                 listThreads.add(
                     AnalyzeFrames(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.file.name}, Action: Analyze Frames, Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateShots?.isSelected == true && (!fileExt.hasCreatedShots!! || (fileExt.hasCreatedShots!! && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateShots(fileExt!!, tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create shots, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
