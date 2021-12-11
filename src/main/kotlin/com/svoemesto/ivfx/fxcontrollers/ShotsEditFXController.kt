@@ -353,16 +353,8 @@ class ShotsEditFXController {
                 flowTblShots = kids[1] as VirtualFlow<*>
             })
 
-        //лисенер на изменение ширины пейна
-        paneCenter!!.widthProperty()
-            .addListener { v: ObservableValue<out Number?>?, oldValue: Number?, newValue: Number? -> listenToChangePaneSize() }
-
-        //лисенер на изменение высоты пейна
-        paneCenter!!.heightProperty()
-            .addListener { v: ObservableValue<out Number?>?, oldValue: Number?, newValue: Number? -> listenToChangePaneSize() }
-
-
-        // прокрутка колеса мыши над CenterPane
+        paneCenter!!.widthProperty().addListener { _, _, _ -> listenToChangePaneSize() }
+        paneCenter!!.heightProperty().addListener { _, _, _ -> listenToChangePaneSize() }
 
         // прокрутка колеса мыши над CenterPane
         paneCenter!!.setOnScroll { e: ScrollEvent ->
