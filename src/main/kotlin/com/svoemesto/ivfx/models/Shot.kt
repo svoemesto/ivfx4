@@ -31,10 +31,10 @@ class Shot {
     @JoinColumn(name = "file_id")
     lateinit var file: File
 
-    @Column(name = "shot_type_size", columnDefinition = "varchar(255) default 'NONE'")
-    var typeSize: ShotTypeSize = ShotTypeSize.NONE
+//    @Column(name = "shot_type_size", columnDefinition = "varchar(255) default 'NONE'")
+//    var typeSize: ShotTypeSize = ShotTypeSize.NONE
 
-    @Column(name = "shot_type_person", columnDefinition = "varchar(255) default 'NONE'")
+    @Column(name = "shot_type_person", columnDefinition = "int default 0")
     var typePerson: ShotTypePerson = ShotTypePerson.NONE
 
     @Column(name = "first_frame_number", columnDefinition = "int default 0")
