@@ -48,6 +48,7 @@ class LoadListShotsExt(
                 fileExt.framesExt.first { it.frame.frameNumber == shot.lastFrameNumber })
             shotExt.previewsFirst
             shotExt.previewsLast
+
             list.add(shotExt)
         }
         Platform.runLater {
