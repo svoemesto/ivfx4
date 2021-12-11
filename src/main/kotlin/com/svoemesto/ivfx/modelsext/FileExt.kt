@@ -137,6 +137,7 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
         hasFramesMedium = null
         hasFramesFull = null
         hasAnalyzedFrames = null
+        hasCreatedShots = null
         hasDetectedFaces = null
         hasCreatedFaces = null
     }

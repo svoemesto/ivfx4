@@ -11,6 +11,7 @@ import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsEndScene
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsStartEvent
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsStartScene
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayUnderlineText
+import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay
 import javafx.scene.control.Label
 import javafx.scene.image.ImageView
@@ -87,6 +88,24 @@ data class ShotExt(
             }
             return field
         }
+    var previewType: ImageView? = null
+        get() {
+            if (field == null) {
+                field = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(shot.typePerson.pathToPicture))))
+            }
+            return field
+        }
+    var labelType: Label? = null
+        get() {
+            if (field == null) {
+                field = Label()
+                field!!.setPrefSize(135.0, 75.0)
+                field!!.graphic = previewType
+                field!!.alignment = Pos.CENTER
+            }
+            return field
+        }
+
     val labelFirst1: Label? get() = labelsFirst?.get(0)
     val labelFirst2: Label? get() = labelsFirst?.get(1)
     val labelFirst3: Label? get() = labelsFirst?.get(2)

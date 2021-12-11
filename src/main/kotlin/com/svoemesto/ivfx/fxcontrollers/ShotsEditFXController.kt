@@ -79,6 +79,9 @@ class ShotsEditFXController {
     private var colShotTo: TableColumn<ShotExt, String>? = null
 
     @FXML
+    private var colShotType: TableColumn<ShotExt, String>? = null
+
+    @FXML
     private var lblFrameFull: Label? = null
 
     @FXML
@@ -222,6 +225,7 @@ class ShotsEditFXController {
 
         colShotFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
         colShotTo?.cellValueFactory = PropertyValueFactory("labelLast1")
+        colShotType?.cellValueFactory = PropertyValueFactory("labelType")
         tblShots!!.items = currentFileExt!!.shotsExt
 
         slider?.min = -(listMatrixPages.size - 1).toDouble()
