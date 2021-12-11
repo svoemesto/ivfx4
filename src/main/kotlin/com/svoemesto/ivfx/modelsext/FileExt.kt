@@ -100,6 +100,12 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
             return field
         }
     val hasAnalyzedFramesString: String get() = if (hasAnalyzedFrames!!) "✓" else "✗"
+    var hasCreatedShots: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasCreatedShots(file)
+            return field
+        }
+    val hasCreatedShotsString: String get() = if (hasCreatedShots!!) "✓" else "✗"
     var hasDetectedFaces: Boolean? = null
         get() {
             if (field == null) field = FileController.hasDetectedFaces(this)

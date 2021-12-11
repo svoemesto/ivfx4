@@ -126,6 +126,10 @@ class FileController() {
         }
 
         fun hasAnalyzedFrames(file: File): Boolean {
+            return Main.frameRepo.getCountFrames(file.id) > 0
+        }
+
+        fun hasCreatedShots(file: File): Boolean {
             return ShotController.getListShots(file).isNotEmpty()
         }
 

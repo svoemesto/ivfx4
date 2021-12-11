@@ -29,6 +29,7 @@
                               <TableColumn fx:id="colFileExtFM" minWidth="30.0" prefWidth="30.0" text="FM" />
                               <TableColumn fx:id="colFileExtFF" minWidth="30.0" prefWidth="30.0" text="FF" />
                               <TableColumn fx:id="colFileExtAF" minWidth="30.0" prefWidth="30.0" text="AF" />
+                              <TableColumn fx:id="colFileExtCS" minWidth="30.0" prefWidth="30.0" text="CS" />
                               <TableColumn fx:id="colFileExtDF" minWidth="30.0" prefWidth="30.0" text="DF" />
                               <TableColumn fx:id="colFileExtCF" minWidth="30.0" prefWidth="30.0" text="CF" />
                           </columns>
@@ -44,7 +45,8 @@
                         <CheckBox fx:id="checkCreateFramesSmall" mnemonicParsing="false" text="Create frames small" />
                         <CheckBox fx:id="checkCreateFramesMedium" mnemonicParsing="false" text="Create frames medium" />
                         <CheckBox fx:id="checkCreateFramesFull" mnemonicParsing="false" text="Create frames full" />
-                        <CheckBox fx:id="checkAnalyzeFrames" mnemonicParsing="false" text="Analyze frames and create shots" />
+                        <CheckBox fx:id="checkAnalyzeFrames" mnemonicParsing="false" text="Analyze frames" />
+                        <CheckBox fx:id="checkCreateShots" mnemonicParsing="false" text="Create shots" />
                         <CheckBox fx:id="checkDetectFaces" mnemonicParsing="false" text="Detect faces" />
                         <CheckBox fx:id="checkCreateFaces" mnemonicParsing="false" text="Create faces" />
                      </children>

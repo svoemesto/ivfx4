@@ -41,4 +41,7 @@ interface FrameRepo : CrudRepository<Frame, Long> {
             "limit ?2", nativeQuery = true)
     fun createFrames(fileId: Long, countFrames: Int)
 
+    @Query(value = "select COUNT(*) AS CNT FROM tbl_frames WHERE file_id = ?", nativeQuery = true)
+    fun getCountFrames(fileId: Long): Int
+
 }
