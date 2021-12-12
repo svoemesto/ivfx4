@@ -242,7 +242,7 @@ class FileController() {
             PropertyController.deleteAll(file::class.java.simpleName, file.id)
             PropertyCdfController.deleteAll(file::class.java.simpleName, file.id)
             FileCdfController.deleteAll(file)
-            TagNodeController.deleteAll(file::class.java.simpleName, file.id)
+            TagController.deleteAll(file::class.java.simpleName, file.id)
 
             Main.fileRepo.delete(file)
         }

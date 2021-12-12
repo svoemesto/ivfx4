@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.fxcontrollers
 
 import com.svoemesto.ivfx.controllers.TagController
+import com.svoemesto.ivfx.enums.ShotTypeSize
 import com.svoemesto.ivfx.enums.TagType
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Tag
@@ -43,19 +44,29 @@ class TagCreateFXController {
     companion object {
 
         private var mainStage: Stage? = null
-        private var currentProject: Project? = null
+        private var currentParentClass: String? = null
+        private var currentParentId: Long? = null
         private var currentTagType: TagType? = null
+        private var currentSizeType: ShotTypeSize? = null
         private var currentTagName: String = ""
-        private var currentFrameExt: FrameExt? = null
+        private var currentProba: Double = 0.0
         private var currentDisableChoiceTagType: Boolean = false
         private var currentTag: Tag? = null
         private var listTagsTypes: ObservableList<TagType> = FXCollections.observableArrayList()
 
-        fun getNewTag(project: Project, tagType: TagType, name: String, frameExt: FrameExt, disableChoiceTagType: Boolean = false): Tag? {
-            currentProject = project
-            currentTagType = tagType
+        fun getNewTag(parentClass: String,
+                      parentId: Long,
+                      name: String = "",
+                      tagType: TagType = TagType.DESCRIPTION,
+                      sizeType: ShotTypeSize = ShotTypeSize.NONE,
+                      proba: Double = 0.0,
+                      disableChoiceTagType: Boolean = false): Tag? {
+            currentParentClass = parentClass
+            currentParentId = parentId
             currentTagName = name
-            currentFrameExt = frameExt
+            currentTagType = tagType
+            currentSizeType = sizeType
+            currentProba = proba
             currentDisableChoiceTagType = disableChoiceTagType
 
             mainStage = Stage()
@@ -118,7 +129,13 @@ class TagCreateFXController {
 
     @FXML
     fun doOK(event: ActionEvent?) {
-        currentTag = TagController.create(currentProject!!, fldTagName!!.text, currentTagType!!)
+        currentTag = TagController.create(
+            currentParentClass!!,
+            currentParentId!!,
+            fldTagName!!.text,
+            currentTagType!!,
+            currentSizeType!!,
+            currentProba)
         mainStage?.close()
     }
 }

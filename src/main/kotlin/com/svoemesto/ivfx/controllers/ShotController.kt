@@ -43,7 +43,7 @@ class ShotController() {
         fun delete(shot: Shot) {
             PropertyController.deleteAll(shot::class.java.simpleName, shot.id)
             PropertyCdfController.deleteAll(shot::class.java.simpleName, shot.id)
-            TagNodeController.deleteAll(shot::class.java.simpleName, shot.id)
+            TagController.deleteAll(shot::class.java.simpleName, shot.id)
             Main.shotRepo.delete(shot)
         }
 
@@ -51,7 +51,7 @@ class ShotController() {
             getListShots(file).forEach { shot ->
                 PropertyController.deleteAll(shot::class.java.simpleName, shot.id)
                 PropertyCdfController.deleteAll(shot::class.java.simpleName, shot.id)
-                TagNodeController.deleteAll(shot::class.java.simpleName, shot.id)
+                TagController.deleteAll(shot::class.java.simpleName, shot.id)
             }
             Main.shotRepo.deleteAll(file.id)
         }
