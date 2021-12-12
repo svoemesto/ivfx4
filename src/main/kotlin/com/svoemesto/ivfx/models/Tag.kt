@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.models
 
+import com.svoemesto.ivfx.enums.ShotTypeSize
 import com.svoemesto.ivfx.enums.TagType
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
@@ -30,10 +31,6 @@ class Tag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id")
-    lateinit var project: Project
-
     @Column(name = "order_tag", nullable = false, columnDefinition = "int default 0")
     var order: Int = 0
 
@@ -43,7 +40,16 @@ class Tag {
     @Column(name = "tag_type", columnDefinition = "int default 0")
     var tagType: TagType = TagType.DESCRIPTION
 
-    @OneToMany(mappedBy = "tag", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
-    @Fetch(value = FetchMode.SUBSELECT)
-    var nodes: MutableList<TagNode> = mutableListOf()
+    @Column(name = "parent_id", columnDefinition = "int default 0")
+    var parentId: Long = 0
+
+    @Column(name = "parent_class", columnDefinition = "varchar(255) default ''")
+    var parentClass: String = ""
+
+    @Column(name = "size_type", columnDefinition = "int default 0")
+    var sizeType: ShotTypeSize = ShotTypeSize.NONE
+
+    @Column(name = "tag_proba")
+    var proba: Double = 0.0
+
 }

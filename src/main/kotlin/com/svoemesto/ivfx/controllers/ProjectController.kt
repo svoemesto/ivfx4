@@ -136,7 +136,7 @@ class ProjectController() {
             Main.propertyCdfRepo.deleteAll(project::class.java.simpleName, project.id)
             ProjectCdfController.deleteAll(project)
             FileController.deleteAll(project)
-            TagNodeController.deleteAll(project::class.java.simpleName, project.id)
+            TagController.deleteAll(project::class.java.simpleName, project.id)
             Main.projectRepo.delete(project.id)
         }
 
