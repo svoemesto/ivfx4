@@ -45,5 +45,5 @@ class Tag {
 
     @OneToMany(mappedBy = "tag", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
-    var childs: MutableList<TagChild> = mutableListOf()
+    var nodes: MutableList<TagNode> = mutableListOf()
 }

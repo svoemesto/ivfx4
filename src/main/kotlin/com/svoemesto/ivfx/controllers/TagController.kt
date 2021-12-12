@@ -1,13 +1,10 @@
 package com.svoemesto.ivfx.controllers
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.enums.TagType
-import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Tag
-import javafx.fxml.FXML
 import org.springframework.stereotype.Controller
 
 @Controller
@@ -32,7 +29,7 @@ class TagController {
             val result = Main.tagRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toMutableList()
             result.forEach { tag ->
                 tag.project = project
-                tag.childs = TagChildController.getListTagsChilds(tag)
+                tag.nodes = TagNodeController.getListTagsNodesForTag(tag)
             }
             return result
         }
@@ -47,7 +44,7 @@ class TagController {
 
         fun delete(tag: Tag) {
             reOrder(ReorderTypes.MOVE_TO_LAST, tag)
-            TagChildController.deleteAll(tag)
+            TagNodeController.deleteAll(tag)
 
             PropertyController.deleteAll(tag::class.java.simpleName, tag.id)
             PropertyCdfController.deleteAll(tag::class.java.simpleName, tag.id)
