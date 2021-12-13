@@ -39,7 +39,6 @@ import javafx.scene.control.MenuItem
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Skin
-import javafx.scene.control.Slider
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.cell.PropertyValueFactory
@@ -98,16 +97,13 @@ class ShotsEditFXController {
     private var btnOK: Button? = null
 
     @FXML
-    private var paneCenter: Pane? = null
+    private var paneFrames: Pane? = null
 
     @FXML
     private var pb: ProgressBar? = null
 
     @FXML
     private var lblPb: Label? = null
-
-    @FXML
-    private val slider: Slider? = null
 
     companion object {
         private const val fxBorderDefault = "-fx-border-color:#0f0f0f;-fx-border-width:1" // стиль бордюра лейбла по-умолчанию
@@ -235,7 +231,7 @@ class ShotsEditFXController {
                     shotExt.buttonGetType.setOnAction { onActionButtonGetShotType(shotExt) }
                 }
 
-                listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
+                listMatrixPages = createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), pictW, pictH)
                 tblPages!!.items = listMatrixPages
                 listThreads = mutableListOf()
                 listThreads.add(UpdateListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb))
@@ -276,8 +272,6 @@ class ShotsEditFXController {
 //        val screenBounds: Bounds = btnOK!!.localToScreen(btnOK!!.boundsInLocal)
 //        contextMenuShotType.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
 
-        slider?.min = -(listMatrixPages.size - 1).toDouble()
-        slider?.max = 0.0
 
         // выбор записи в таблице tblPages
         tblPages!!.selectionModel.selectedItemProperty()
@@ -353,11 +347,11 @@ class ShotsEditFXController {
                 flowTblShots = kids[1] as VirtualFlow<*>
             })
 
-        paneCenter!!.widthProperty().addListener { _, _, _ -> listenToChangePaneSize() }
-        paneCenter!!.heightProperty().addListener { _, _, _ -> listenToChangePaneSize() }
+        paneFrames!!.widthProperty().addListener { _, _, _ -> listenToChangePaneSize() }
+        paneFrames!!.heightProperty().addListener { _, _, _ -> listenToChangePaneSize() }
 
         // прокрутка колеса мыши над CenterPane
-        paneCenter!!.setOnScroll { e: ScrollEvent ->
+        paneFrames!!.setOnScroll { e: ScrollEvent ->
             wasClickFrameLabel = false
             wasClickTablePages = false
             wasClickTableShots = false
@@ -405,7 +399,7 @@ class ShotsEditFXController {
         sbpNeedCreatePagesWasChanged.addListener { observable, oldValue, newValue ->
             if (newValue == true) {
                 sbpNeedCreatePagesWasChanged.value = false
-                listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.width, paneCenter!!.height, pictW, pictH)
+                listMatrixPages = createPages(currentFileExt!!.framesExt, paneFrames!!.width, paneFrames!!.height, pictW, pictH)
                 tblPages!!.items = listMatrixPages
             }
         }
@@ -540,7 +534,7 @@ class ShotsEditFXController {
                 return
             }
 
-            listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
+            listMatrixPages = createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), pictW, pictH)
             tblPages!!.items = listMatrixPages
             currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber!!)
             currentMatrixPage = getPageByFrame(frameNumber)
@@ -633,7 +627,7 @@ class ShotsEditFXController {
     fun showPage(matrixPage: MatrixPage) {
         val heightPadding = 10 // по высоте двойной отступ
         val widthPadding = 10 // по ширине двойной отступ
-        val pane: Pane = paneCenter!!
+        val pane: Pane = paneFrames!!
         pane.children.clear() // очищаем пэйн от старых лейблов
         for (matrixFrame in matrixPage.matrixFrames) {
             val lbl: Label = matrixFrame.frameExt?.labelSmall!!
@@ -765,8 +759,8 @@ class ShotsEditFXController {
     fun listenToChangePaneSize() {
 
         if (runListThreadsFramesFlagIsDone.value) {
-            val paneWidth: Double = paneCenter!!.getWidth() // ширина центрального пэйна
-            val paneHeight: Double = paneCenter!!.getHeight() // высота центрального пейна
+            val paneWidth: Double = paneFrames!!.getWidth() // ширина центрального пэйна
+            val paneHeight: Double = paneFrames!!.getHeight() // высота центрального пейна
             val widthPadding = (pictW + 2) * 2 + 20 // по ширине двойной отступ
             val heightPadding = (pictH + 2) * 2 + 20 // по высоте двойной отступ
             if (paneWidth > widthPadding && paneHeight > heightPadding) {
@@ -780,9 +774,9 @@ class ShotsEditFXController {
                 // если значения кол-ва столбцов и/или строк изменилось при ресайзе
                 if (prevCountColumnsInPage != countColumnsInPage || prevCountRowsInPage != countRowsInPage) {
                     val frameNumber = currentMatrixFrame?.frameNumber ?: 1
-                    listMatrixPages = createPages(currentFileExt!!.framesExt, paneCenter!!.getWidth(), paneCenter!!.getHeight(), pictW, pictH)
+                    listMatrixPages = createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), pictW, pictH)
                     tblPages!!.items = listMatrixPages
-                    currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber!!)
+                    currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber)
                     currentMatrixPage = getPageByFrame(frameNumber)
                     currentShotExt = getShotExtByFrameNumber(frameNumber)
                     showPage(currentMatrixPage!!)

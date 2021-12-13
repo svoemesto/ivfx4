@@ -2,6 +2,8 @@ package com.svoemesto.ivfx.threads.projectactions
 
 import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.controllers.ShotController
+import com.svoemesto.ivfx.controllers.TagController
+import com.svoemesto.ivfx.enums.TagType
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FileExt
 import javafx.application.Platform
@@ -49,6 +51,7 @@ class CreateShots(var fileExt: FileExt,
         var currentIFrame = 1
         var previousIFrame = 1
         ShotController.deleteAll(fileExt.file)
+        TagController.deleteAllScenes(fileExt.file)
         val listShots: MutableList<Shot> = mutableListOf()
 
         for ((i, frame) in listFrames.withIndex()) {
@@ -78,8 +81,12 @@ class CreateShots(var fileExt: FileExt,
                 firstFrameNumber = currentFrameNumber
                 previousIFrame = currentIFrame
             }
-
         }
+
+//        val scene = TagController.create(fileExt.file::class.java.simpleName, fileExt.file.id,"",TagType.SCENE)
+//        listShots.forEach { shot ->
+//            TagController.create(scene::class.java.simpleName, scene.id)
+//        }
 
         fileExt.hasCreatedShots = true
         table.refresh()

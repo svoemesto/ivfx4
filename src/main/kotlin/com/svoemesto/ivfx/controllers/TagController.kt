@@ -4,7 +4,7 @@ import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.enums.ShotTypeSize
 import com.svoemesto.ivfx.enums.TagType
-import com.svoemesto.ivfx.models.Project
+import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Tag
 import org.springframework.stereotype.Controller
 
@@ -15,26 +15,34 @@ class TagController {
         fun create(parentClass: String,
                    parentId: Long,
                    name: String = "",
-                   tagType: TagType = TagType.DESCRIPTION,
+                   tagType: TagType = TagType.NONE,
+                   childClass: String = "",
+                   childId: Long = 0,
                    sizeType: ShotTypeSize = ShotTypeSize.NONE,
                    proba: Double = 0.0): Tag {
             val entity = Tag()
             entity.parentClass = parentClass
             entity.parentId = parentId
+            entity.childClass = childClass
+            entity.childId = childId
             entity.tagType = tagType
             entity.sizeType = sizeType
             entity.proba = proba
-            val lastEntity = Main.tagRepo.getEntityWithGreaterOrder(parentClass,parentId).firstOrNull()
+            val lastEntity = Main.tagRepo.getEntityWithGreaterOrder(parentClass,parentId,tagType).firstOrNull()
             entity.order = if (lastEntity != null) lastEntity.order + 1 else 1
             entity.tagType = tagType
-            entity.name = if (name != "") name else "Tag #${entity.order} for $parentClass #$parentId"
+            entity.name = if (name != "") name else "Tag $tagType #${entity.order} for $parentClass #$parentId"
             save(entity)
 
             return entity
         }
 
-        fun getListTags(parentClass: String, parentId: Long): MutableList<Tag> {
+        fun getListAllTags(parentClass: String, parentId: Long): MutableList<Tag> {
             return Main.tagRepo.findByParentClassAndParentIdAndOrderGreaterThanOrderByOrder(parentClass, parentId,0).toMutableList()
+        }
+
+        fun getListScenes(file: File): MutableList<Tag> {
+            return Main.tagRepo.getTagsByType(file::class.java.simpleName, file.id, TagType.SCENE).toMutableList()
         }
 
         fun save(tag: Tag) {
@@ -47,7 +55,7 @@ class TagController {
 
         fun delete(tag: Tag) {
 
-            getListTags(tag::class.java.simpleName, tag.id).forEach { delete(it) }
+            getListAllTags(tag::class.java.simpleName, tag.id).forEach { delete(it) }
 
             reOrder(ReorderTypes.MOVE_TO_LAST, tag)
 
@@ -58,7 +66,11 @@ class TagController {
         }
 
         fun deleteAll(parentClass: String, parentId: Long) {
-            getListTags(parentClass, parentId).forEach { delete(it) }
+            getListAllTags(parentClass, parentId).forEach { delete(it) }
+        }
+
+        fun deleteAllScenes(file: File) {
+            getListScenes(file).forEach { delete(it) }
         }
 
         fun reOrder(reorderType: ReorderTypes, tag: Tag) {

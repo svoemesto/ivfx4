@@ -1,13 +1,18 @@
 package com.svoemesto.ivfx
 
+import com.svoemesto.ivfx.repos.EventRepo
+import com.svoemesto.ivfx.repos.EventShotRepo
 import com.svoemesto.ivfx.repos.FaceRepo
 import com.svoemesto.ivfx.repos.FileCdfRepo
 import com.svoemesto.ivfx.repos.FileRepo
 import com.svoemesto.ivfx.repos.FrameRepo
+import com.svoemesto.ivfx.repos.PersonRepo
 import com.svoemesto.ivfx.repos.ProjectCdfRepo
 import com.svoemesto.ivfx.repos.ProjectRepo
 import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
+import com.svoemesto.ivfx.repos.SceneRepo
+import com.svoemesto.ivfx.repos.SceneShotRepo
 import com.svoemesto.ivfx.repos.ShotRepo
 import com.svoemesto.ivfx.repos.TagRepo
 import com.svoemesto.ivfx.repos.TrackRepo
@@ -32,6 +37,11 @@ class Main {
         val shotRepo = context.getBean("shotRepo", ShotRepo::class.java)
         val faceRepo = context.getBean("faceRepo", FaceRepo::class.java)
         val tagRepo = context.getBean("tagRepo", TagRepo::class.java)
+        val sceneRepo = context.getBean("sceneRepo", SceneRepo::class.java)
+        val eventRepo = context.getBean("eventRepo", EventRepo::class.java)
+        val sceneShotRepo = context.getBean("sceneShotRepo", SceneShotRepo::class.java)
+        val eventShotRepo = context.getBean("eventShotRepo", EventShotRepo::class.java)
+        val personRepo = context.getBean("personRepo", PersonRepo::class.java)
     }
 
 

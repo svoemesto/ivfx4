@@ -6,7 +6,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -25,14 +26,6 @@
                         <Insets />
                      </VBox.margin>
                      <children>
-                        <TableView fx:id="tblPages" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="5000.0" prefWidth="300.0">
-                          <columns>
-                            <TableColumn fx:id="colDurationStart" prefWidth="75.0" text="Время: с" />
-                            <TableColumn fx:id="colDurationEnd" prefWidth="75.0" text="Время: по" />
-                              <TableColumn fx:id="colFrameStart" prefWidth="65.0" text="Кадры: с" />
-                              <TableColumn fx:id="colFrameEnd" prefWidth="65.0" text="Кадры: по" />
-                          </columns>
-                        </TableView>
                         <TableView fx:id="tblShots" maxHeight="1.7976931348623157E308" maxWidth="440.0" minWidth="440.0" prefHeight="5000.0" prefWidth="440.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                           <columns>
                             <TableColumn fx:id="colShotFrom" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FROM" />
@@ -64,7 +57,32 @@
             <Separator orientation="VERTICAL" prefHeight="200.0" />
             <VBox prefHeight="200.0" prefWidth="5000.0">
                <children>
-                  <Pane fx:id="paneCenter" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="5000.0" prefWidth="5000.0" style="-fx-background-color: black;" />
+                  <TabPane prefHeight="10000.0" prefWidth="10000.0">
+                     <tabs>
+                        <Tab text="Frames">
+                           <content>
+                              <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0">
+                                 <children>
+                                    <HBox prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                       <children>
+                                          <TableView fx:id="tblPages" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="300.0" prefHeight="5000.0" prefWidth="300.0">
+                                            <columns>
+                                              <TableColumn fx:id="colDurationStart" prefWidth="75.0" text="Время: с" />
+                                              <TableColumn fx:id="colDurationEnd" prefWidth="75.0" text="Время: по" />
+                                                <TableColumn fx:id="colFrameStart" prefWidth="65.0" text="Кадры: с" />
+                                                <TableColumn fx:id="colFrameEnd" prefWidth="65.0" text="Кадры: по" />
+                                            </columns>
+                                          </TableView>
+                                          <Separator orientation="VERTICAL" prefHeight="200.0" />
+                                          <Pane fx:id="paneFrames" prefHeight="10000.0" prefWidth="10000.0" style="-fx-background-color: black;" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </AnchorPane>
+                           </content>
+                        </Tab>
+                     </tabs>
+                  </TabPane>
                   <ProgressBar fx:id="pb" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />
                   <Label fx:id="lblPb" maxWidth="1.7976931348623157E308" text="Label" />
                </children>
@@ -73,11 +91,6 @@
                </HBox.margin>
             </VBox>
             <Separator orientation="VERTICAL" prefHeight="200.0" />
-            <Slider fx:id="slider" max="0.0" min="1.0" minWidth="60.0" orientation="VERTICAL" showTickLabels="true" showTickMarks="true">
-               <HBox.margin>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-               </HBox.margin>
-            </Slider>
          </children>
       </HBox>
    </children>

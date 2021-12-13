@@ -47,9 +47,7 @@ class TagCreateFXController {
         private var currentParentClass: String? = null
         private var currentParentId: Long? = null
         private var currentTagType: TagType? = null
-        private var currentSizeType: ShotTypeSize? = null
         private var currentTagName: String = ""
-        private var currentProba: Double = 0.0
         private var currentDisableChoiceTagType: Boolean = false
         private var currentTag: Tag? = null
         private var listTagsTypes: ObservableList<TagType> = FXCollections.observableArrayList()
@@ -57,16 +55,12 @@ class TagCreateFXController {
         fun getNewTag(parentClass: String,
                       parentId: Long,
                       name: String = "",
-                      tagType: TagType = TagType.DESCRIPTION,
-                      sizeType: ShotTypeSize = ShotTypeSize.NONE,
-                      proba: Double = 0.0,
+                      tagType: TagType = TagType.NONE,
                       disableChoiceTagType: Boolean = false): Tag? {
             currentParentClass = parentClass
             currentParentId = parentId
             currentTagName = name
             currentTagType = tagType
-            currentSizeType = sizeType
-            currentProba = proba
             currentDisableChoiceTagType = disableChoiceTagType
 
             mainStage = Stage()
@@ -97,7 +91,7 @@ class TagCreateFXController {
 
         listTagsTypes = FXCollections.observableList(TagType.values().asList())
         cbTagType!!.items = listTagsTypes
-        if (currentTagType == null) currentTagType = TagType.DESCRIPTION
+        if (currentTagType == null) currentTagType = TagType.NONE
         cbTagType!!.value = currentTagType
         cbTagType!!.isDisable = currentDisableChoiceTagType
         fldTagName!!.text = currentTagName
@@ -133,9 +127,7 @@ class TagCreateFXController {
             currentParentClass!!,
             currentParentId!!,
             fldTagName!!.text,
-            currentTagType!!,
-            currentSizeType!!,
-            currentProba)
+            currentTagType!!)
         mainStage?.close()
     }
 }

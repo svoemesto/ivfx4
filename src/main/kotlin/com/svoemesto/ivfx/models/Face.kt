@@ -36,11 +36,14 @@ class Face {
     @Column(name = "frame_number", nullable = false, columnDefinition = "int default 0")
     var frameNumber: Int = 0
 
-    @Column(name = "tag_id", nullable = false, columnDefinition = "int default 0")
-    var tagId: Long = 0
+    @Column(name = "person_id", nullable = false, columnDefinition = "int default 0")
+    var personId: Long = 0
 
-    @Column(name = "tag_recognized_id", nullable = false, columnDefinition = "int default 0")
-    var tagRecognizedId: Long = 0
+    @Column(name = "person_recognized_name", nullable = false, columnDefinition = "varchar(255) default ''")
+    var personRecognizedName: String = ""
+
+    @Column(name = "person_recognized_id", nullable = false, columnDefinition = "int default 0")
+    var personRecognizedId: Long = 0
 
     @Column(name = "recognize_probability")
     var recognizeProbability: Double = 0.0

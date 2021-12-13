@@ -2,8 +2,13 @@ package com.svoemesto.ivfx.models
 
 import com.svoemesto.ivfx.enums.ShotTypePerson
 import com.svoemesto.ivfx.enums.ShotTypeSize
+import com.svoemesto.ivfx.modelsext.ShotExt
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
+import javax.persistence.CascadeType
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -11,7 +16,10 @@ import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
+import javax.persistence.JoinTable
+import javax.persistence.ManyToMany
 import javax.persistence.ManyToOne
+import javax.persistence.OneToMany
 import javax.persistence.Table
 import javax.validation.constraints.NotNull
 
@@ -19,7 +27,11 @@ import javax.validation.constraints.NotNull
 @Entity
 @Table(name = "tbl_shots")
 @Transactional
-class Shot {
+class Shot: Comparable<Shot> {
+
+    override fun compareTo(other: Shot): Int {
+        return this.firstFrameNumber - other.firstFrameNumber
+    }
 
     @NotNull(message = "ID плана не может быть NULL")
     @Id
@@ -30,9 +42,6 @@ class Shot {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "file_id")
     lateinit var file: File
-
-//    @Column(name = "shot_type_size", columnDefinition = "varchar(255) default 'NONE'")
-//    var typeSize: ShotTypeSize = ShotTypeSize.NONE
 
     @Column(name = "shot_type_person", columnDefinition = "int default 0")
     var typePerson: ShotTypePerson = ShotTypePerson.NONE
@@ -46,21 +55,78 @@ class Shot {
     @Column(name = "nearest_i_frame", columnDefinition = "int default 0")
     var nearestIFrame: Int = 0
 
-    @Column(name = "is_body_scene", columnDefinition = "boolean default false")
-    var isBodyScene: Boolean = false
+    @OneToMany(mappedBy = "scene", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SUBSELECT)
+    var scenesShots: MutableSet<SceneShot> = mutableSetOf()
 
-    @Column(name = "is_start_scene", columnDefinition = "boolean default false")
-    var isStartScene: Boolean = false
+    @OneToMany(mappedBy = "event", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SUBSELECT)
+    var eventsShots: MutableSet<EventShot> = mutableSetOf()
 
-    @Column(name = "is_end_scene", columnDefinition = "boolean default false")
-    var isEndScene: Boolean = false
+    val isBodyScene: Boolean
+        get() {
+            val list: MutableList<Shot> = mutableListOf()
+            scenesShots.forEach { sceneShotForShot->
+                sceneShotForShot.scene.scenesShots.forEach { list.add(it.shot) }
+                list.sort()
+                if (list.contains(this) && this != list.firstOrNull() && this != list.lastOrNull()) return true
+            }
+            return false
+        }
 
-    @Column(name = "is_body_event", columnDefinition = "boolean default false")
-    var isBodyEvent: Boolean = false
+    val isStartScene: Boolean
+        get() {
+            val list: MutableList<Shot> = mutableListOf()
+            scenesShots.forEach { sceneShotForShot->
+                sceneShotForShot.scene.scenesShots.forEach { list.add(it.shot) }
+                list.sort()
+                if (this == list.firstOrNull()) return true
+            }
+            return false
+        }
 
-    @Column(name = "is_start_event", columnDefinition = "boolean default false")
-    var isStartEvent: Boolean = false
+    val isEndScene: Boolean
+        get() {
+            val list: MutableList<Shot> = mutableListOf()
+            scenesShots.forEach { sceneShotForShot->
+                sceneShotForShot.scene.scenesShots.forEach { list.add(it.shot) }
+                list.sort()
+                if (this == list.lastOrNull()) return true
+            }
+            return false
+        }
 
-    @Column(name = "is_end_event", columnDefinition = "boolean default false")
-    var isEndEvent: Boolean = false
+    val isBodyEvent: Boolean
+        get() {
+            val list: MutableList<Shot> = mutableListOf()
+            eventsShots.forEach { sceneShotForShot->
+                sceneShotForShot.event.eventsShots.forEach { list.add(it.shot) }
+                list.sort()
+                if (list.contains(this) && this != list.firstOrNull() && this != list.lastOrNull()) return true
+            }
+            return false
+        }
+
+    val isStartEvent: Boolean
+        get() {
+            val list: MutableList<Shot> = mutableListOf()
+            eventsShots.forEach { sceneShotForShot->
+                sceneShotForShot.event.eventsShots.forEach { list.add(it.shot) }
+                list.sort()
+                if (this == list.firstOrNull()) return true
+            }
+            return false
+        }
+
+    val isEndEvent: Boolean
+        get() {
+            val list: MutableList<Shot> = mutableListOf()
+            eventsShots.forEach { sceneShotForShot->
+                sceneShotForShot.event.eventsShots.forEach { list.add(it.shot) }
+                list.sort()
+                if (this == list.lastOrNull()) return true
+            }
+            return false
+        }
+
 }

@@ -118,8 +118,18 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
             return field
         }
     val hasCreatedFacesString: String get() = if (hasCreatedFaces!!) "✓" else "✗"
+    var hasRecognizedFaces: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasRecognizedFaces(file)
+            return field
+        }
+    val hasRecognizedFacesString: String get() = if (hasRecognizedFaces!!) "✓" else "✗"
+    @Transient
     var framesExt: ObservableList<FrameExt> = FXCollections.observableArrayList()
+    @Transient
     var shotsExt: ObservableList<ShotExt> = FXCollections.observableArrayList()
+    @Transient
+    var scenesExt: ObservableList<SceneExt> = FXCollections.observableArrayList()
 
     fun resetFieldsLinkedShortName() {
         folderPreview = null

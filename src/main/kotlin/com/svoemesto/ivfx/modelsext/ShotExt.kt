@@ -114,6 +114,7 @@ data class ShotExt(
     val labelLast2: Label? get() = labelsLast?.get(1)
     val labelLast3: Label? get() = labelsLast?.get(2)
     var buttonGetType: Button = Button()
+
     override fun compareTo(other: ShotExt): Int {
         return this.shot.firstFrameNumber - other.shot.firstFrameNumber
     }
