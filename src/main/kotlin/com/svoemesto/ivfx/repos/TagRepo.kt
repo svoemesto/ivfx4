@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.repos
 
+import com.svoemesto.ivfx.enums.TagType
 import com.svoemesto.ivfx.models.Tag
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -12,8 +13,11 @@ interface TagRepo : CrudRepository<Tag, Long> {
     fun findByParentClassAndParentIdAndOrderGreaterThanOrderByOrder(parentClass: String, parentId: Long, order: Int) : Iterable<Tag>
     fun findByParentClassAndParentIdAndOrderLessThanOrderByOrderDesc(parentClass: String, parentId: Long, order: Int): Iterable<Tag>
 
-    @Query(value = "SELECT * FROM tbl_tags WHERE parent_class = ?1 AND parent_id = ?2 ORDER BY order_tag DESC LIMIT 1", nativeQuery = true)
-    fun getEntityWithGreaterOrder(parentClass: String, parentId:Long) : Iterable<Tag>
+    @Query(value = "SELECT * FROM tbl_tags WHERE parent_class = ?1 AND parent_id = ?2 AND tag_type = ?3 ORDER BY order_tag DESC LIMIT 1", nativeQuery = true)
+    fun getEntityWithGreaterOrder(parentClass: String, parentId:Long, tagType: TagType) : Iterable<Tag>
+
+    @Query(value = "SELECT * FROM tbl_tags WHERE parent_class = ?1 AND parent_id = ?2 AND tag_type = ?3 ORDER BY order_tag", nativeQuery = true)
+    fun getTagsByType(parentClass: String, parentId:Long, tagType: TagType) : Iterable<Tag>
 
 //    @Transactional
 //    @Modifying

@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.threads.loadlists
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.ShotExt
 import javafx.application.Platform
@@ -32,7 +33,8 @@ class LoadListShotsExt(
             }
         }
 
-        val sourceIterable = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(fileExt.file.id, 0)
+//        val sourceIterable = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(fileExt.file.id, 0)
+        val sourceIterable = ShotController.getListShots(fileExt.file)
         list.clear()
 
         for ((i, shot) in sourceIterable.withIndex()) {
@@ -41,7 +43,7 @@ class LoadListShotsExt(
                 if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, shot ($i/${sourceIterable.count()})"
             }
 
-            shot.file = fileExt.file
+//            shot.file = fileExt.file
 
             val shotExt = ShotExt(shot, fileExt,
                 fileExt.framesExt.first { it.frame.frameNumber == shot.firstFrameNumber },

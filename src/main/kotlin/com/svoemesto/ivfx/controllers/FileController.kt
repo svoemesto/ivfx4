@@ -145,6 +145,10 @@ class FileController() {
             return false
         }
 
+        fun hasRecognizedFaces(file: File): Boolean {
+            return FaceController.getListFaces(file).any { it.personRecognizedId != 0L }
+        }
+
         fun hasCreatedFaces(file: File): Boolean {
             return FaceController.getListFaces(file).isNotEmpty()
         }

@@ -4,6 +4,7 @@ import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.Face
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Shot
+import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
 import org.springframework.stereotype.Controller
 import java.io.File as IOFile
@@ -11,51 +12,6 @@ import java.io.File as IOFile
 @Controller
 class FaceController {
 
-    class FaceExt{
-        constructor(face: Face, fileExt: FileExt) {
-            this.fileExt = fileExt
-//            this.fileExt = FileExt(face.file)
-            this.fileId = face.file.id
-            this.frameNumber = face.frameNumber
-            this.faceNumberInFrame = face.faceNumberInFrame
-            this.pathToFrameFile = "${fileExt.folderFramesFull}${IOFile.separator}${face.file.shortName}_frame_${String.format("%06d", face.frameNumber)}.jpg"
-            this.pathToFaceFile = "${fileExt.folderFramesFull}.faces${IOFile.separator}${face.file.shortName}_frame_${String.format("%06d", face.frameNumber)}_face_${String.format("%02d", face.faceNumberInFrame)}.jpg"
-            this.tagId = face.tagId
-            this.tagRecognizedId = face.tagRecognizedId
-            this.recognizeProbability = face.recognizeProbability
-            this.startX = face.startX
-            this.startY = face.startY
-            this.endX = face.endX
-            this.endY = face.endY
-            this.vectorText = face.vectorText
-
-            val textVector: Array<String> = face.vectorText.split("\\|".toRegex()).toTypedArray()
-            val result = DoubleArray(textVector.size)
-            for (i in textVector.indices) {
-                result[i] = textVector[i].toDouble()
-            }
-            this.vector = result
-
-        }
-
-        constructor()
-
-        var fileId: Long = 0
-        var frameNumber: Int = 0
-        var faceNumberInFrame: Int = 0
-        var pathToFrameFile: String = ""
-        var pathToFaceFile: String = ""
-        var tagId: Long = 0
-        var tagRecognizedId: Long = 0
-        var recognizeProbability: Double = 0.0
-        var startX: Int = 0
-        var startY: Int = 0
-        var endX: Int = 0
-        var endY: Int = 0
-        var vectorText:String = "0.0"
-        var vector: DoubleArray = doubleArrayOf(0.0)
-        var fileExt: FileExt? = null
-    }
 
     companion object {
 
@@ -74,8 +30,9 @@ class FaceController {
             face.file = fileExt.file
             face.frameNumber = faceExt.frameNumber
             face.faceNumberInFrame = faceExt.faceNumberInFrame
-            face.tagId = faceExt.tagId
-            face.tagRecognizedId = faceExt.tagRecognizedId
+            face.personId = faceExt.personId
+            face.personRecognizedName = faceExt.personRecognizedName
+            face.personRecognizedId = faceExt.personRecognizedId
             face.recognizeProbability = faceExt.recognizeProbability
             face.startX = faceExt.startX
             face.startY = faceExt.startY
@@ -96,6 +53,16 @@ class FaceController {
             val result = Main.faceRepo.findByFileId(file.id).toMutableList()
             result.forEach { it.file = file }
             return result
+        }
+
+        fun getListFacesExt(fileExt: FileExt): MutableList<FaceExt> {
+            val result = Main.faceRepo.findByFileId(fileExt.file.id).toMutableList()
+            var listFacesExt: MutableList<FaceExt> = mutableListOf()
+            result.forEach { face->
+                face.file = fileExt.file
+                listFacesExt.add(FaceExt(face, fileExt))
+            }
+            return listFacesExt
         }
 
         fun getArrayFacesExt(fileExt: FileExt): Array<FaceExt> {

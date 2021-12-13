@@ -2,8 +2,8 @@ package com.svoemesto.ivfx.threads.projectactions
 
 import com.google.gson.GsonBuilder
 import com.svoemesto.ivfx.controllers.FaceController
-import com.svoemesto.ivfx.controllers.FaceController.FaceExt
 import com.svoemesto.ivfx.controllers.ShotController
+import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.utils.FaceDetection
@@ -29,11 +29,12 @@ class DetectFaces(var fileExt: FileExt,
         pb1.isVisible = true
         lbl2.isVisible = true
         pb2.isVisible = true
-        pb2.progress = ProgressBar.INDETERMINATE_PROGRESS
+
         Platform.runLater {
             lbl1.text = textLbl1
             pb1.progress = (numCurrentThread-1) / countThreads.toDouble()
             lbl2.text = "Detecting faces..."
+            pb2.progress = ProgressBar.INDETERMINATE_PROGRESS
         }
 
         val builder = GsonBuilder()
@@ -76,24 +77,9 @@ class DetectFaces(var fileExt: FileExt,
         val runCmd = RunCmd(cmdText)
         runCmd.run()
 
-//        val pathToJsonFaces = fileExt.file.folderFramesFull + IOFile.separator + "faces.json"
-//
-//        try {
-//            FileReader(pathToJsonFaces).use { fileReader ->
-//                val facesExtArray: Array<FaceExt> = gson.fromJson(fileReader, Array<FaceExt>::class.java)
-//                facesExtArray.forEach { faceExt ->
-//                    faceExt.vectorText = if (faceExt.vector.isEmpty()) "" else faceExt.vector.joinToString(separator = "|", prefix = "", postfix = "")
-//                    Main.faceController.createOrUpdate(faceExt, fileExt.file)
-//                }
-//            }
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//        }
-
         println("Это должно напечататься после завершения процесса cmd")
 
         fileExt.hasDetectedFaces = true
-//        fileExt.hasDetectedFacesString = "✓"
         table.refresh()
 
         lbl1.isVisible = false

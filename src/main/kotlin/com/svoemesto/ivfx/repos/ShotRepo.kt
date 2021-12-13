@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.repos
 
+import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.models.Shot
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -28,5 +29,15 @@ interface ShotRepo : CrudRepository<Shot, Long> {
         firstFrameNumber: Int,
         lastFrameNumber: Int
     ): Iterable<Shot>
+
+    @Query(value = "SELECT * FROM tbl_shots " +
+            "INNER JOIN tbl_scenes_shots ON tbl_shots.id = tbl_scenes_shots.shot_id " +
+            "WHERE tbl_scenes_shots.scene_id = ?", nativeQuery = true)
+    fun getShotsForScenes(sceneId:Long) : Iterable<Shot>
+
+    @Query(value = "SELECT * FROM tbl_shots " +
+            "INNER JOIN tbl_events_shots ON tbl_shots.id = tbl_events_shots.shot_id " +
+            "WHERE tbl_events_shots.event_id = ?", nativeQuery = true)
+    fun getShotsForEvents(eventId:Long) : Iterable<Shot>
 
 }
