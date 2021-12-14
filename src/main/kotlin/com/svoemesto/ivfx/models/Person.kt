@@ -20,7 +20,7 @@ import javax.validation.constraints.NotNull
 class Person: Comparable<Person> {
 
     override fun compareTo(other: Person): Int {
-        return this.name.hashCode() - other.hashCode()
+        return this.name.compareTo (other.name)
     }
 
     @NotNull(message = "ID Person не может быть NULL")
@@ -40,7 +40,7 @@ class Person: Comparable<Person> {
     var nameInRecognizer: String = ""
 
     @Column(name = "file_id_for_preview", nullable = false, columnDefinition = "int default 0")
-    var fileIdForPreview: Int = 0
+    var fileIdForPreview: Long = 0
 
     @Column(name = "frame_number_for_preview", nullable = false, columnDefinition = "int default 0")
     var frameNumberForPreview: Int = 0

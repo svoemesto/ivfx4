@@ -5,6 +5,7 @@ import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
+import com.svoemesto.ivfx.modelsext.ProjectExt
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import java.io.IOException
@@ -178,6 +179,19 @@ class ProjectController() {
                     }
                 }
             }
+        }
+
+        fun getProject(projectId: Long): Project {
+            val project = Main.projectRepo.findById(projectId).get()
+            project.cdfs = mutableListOf()
+            project.cdfs.add(ProjectCdfController.getProjectCdf(project))
+            project.files = FileController.getListFiles(project)
+            return project
+        }
+
+        fun getProjectExt(projectId: Long): ProjectExt {
+            val project = getProject(projectId)
+            return ProjectExt(project)
         }
 
     }

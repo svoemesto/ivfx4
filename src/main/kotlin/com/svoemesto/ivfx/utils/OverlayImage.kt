@@ -296,17 +296,20 @@ class OverlayImage {
             return resultImage
         }
 
-        fun resizeImage(sourceImage: BufferedImage, resizedW: Int, resizedH: Int, bgColor: Color?): BufferedImage {
+        fun resizeImage(sourceImage: BufferedImage, resizedW: Int, resizedH: Int, bgColor: Color? = null): BufferedImage {
             val imageW = sourceImage.width
             val imageH = sourceImage.height
             val imageType = BufferedImage.TYPE_INT_ARGB
-            val scaleCoeff = Math.min(resizedW.toDouble() / imageW, resizedH.toDouble() / imageH)
+            val scaleCoeff = (resizedW.toDouble() / imageW).coerceAtMost(resizedH.toDouble() / imageH)
             val resultImage = BufferedImage(resizedW, resizedH, imageType)
             var afterResize = BufferedImage(resizedW, resizedH, imageType)
             val graphics2D = resultImage.graphics as Graphics2D
 
-//        graphics2D.setColor (bgColor);
-//        graphics2D.fillRect ( 0, 0, resizedW, resizedH);
+            if (bgColor != null) {
+                graphics2D.color = bgColor
+                graphics2D.fillRect ( 0, 0, resizedW, resizedH)
+            }
+
             val at = AffineTransform()
             at.scale(scaleCoeff, scaleCoeff)
             val scaleOp = AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR)
@@ -314,8 +317,6 @@ class OverlayImage {
             val x = (resizedW - imageW * scaleCoeff).toInt() / 2
             val y = (resizedH - imageH * scaleCoeff).toInt() / 2
 
-//        AlphaComposite alphaChannel = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1);
-//        graphics2D.setComposite(alphaChannel);
             graphics2D.drawImage(afterResize, x, y, null)
             graphics2D.dispose()
             return resultImage

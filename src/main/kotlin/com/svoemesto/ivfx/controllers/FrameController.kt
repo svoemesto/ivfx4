@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Frame
+import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
@@ -123,6 +124,12 @@ class FrameController() {
             entity.frameNumber = frameNumber
             save(entity)
             return entity
+        }
+
+        fun getFrameExt(fileId: Long, frameNumber: Int, project: Project): FrameExt {
+            val fileExt = FileController.getFileExt(fileId, project)
+            val frame = getOrCreate(fileExt.file, frameNumber)
+            return FrameExt(frame, fileExt)
         }
 
     }

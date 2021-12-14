@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 interface FaceRepo : CrudRepository<Face, Long> {
     fun findByFileId(fileId: Long): Iterable<Face>
+    fun findByFileIdAndPersonRecognizedId(fileId: Long, personId: Long): Iterable<Face>
 
     @Transactional
     @Modifying
