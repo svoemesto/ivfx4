@@ -130,6 +130,8 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
     var shotsExt: ObservableList<ShotExt> = FXCollections.observableArrayList()
     @Transient
     var scenesExt: ObservableList<SceneExt> = FXCollections.observableArrayList()
+    @Transient
+    var facesExt: ObservableList<FaceExt> = FXCollections.observableArrayList()
 
     fun resetFieldsLinkedShortName() {
         folderPreview = null

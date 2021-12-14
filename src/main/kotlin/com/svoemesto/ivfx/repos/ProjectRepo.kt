@@ -19,5 +19,6 @@ interface ProjectRepo : CrudRepository<Project, Long> {
     @Modifying
     @Query(value = "DELETE FROM tbl_projects WHERE id = ?", nativeQuery = true)
     fun delete(projectId: Long)
+//    fun findById(projectId: Long) : Iterable<Project>
 
 }

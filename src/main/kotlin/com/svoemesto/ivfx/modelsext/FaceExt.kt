@@ -1,7 +1,16 @@
 package com.svoemesto.ivfx.modelsext
 
+import com.svoemesto.ivfx.controllers.FaceController
+import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.models.Face
+import com.svoemesto.ivfx.utils.ConvertToFxImage
+import com.svoemesto.ivfx.utils.OverlayImage
+import javafx.geometry.Pos
+import javafx.scene.control.Label
+import javafx.scene.image.ImageView
+import java.awt.Color
 import java.io.File
+import javax.imageio.ImageIO
 
 class FaceExt {
 
@@ -53,4 +62,26 @@ class FaceExt {
     @Transient
     var fileExt: FileExt? = null
 
+    @Transient
+    var previewSmall: ImageView? = null
+        get() {
+            if (field == null) {
+                var bi = ImageIO.read(File(pathToFaceFile))
+                bi = OverlayImage.resizeImage(bi, 75, 75, Color.BLACK)
+                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
+            }
+            return field
+        }
+
+    @Transient
+    var labelSmall: Label? = null
+        get() {
+            if (field == null) {
+                field = Label()
+                field!!.setPrefSize(75.0, 75.0)
+                field!!.graphic = previewSmall
+                field!!.alignment = Pos.CENTER
+            }
+            return field
+        }
 }

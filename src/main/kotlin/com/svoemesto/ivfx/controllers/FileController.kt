@@ -305,6 +305,20 @@ class FileController() {
             return getFFmpegProbeResult(file).streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()?:0
         }
 
+        fun getFile(fileId: Long, project: Project): File {
+            val file = Main.fileRepo.findById(fileId).get()
+            file.project = project
+            val cdf = FileCdfController.getFileCdf(file)
+            file.cdfs = mutableListOf()
+            file.cdfs.add(cdf)
+            file.tracks = TrackController.getListTracks(file)
+            return file
+        }
+
+        fun getFileExt(fileId: Long, project: Project): FileExt {
+            val file = getFile(fileId, project)
+            return FileExt(file, ProjectController.getProjectExt(file.project.id))
+        }
 
     }
 }

@@ -3,9 +3,12 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.Face
 import com.svoemesto.ivfx.models.File
+import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
+import com.svoemesto.ivfx.modelsext.PersonExt
+import com.svoemesto.ivfx.modelsext.ProjectExt
 import org.springframework.stereotype.Controller
 import java.io.File as IOFile
 
@@ -65,6 +68,16 @@ class FaceController {
             return listFacesExt
         }
 
+        fun getListFacesExt(fileExt: FileExt, personExt: PersonExt): MutableList<FaceExt> {
+            val result = Main.faceRepo.findByFileIdAndPersonRecognizedId(fileExt.file.id, personExt.person.id).toMutableList()
+            var listFacesExt: MutableList<FaceExt> = mutableListOf()
+            result.forEach { face->
+                face.file = fileExt.file
+                listFacesExt.add(FaceExt(face, fileExt))
+            }
+            return listFacesExt
+        }
+
         fun getArrayFacesExt(fileExt: FileExt): Array<FaceExt> {
             val listFrameNumbers: List<Int> = getFramesToRecognize(fileExt)
             val listFacesExt: MutableList<FaceExt> = mutableListOf() //<Frame>(listFrameNumbers.size)
@@ -99,6 +112,21 @@ class FaceController {
 
         fun deleteAll(file: File) {
             Main.faceRepo.deleteAll(file.id)
+        }
+
+        fun getFace(fileId: Long, frameNumber: Int, faceNumber: Int): Face? {
+            return Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(fileId, frameNumber, faceNumber).firstOrNull()
+        }
+
+        fun getFaceExt(fileId: Long, frameNumber: Int, faceNumber: Int, project: Project): FaceExt? {
+            val face = getFace(fileId, frameNumber, faceNumber)
+            if (face != null) {
+                val file = project.files.first { it.id == fileId }
+                face.file = file
+                val fileExt = FileExt(file, ProjectExt(project))
+                return FaceExt(face, fileExt)
+            }
+            return null
         }
 
     }

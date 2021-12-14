@@ -96,10 +96,15 @@ class RecognizeFaces(var fileExt: FileExt,
                     }
 
                     faceExt.vectorText = faceExt.vector.joinToString(separator = "|", prefix = "", postfix = "")
-                    var face = FaceController.createOrUpdate(faceExt, fileExt)
+                    val face = FaceController.createOrUpdate(faceExt, fileExt)
 
                     if (faceExt.personRecognizedName != "") {
-                        var person = Main.personRepo.findByProjectIdAndNameInRecognizer(fileExt.projectExt.project.id, faceExt.personRecognizedName).firstOrNull() ?: PersonController.create(fileExt.projectExt.project,"", faceExt.personRecognizedName)
+                        val person =
+                            Main.personRepo.findByProjectIdAndNameInRecognizer(fileExt.projectExt.project.id, faceExt.personRecognizedName).firstOrNull()
+                                ?:
+                                PersonController.create(fileExt.projectExt.project,"",
+                                    faceExt.personRecognizedName,
+                                    fileExt.file.id, face.frameNumber, face.faceNumberInFrame)
                         face.personRecognizedId = person.id
                         FaceController.save(face)
                         faceExt.personRecognizedId = person.id

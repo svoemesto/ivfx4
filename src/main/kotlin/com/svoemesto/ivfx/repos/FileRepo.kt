@@ -27,4 +27,5 @@ interface FileRepo : CrudRepository<File, Long> {
     @Query(value = "DELETE FROM tbl_files WHERE id = ?", nativeQuery = true)
     fun delete(fileId:Long)
 
+
 }
