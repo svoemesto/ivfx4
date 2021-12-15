@@ -118,6 +118,12 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
             return field
         }
     val hasCreatedFacesString: String get() = if (hasCreatedFaces!!) "✓" else "✗"
+    var hasCreatedFacesPreview: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasCreatedFacesPreview(this)
+            return field
+        }
+    val hasCreatedFacesPreviewString: String get() = if (hasCreatedFacesPreview!!) "✓" else "✗"
     var hasRecognizedFaces: Boolean? = null
         get() {
             if (field == null) field = FileController.hasRecognizedFaces(file)

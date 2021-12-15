@@ -1,7 +1,9 @@
 package com.svoemesto.ivfx.models
 
+import com.svoemesto.ivfx.enums.PersonType
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -33,6 +35,9 @@ class Person: Comparable<Person> {
     @JoinColumn(name = "project_id")
     lateinit var project: Project
 
+    @Column(name = "person_type", nullable = false, columnDefinition = "int default 0")
+    var personType: PersonType = PersonType.PERSON
+
     @Column(name = "name", columnDefinition = "varchar(255) default ''")
     var name: String = ""
 
@@ -48,5 +53,7 @@ class Person: Comparable<Person> {
     @Column(name = "face_number_for_preview", nullable = false, columnDefinition = "int default 0")
     var faceNumberForPreview: Int = 0
 
+    @Column(name = "uuid", columnDefinition = "varchar(255) default ''")
+    var uuid: String = UUID.randomUUID().toString()
 
 }

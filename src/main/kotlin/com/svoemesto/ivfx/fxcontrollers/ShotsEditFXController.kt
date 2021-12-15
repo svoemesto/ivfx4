@@ -2,6 +2,7 @@ package com.svoemesto.ivfx.fxcontrollers
 
 import com.sun.javafx.scene.control.skin.TableViewSkin
 import com.sun.javafx.scene.control.skin.VirtualFlow
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.enums.ShotTypePerson
@@ -129,10 +130,6 @@ class ShotsEditFXController {
         private const val fxBorderDefault = "-fx-border-color:#0f0f0f;-fx-border-width:1" // стиль бордюра лейбла по-умолчанию
         private const val fxBorderFocused = "-fx-border-color:YELLOW;-fx-border-width:1" // стиль бордюра лейбла в фокусе
         private const val fxBorderSelected = "-fx-border-color:RED;-fx-border-width:1" // стиль бордюра лейбла выбранного
-        private const val framePictW = 135.0 // ширина картинки
-        private const val framePictH = 75.0 // высота картинки
-        private const val facePictW = 75.0 // ширина картинки
-        private const val facePictH = 75.0 // высота картинки
 
         private val runListThreadsFramesFlagIsDone = SimpleBooleanProperty(false)
         private val runListThreadsFacesFlagIsDone = SimpleBooleanProperty(false)
@@ -270,7 +267,7 @@ class ShotsEditFXController {
                 }
                 tblPersonsAll!!.items = listPersonsExtAll
 
-                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), framePictW, framePictH)
+                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                 tblPagesFaces!!.items = listMatrixPageFaces
 
                 listThreads = mutableListOf()
@@ -283,7 +280,7 @@ class ShotsEditFXController {
         runListThreadsFacesFlagIsDone.addListener { observable, oldValue, newValue ->
             if (newValue == true) {
 
-                listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.getWidth(), paneFaces!!.getHeight(), facePictW, facePictH)
+                listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.getWidth(), paneFaces!!.getHeight(), Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
                 tblPagesFrames!!.items = listMatrixPageFrames
 
                 currentMatrixFace = listMatrixPageFaces.first().matrixFaces.first()
@@ -514,7 +511,7 @@ class ShotsEditFXController {
         sbpNeedCreatePagesWasChanged.addListener { observable, oldValue, newValue ->
             if (newValue == true) {
                 sbpNeedCreatePagesWasChanged.value = false
-                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.width, paneFrames!!.height, framePictW, framePictH)
+                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.width, paneFrames!!.height, Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                 tblPagesFrames!!.items = listMatrixPageFrames
             }
         }
@@ -559,6 +556,16 @@ class ShotsEditFXController {
                     wasClickTableShots = true
                     wasClickFrameLabel = false
                     wasClickTablePagesFrames = false
+                }
+            }
+        }
+
+        tblPersonsAll!!.onMouseClicked = EventHandler { mouseEvent ->
+            if (mouseEvent.button == MouseButton.PRIMARY) {
+                if (mouseEvent.clickCount == 2) {
+                    if (currentPersonExt != null) {
+                        PersonEditFXController.editPerson(currentPersonExt!!)
+                    }
                 }
             }
         }
@@ -663,7 +670,7 @@ class ShotsEditFXController {
                 return
             }
 
-            listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), framePictW, framePictH)
+            listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
             tblPagesFrames!!.items = listMatrixPageFrames
             currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber!!)
             currentMatrixPageFrames = getMatrixPageFramesByFrame(frameNumber)
@@ -790,11 +797,11 @@ class ShotsEditFXController {
         pane.children.clear() // очищаем пэйн от старых лейблов
         for (matrixFrame in matrixPageFrames.matrixFrames) {
             val lbl: Label = matrixFrame.frameExt?.labelSmall!!
-            val x: Double = widthPadding + matrixFrame.column * (framePictW + 2) // X = отступ по ширине + столбец*ширину картинки
-            val y: Double = heightPadding + matrixFrame.row * (framePictH + 2) //Y = отступ по высоте + строка*высоту картинки
+            val x: Double = widthPadding + matrixFrame.column * (Main.PREVIEW_FRAME_W + 2) // X = отступ по ширине + столбец*ширину картинки
+            val y: Double = heightPadding + matrixFrame.row * (Main.PREVIEW_FRAME_H + 2) //Y = отступ по высоте + строка*высоту картинки
             lbl.translateX = x
             lbl.translateY = y
-            lbl.setPrefSize(framePictW, framePictH) //устанавливаем ширину и высоту лейбла
+            lbl.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H) //устанавливаем ширину и высоту лейбла
             lbl.style = fxBorderDefault //устанавливаем стиль бордюра по-дефолту
             lbl.alignment = Pos.CENTER //устанавливаем позиционирование по центру
             var resultImage: BufferedImage? = null
@@ -835,8 +842,8 @@ class ShotsEditFXController {
 
             if (resultImage != null) {
                 val screenImageView = ImageView(ConvertToFxImage.convertToFxImage(resultImage)) // загружаем ресайзный буфер в новый вьювер
-                screenImageView.fitWidth = framePictW // устанавливаем ширину вьювера
-                screenImageView.fitHeight = framePictH // устанавливаем высоту вьювера
+                screenImageView.fitWidth = Main.PREVIEW_FRAME_W // устанавливаем ширину вьювера
+                screenImageView.fitHeight = Main.PREVIEW_FRAME_H // устанавливаем высоту вьювера
                 lbl.graphic = null //сбрасываем графику лейбла
                 lbl.graphic = screenImageView // устанавливаем вьювер источником графики для лейбла
             }
@@ -909,19 +916,19 @@ class ShotsEditFXController {
         pane.children.clear() // очищаем пэйн от старых лейблов
         for (matrixFace in matrixPageFaces.matrixFaces) {
             val lbl: Label = matrixFace.faceExt?.labelSmall!!
-            val x: Double = widthPadding + matrixFace.column * (facePictW + 2) // X = отступ по ширине + столбец*ширину картинки
-            val y: Double = heightPadding + matrixFace.row * (facePictH + 2) //Y = отступ по высоте + строка*высоту картинки
+            val x: Double = widthPadding + matrixFace.column * (Main.PREVIEW_FACE_W + 2) // X = отступ по ширине + столбец*ширину картинки
+            val y: Double = heightPadding + matrixFace.row * (Main.PREVIEW_FACE_H + 2) //Y = отступ по высоте + строка*высоту картинки
             lbl.translateX = x
             lbl.translateY = y
-            lbl.setPrefSize(facePictW, facePictH) //устанавливаем ширину и высоту лейбла
+            lbl.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H) //устанавливаем ширину и высоту лейбла
             lbl.style = fxBorderDefault //устанавливаем стиль бордюра по-дефолту
             lbl.alignment = Pos.CENTER //устанавливаем позиционирование по центру
             var resultImage: BufferedImage? = null
             resultImage = ImageIO.read(IOFile(matrixFace.faceExt!!.pathToFaceFile))
 
             val screenImageView = matrixFace.faceExt!!.previewSmall
-            screenImageView!!.fitWidth = facePictW // устанавливаем ширину вьювера
-            screenImageView.fitHeight = facePictH // устанавливаем высоту вьювера
+            screenImageView!!.fitWidth = Main.PREVIEW_FACE_W // устанавливаем ширину вьювера
+            screenImageView.fitHeight = Main.PREVIEW_FACE_H // устанавливаем высоту вьювера
             lbl.graphic = null //сбрасываем графику лейбла
             lbl.graphic = screenImageView // устанавливаем вьювер источником графики для лейбла
 
@@ -978,20 +985,20 @@ class ShotsEditFXController {
         if (runListThreadsFramesFlagIsDone.value) {
             val paneFramesWidth: Double = paneFrames!!.getWidth() // ширина центрального пэйна
             val paneFramesHeight: Double = paneFrames!!.getHeight() // высота центрального пейна
-            val widthFramePadding = (framePictW + 2) * 2 + 20 // по ширине двойной отступ
-            val heightFramePadding = (framePictH + 2) * 2 + 20 // по высоте двойной отступ
+            val widthFramePadding = (Main.PREVIEW_FRAME_W + 2) * 2 + 20 // по ширине двойной отступ
+            val heightFramePadding = (Main.PREVIEW_FRAME_H + 2) * 2 + 20 // по высоте двойной отступ
             if (paneFramesWidth > widthFramePadding && paneFramesHeight > heightFramePadding) {
                 val prevCountColumnsInPage = countColumnsInPage
                 val prevCountRowsInPage = countRowsInPage
                 countColumnsInPage =
-                    ((paneFramesWidth - widthFramePadding) / (framePictW + 2)).toInt() // количество столбцов, которое влезет на экран
+                    ((paneFramesWidth - widthFramePadding) / (Main.PREVIEW_FRAME_W + 2)).toInt() // количество столбцов, которое влезет на экран
                 countRowsInPage =
-                    ((paneFramesHeight - heightFramePadding) / (framePictH + 2)).toInt() // количество строк, которое влезет на экран
+                    ((paneFramesHeight - heightFramePadding) / (Main.PREVIEW_FRAME_H + 2)).toInt() // количество строк, которое влезет на экран
 
                 // если значения кол-ва столбцов и/или строк изменилось при ресайзе
                 if (prevCountColumnsInPage != countColumnsInPage || prevCountRowsInPage != countRowsInPage) {
                     val frameNumber = currentMatrixFrame?.frameNumber ?: 1
-                    listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), framePictW, framePictH)
+                    listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                     tblPagesFrames!!.items = listMatrixPageFrames
                     currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber)
                     currentMatrixPageFrames = getMatrixPageFramesByFrame(frameNumber)
@@ -1007,20 +1014,20 @@ class ShotsEditFXController {
         if (runListThreadsFramesFlagIsDone.value) {
             val paneFacesWidth: Double = paneFaces!!.getWidth() // ширина центрального пэйна
             val paneFacesHeight: Double = paneFaces!!.getHeight() // высота центрального пейна
-            val widthFacePadding = (facePictW + 2) * 2 + 20 // по ширине двойной отступ
-            val heightFacePadding = (facePictH + 2) * 2 + 20 // по высоте двойной отступ
+            val widthFacePadding = (Main.PREVIEW_FACE_W + 2) * 2 + 20 // по ширине двойной отступ
+            val heightFacePadding = (Main.PREVIEW_FACE_H + 2) * 2 + 20 // по высоте двойной отступ
             if (paneFacesWidth > widthFacePadding && paneFacesHeight > heightFacePadding) {
                 val prevCountColumnsInPage = countColumnsInPage
                 val prevCountRowsInPage = countRowsInPage
                 countColumnsInPage =
-                    ((paneFacesWidth - widthFacePadding) / (framePictW + 2)).toInt() // количество столбцов, которое влезет на экран
+                    ((paneFacesWidth - widthFacePadding) / (Main.PREVIEW_FRAME_W + 2)).toInt() // количество столбцов, которое влезет на экран
                 countRowsInPage =
-                    ((paneFacesHeight - heightFacePadding) / (framePictH + 2)).toInt() // количество строк, которое влезет на экран
+                    ((paneFacesHeight - heightFacePadding) / (Main.PREVIEW_FRAME_H + 2)).toInt() // количество строк, которое влезет на экран
 
                 // если значения кол-ва столбцов и/или строк изменилось при ресайзе
                 if (prevCountColumnsInPage != countColumnsInPage || prevCountRowsInPage != countRowsInPage) {
 
-                    listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.getWidth(), paneFaces!!.getHeight(), facePictW, facePictH)
+                    listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.getWidth(), paneFaces!!.getHeight(), Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
                     tblPagesFaces!!.items = listMatrixPageFaces
                     if (currentMatrixFace == null) currentMatrixFace = listMatrixPageFaces.first().matrixFaces.first()
                     currentMatrixPageFaces = getMatrixPageFacesByMatrixFace(currentMatrixFace!!)

@@ -11,4 +11,5 @@ data class ProjectExt(var project: Project) {
     var folderFramesSmall: String = ProjectController.getFolderFramesSmall(project)
     var folderFramesMedium: String = ProjectController.getFolderFramesMedium(project)
     var folderFramesFull: String = ProjectController.getFolderFramesFull(project)
+    var folderPersons: String = ProjectController.getFolderPersons(project)
 }

@@ -6,6 +6,7 @@ import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunListThreads
 import com.svoemesto.ivfx.threads.projectactions.AnalyzeFrames
 import com.svoemesto.ivfx.threads.projectactions.CreateFaces
+import com.svoemesto.ivfx.threads.projectactions.CreateFacesPreview
 import com.svoemesto.ivfx.threads.projectactions.CreateFramesFull
 import com.svoemesto.ivfx.threads.projectactions.CreateFramesMedium
 import com.svoemesto.ivfx.threads.projectactions.CreateFramesSmall
@@ -73,6 +74,9 @@ class ProjectActionsFXController {
     private var colFileExtCF: TableColumn<FileExt, String>? = null
 
     @FXML
+    private var colFileExtCFP: TableColumn<FileExt, String>? = null
+
+    @FXML
     private var colFileExtRF: TableColumn<FileExt, String>? = null
 
 
@@ -108,6 +112,9 @@ class ProjectActionsFXController {
 
     @FXML
     private var checkCreateFaces: CheckBox? = null
+
+    @FXML
+    private var checkCreateFacesPreview: CheckBox? = null
 
     @FXML
     private var checkRecognizeFaces: CheckBox? = null
@@ -178,6 +185,7 @@ class ProjectActionsFXController {
         colFileExtCS?.cellValueFactory = PropertyValueFactory("hasCreatedShotsString")
         colFileExtDF?.cellValueFactory = PropertyValueFactory("hasDetectedFacesString")
         colFileExtCF?.cellValueFactory = PropertyValueFactory("hasCreatedFacesString")
+        colFileExtCFP?.cellValueFactory = PropertyValueFactory("hasCreatedFacesPreviewString")
         colFileExtRF?.cellValueFactory = PropertyValueFactory("hasRecognizedFacesString")
         tblFilesExt?.items = listFilesExt
 
@@ -204,6 +212,7 @@ class ProjectActionsFXController {
             if (checkCreateShots?.isSelected == true && (!fileExt.hasCreatedShots!! || (fileExt.hasCreatedShots!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces!! || (fileExt.hasDetectedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateFacesPreview?.isSelected == true && (!fileExt.hasCreatedFacesPreview!! || (fileExt.hasCreatedFacesPreview!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkRecognizeFaces?.isSelected == true && (!fileExt.hasRecognizedFaces!! || (fileExt.hasRecognizedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
         }
         var counterPb1 = 0
@@ -288,6 +297,15 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     CreateFaces(fileExt!!, tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateFacesPreview?.isSelected == true && (!fileExt.hasCreatedFacesPreview!! || (fileExt.hasCreatedFacesPreview!! && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateFacesPreview(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.file.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )

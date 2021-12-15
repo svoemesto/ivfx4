@@ -49,6 +49,11 @@ class ProjectController() {
             return result
         }
 
+        fun getFolderPersons(project: Project): String{
+            val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.PERSONS.propertyCdfKey)
+            return if (value == "") project.folder + IOFile.separator + Folders.PERSONS.folderName else value
+        }
+
         fun getFolderLossless(project: Project): String{
             val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.LOSSLESS.propertyCdfKey)
             return if (value == "") project.folder + IOFile.separator + Folders.LOSSLESS.folderName else value
@@ -123,7 +128,7 @@ class ProjectController() {
             entity.cdfs = mutableListOf()
             entity.cdfs.add(ProjectCdfController.create(entity))
             save(entity)
-            Folders.values().forEach {
+            Folders.values().filter{it.forProject}.forEach {
                 PropertyCdfController.editOrCreate(entity::class.java.simpleName, entity.id, it.propertyCdfKey)
             }
             return entity

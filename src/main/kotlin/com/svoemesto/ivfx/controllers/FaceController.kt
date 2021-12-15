@@ -6,6 +6,7 @@ import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FaceExt
+import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
@@ -18,30 +19,75 @@ class FaceController {
 
     companion object {
 
-        fun createOrUpdate(faceExt: FaceExt, fileExt: FileExt): Face {
+        fun createOrUpdate(faceExtJson: FaceExtJson, fileExt: FileExt): Face {
 
-            var face = Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(faceExt.fileId, faceExt.frameNumber, faceExt.faceNumberInFrame).firstOrNull()
+            var face = Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame).firstOrNull()
             if (face != null) {
                 face.file = fileExt.file
-                val faceExtTmp = FaceExt(face, fileExt)
-                if (faceExtTmp == faceExt) {
-                    return face
+                val faceExt = FaceExt(face, fileExt)
+                if (!faceExt.isConfirmed) {
+                    var needToSave = false
+                    if (face.personRecognizedName != faceExtJson.personRecognizedName) {
+
+                        if (faceExtJson.personRecognizedName != "") {
+                            face.personRecognizedName = faceExtJson.personRecognizedName
+                            face.personRecognizedId = PersonController.getPersonExtIdByProjectExtIdAndNameInRecognizer(fileExt.projectExt,
+                                faceExtJson.personRecognizedName, true, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                            needToSave = true
+                        } else {
+                            face.personRecognizedId = PersonController.getUndefinded(fileExt.projectExt).person.id
+                        }
+
+                    }
+                    if (face.recognizeProbability != faceExtJson.recognizeProbability) {
+                        face.recognizeProbability = faceExtJson.recognizeProbability
+                        needToSave = true
+                    }
+                    if (face.startX != faceExtJson.startX) {
+                        face.startX = faceExtJson.startX
+                        needToSave = true
+                    }
+                    if (face.startY != faceExtJson.startY) {
+                        face.startY = faceExtJson.startY
+                        needToSave = true
+                    }
+                    if (face.endX != faceExtJson.endX) {
+                        face.endX = faceExtJson.endX
+                        needToSave = true
+                    }
+                    if (face.endY != faceExtJson.endY) {
+                        face.endY = faceExtJson.endY
+                        needToSave = true
+                    }
+                    if (!faceExt.vector.contentEquals(faceExtJson.vector)) {
+                        faceExt.vector = faceExtJson.vector
+                        needToSave = true
+                    }
+                    if (needToSave) save(face)
                 }
+                return face
+
             } else {
                 face = Face()
             }
             face.file = fileExt.file
-            face.frameNumber = faceExt.frameNumber
-            face.faceNumberInFrame = faceExt.faceNumberInFrame
-            face.personId = faceExt.personId
-            face.personRecognizedName = faceExt.personRecognizedName
-            face.personRecognizedId = faceExt.personRecognizedId
-            face.recognizeProbability = faceExt.recognizeProbability
-            face.startX = faceExt.startX
-            face.startY = faceExt.startY
-            face.endX = faceExt.endX
-            face.endY = faceExt.endY
-            face.vectorText = faceExt.vectorText
+            face.frameNumber = faceExtJson.frameNumber
+            face.faceNumberInFrame = faceExtJson.faceNumberInFrame
+            face.personId = 0
+            face.personRecognizedName = faceExtJson.personRecognizedName
+            if (faceExtJson.personRecognizedName != "") {
+                face.personRecognizedId = PersonController.getPersonExtIdByProjectExtIdAndNameInRecognizer(fileExt.projectExt,
+                    faceExtJson.personRecognizedName, true, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+            } else {
+                face.personRecognizedId = PersonController.getUndefinded(fileExt.projectExt).person.id
+            }
+            face.recognizeProbability = faceExtJson.recognizeProbability
+            face.startX = faceExtJson.startX
+            face.startY = faceExtJson.startY
+            face.endX = faceExtJson.endX
+            face.endY = faceExtJson.endY
+            face.vectorText = faceExtJson.vector.joinToString(separator = "|", prefix = "", postfix = "")
+            face.isConfirmed = false
 
             save(face)
             return face
@@ -78,17 +124,16 @@ class FaceController {
             return listFacesExt
         }
 
-        fun getArrayFacesExt(fileExt: FileExt): Array<FaceExt> {
+        data class FrameToDetectFaces(val fileId: Long, val frameNumber: Int, val pathToFrameFile: String) {
+        }
+
+        fun getArrayFramesToDetectFaces(fileExt: FileExt): Array<FrameToDetectFaces> {
             val listFrameNumbers: List<Int> = getFramesToRecognize(fileExt)
-            val listFacesExt: MutableList<FaceExt> = mutableListOf() //<Frame>(listFrameNumbers.size)
+            val list: MutableList<FrameToDetectFaces> = mutableListOf() //<Frame>(listFrameNumbers.size)
             for (i in listFrameNumbers.indices) {
-                val faceExt = FaceExt()
-                faceExt.fileId = fileExt.file.id
-                faceExt.frameNumber = listFrameNumbers[i]
-                faceExt.pathToFrameFile = "${fileExt.folderFramesFull}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", listFrameNumbers[i])}.jpg"
-                listFacesExt.add(faceExt)
+                list.add(FrameToDetectFaces(fileExt.file.id, listFrameNumbers[i], "${fileExt.folderFramesFull}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", listFrameNumbers[i])}.jpg"))
             }
-            return listFacesExt.toTypedArray()
+            return list.toTypedArray()
         }
 
         fun getFramesToRecognize(fileExt: FileExt): List<Int> {
