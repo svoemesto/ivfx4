@@ -60,6 +60,9 @@ class Face {
     @Column(name = "end_y", nullable = false, columnDefinition = "int default 0")
     var endY: Int = 0
 
+    @Column(name = "is_confirmed", columnDefinition = "boolean default false")
+    var isConfirmed: Boolean = false
+
     @Lob
     @Column(name = "vector")
     var vectorText: String = "0.0"

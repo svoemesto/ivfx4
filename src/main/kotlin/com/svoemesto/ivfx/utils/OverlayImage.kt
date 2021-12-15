@@ -322,5 +322,124 @@ class OverlayImage {
             return resultImage
         }
 
+        fun extractRegion(sourceImage: BufferedImage,
+                          startX: Int,
+                          startY: Int,
+                          endX: Int,
+                          endY: Int,
+                          resultedRegionW: Int,
+                          resultedRegionH: Int,
+                          expandFactor: Double = 1.0,
+                          cropping: Boolean = true,
+                          bgColor: Color = Color.BLACK): BufferedImage {
+
+            val imageW = sourceImage.width
+            val imageH = sourceImage.height
+            var sourceRegionStartX = startX
+            var sourceRegionStartY = startY
+            var sourceRegionEndX = endX
+            var sourceRegionEndY = endY
+
+            var sourceRegionW = sourceRegionEndX - sourceRegionStartX
+            var sourceRegionH = sourceRegionEndY - sourceRegionStartY
+
+            val expandedRegionW = (sourceRegionW * expandFactor).toInt()
+            val expandedRegionH = (sourceRegionH * expandFactor).toInt()
+            sourceRegionStartX += (sourceRegionW - expandedRegionW) / 2
+            sourceRegionEndX -= (sourceRegionW - expandedRegionW) / 2
+            sourceRegionStartY += (sourceRegionH - expandedRegionH) / 2
+            sourceRegionEndY -= (sourceRegionH - expandedRegionH) / 2
+            sourceRegionW = expandedRegionW
+            sourceRegionH = expandedRegionH
+
+            val sourceRegionAspect = sourceRegionW / sourceRegionH.toDouble()
+            val resultedRegionAspect = resultedRegionW / resultedRegionH.toDouble()
+
+            var workRegionStartX: Int = 0
+            var workRegionStartY: Int = 0
+            var workRegionEndX: Int = 0
+            var workRegionEndY: Int = 0
+            var workRegionW: Int = 0
+            var workRegionH: Int = 0
+            var workRegionDelta: Int = 0
+            var workRegionScale: Double = 1.0
+
+//            val imageType = BufferedImage.TYPE_INT_ARGB
+            val imageType = BufferedImage.TYPE_INT_RGB
+            val resultImage = BufferedImage(resultedRegionW, resultedRegionH, imageType)
+            var afterResize = BufferedImage(resultedRegionW, resultedRegionH, imageType)
+            val graphics2DresultedImage = resultImage.graphics as Graphics2D
+            if (bgColor != null) {
+                graphics2DresultedImage.color = bgColor
+                graphics2DresultedImage.fillRect ( 0, 0, resultedRegionW, resultedRegionH)
+            }
+
+            workRegionStartX = sourceRegionStartX
+            workRegionEndX = sourceRegionEndX
+            workRegionStartY = sourceRegionStartY
+            workRegionEndY = sourceRegionEndY
+            if (cropping) {
+                if (sourceRegionAspect > resultedRegionAspect) { // исходный регион выше - отбрасываем края
+                    workRegionDelta = ((sourceRegionW - resultedRegionW * sourceRegionH / resultedRegionH.toDouble()) / 2).toInt()
+                    workRegionStartX = workRegionStartX - workRegionDelta
+                    workRegionEndX = workRegionEndX + workRegionDelta
+                } else if (sourceRegionAspect < resultedRegionAspect) { // исходный регион ниже - отбрасываем верх и низ
+                    workRegionDelta = ((sourceRegionH - resultedRegionH * sourceRegionW / resultedRegionW.toDouble()) / 2).toInt()
+                    workRegionStartY = workRegionStartY - workRegionDelta
+                    workRegionEndY = workRegionEndY + workRegionDelta
+                }
+            } else {
+                if (sourceRegionAspect > resultedRegionAspect) { // исходный регион выше - забираем сверху и снизу
+                    workRegionDelta = ((sourceRegionH - resultedRegionH * sourceRegionW / resultedRegionW.toDouble()) / 2).toInt()
+                    workRegionStartY = workRegionStartY + workRegionDelta
+                    workRegionEndY = workRegionEndY - workRegionDelta
+
+                } else if (sourceRegionAspect < resultedRegionAspect) { // исходный регион ниже - забираем с боков
+                    workRegionDelta = ((sourceRegionW - resultedRegionW * sourceRegionH / resultedRegionH.toDouble()) / 2).toInt()
+                    workRegionStartX = workRegionStartX + workRegionDelta
+                    workRegionEndX = workRegionEndX - workRegionDelta
+                }
+
+            }
+            workRegionW = workRegionEndX - workRegionStartX
+            workRegionH = workRegionEndY - workRegionStartY
+
+            val expandSourceImageToLeft = if (workRegionStartX >= 0) 0 else workRegionStartX * (-1)
+            val expandSourceImageToRight = if (workRegionEndX <= imageW) 0 else workRegionEndX - imageW
+            val expandSourceImageToUp = if (workRegionStartY >= 0) 0 else workRegionStartY * (-1)
+            val expandSourceImageToDown = if (workRegionEndY <= imageH) 0 else workRegionEndY - imageH
+
+            val expandedSourceImageW = imageW + expandSourceImageToLeft + expandSourceImageToRight
+            val expandedSourceImageH = imageH + expandSourceImageToUp + expandSourceImageToDown
+
+            val expandedSourceImage = BufferedImage(expandedSourceImageW, expandedSourceImageH, imageType)
+            val graphics2DexpandedSourceImage = expandedSourceImage.graphics as Graphics2D
+            graphics2DexpandedSourceImage.color = bgColor
+            graphics2DexpandedSourceImage.fillRect ( 0, 0, expandedSourceImageW, expandedSourceImageH)
+            graphics2DexpandedSourceImage.drawImage(sourceImage, expandSourceImageToLeft, expandSourceImageToUp, null)
+
+            workRegionStartX += expandSourceImageToLeft
+            workRegionEndX += expandSourceImageToLeft
+            workRegionStartY += expandSourceImageToUp
+            workRegionEndY += expandSourceImageToUp
+
+            val subImage = expandedSourceImage.getSubimage(workRegionStartX, workRegionStartY, workRegionW, workRegionH)
+
+            val at = AffineTransform()
+            val scaleCoeff = (resultedRegionW.toDouble() / subImage.width).coerceAtMost(resultedRegionH.toDouble() / subImage.height)
+            at.scale(scaleCoeff, scaleCoeff)
+            val scaleOp = AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR)
+            afterResize = scaleOp.filter(subImage, afterResize)
+            val x = (resultedRegionW - subImage.width * scaleCoeff).toInt() / 2
+            val y = (resultedRegionH - subImage.height * scaleCoeff).toInt() / 2
+
+            graphics2DresultedImage.drawImage(afterResize, x, y, null)
+
+            graphics2DresultedImage.dispose()
+            graphics2DexpandedSourceImage.dispose()
+
+            return resultImage
+        }
+
     }
 }

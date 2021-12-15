@@ -3,7 +3,6 @@ package com.svoemesto.ivfx.threads.projectactions
 import com.google.gson.GsonBuilder
 import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.controllers.ShotController
-import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.utils.FaceDetection
@@ -43,10 +42,10 @@ class DetectFaces(var fileExt: FileExt,
 //        val pathToFileJSON: String = fileExt.file.folderFramesFull + IOFile.separator + "frames.json"
 
         fileExt.file.shots = ShotController.getListShots(fileExt.file)
-        val arrFrameFaces: Array<FaceExt> = FaceController.getArrayFacesExt(fileExt)
+        val arrFrameToDetectFaces: Array<FaceController.Companion.FrameToDetectFaces> = FaceController.getArrayFramesToDetectFaces(fileExt)
 
         try {
-            FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(arrFrameFaces, fileWriter) }
+            FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(arrFrameToDetectFaces, fileWriter) }
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -62,7 +61,6 @@ class DetectFaces(var fileExt: FileExt,
         param.add("\"${faceDetectorPath}/detect_faces_in_folder.py\"")
         param.add("-i")
         param.add("\"${fileExt.folderFramesFull}\"")
-//        param.add("\"${Main.fileController.getCdfFolder(fileExt.file, Folders.FRAMES_FULL)}\"")
         param.add("-d")
         param.add("\"${faceDetectorPath}/face_detection_model\"")
         param.add("-m")

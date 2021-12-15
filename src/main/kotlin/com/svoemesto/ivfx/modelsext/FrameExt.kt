@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.modelsext
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import javafx.geometry.Pos
@@ -31,7 +32,7 @@ data class FrameExt(val frame: Frame,
         get() {
             if (field == null) {
                 field = Label()
-                field!!.setPrefSize(135.0, 75.0)
+                field!!.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                 field!!.graphic = previewSmall
                 field!!.alignment = Pos.CENTER
             }

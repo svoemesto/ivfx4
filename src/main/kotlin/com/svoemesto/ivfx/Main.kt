@@ -42,6 +42,16 @@ class Main {
         val sceneShotRepo = context.getBean("sceneShotRepo", SceneShotRepo::class.java)
         val eventShotRepo = context.getBean("eventShotRepo", EventShotRepo::class.java)
         val personRepo = context.getBean("personRepo", PersonRepo::class.java)
+
+        const val MEDIUM_FRAME_W = 720.0
+        const val MEDIUM_FRAME_H = 400.0
+        const val PREVIEW_FRAME_W = 135.0
+        const val PREVIEW_FRAME_H = 75.0
+        const val PREVIEW_FACE_W = 75.0
+        const val PREVIEW_FACE_H = 75.0
+        const val PREVIEW_FACE_EXPAND_FACTOR = 1.4
+        const val PREVIEW_FACE_CROPPING = false
+        const val PREVIEW_PERSON_CROPPING = false
     }
 
 

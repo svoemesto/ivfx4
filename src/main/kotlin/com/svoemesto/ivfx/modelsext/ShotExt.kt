@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.modelsext
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.convertDurationToString
@@ -65,9 +66,9 @@ data class ShotExt(
                 field = arrayOfNulls(3)
                 for (i in 0..2) {
                     field!![i] = Label()
-                    field!![i]?.setMinSize(135.0,75.0)
-                    field!![i]?.setMaxSize(135.0,75.0)
-                    field!![i]?.setPrefSize(135.0,75.0)
+                    field!![i]?.setMinSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    field!![i]?.setMaxSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    field!![i]?.setPrefSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
                     field!![i]?.graphic = previewsFirst?.get(i)
                     field!![i]?.contentDisplay = ContentDisplay.TOP
                 }
@@ -80,9 +81,9 @@ data class ShotExt(
                 field = arrayOfNulls(3)
                 for (i in 0..2) {
                     field!![i] = Label()
-                    field!![i]?.setMinSize(135.0,75.0)
-                    field!![i]?.setMaxSize(135.0,75.0)
-                    field!![i]?.setPrefSize(135.0,75.0)
+                    field!![i]?.setMinSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    field!![i]?.setMaxSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    field!![i]?.setPrefSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
                     field!![i]?.graphic = previewsLast?.get(i)
                     field!![i]?.contentDisplay = ContentDisplay.TOP
                 }
@@ -100,7 +101,7 @@ data class ShotExt(
         get() {
             if (field == null) {
                 field = Label()
-                field!!.setPrefSize(135.0, 75.0)
+                field!!.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                 field!!.graphic = previewType
                 field!!.alignment = Pos.CENTER
             }

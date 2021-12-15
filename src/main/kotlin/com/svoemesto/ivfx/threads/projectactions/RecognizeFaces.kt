@@ -5,6 +5,7 @@ import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.modelsext.FaceExt
+import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.utils.FaceDetection
@@ -81,34 +82,21 @@ class RecognizeFaces(var fileExt: FileExt,
 
         try {
             FileReader(pathToFileJSON).use { fileReader ->
-                val facesExtArray: Array<FaceExt> = gson.fromJson(fileReader, Array<FaceExt>::class.java)
-                for ((i, faceExt) in facesExtArray.withIndex()) {
+                val facesExtJsonArray: Array<FaceExtJson> = gson.fromJson(fileReader, Array<FaceExtJson>::class.java)
+                for ((i, faceExtJson) in facesExtJsonArray.withIndex()) {
 
                     val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
                     val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-                    val percentage2: Double = (i+1)/facesExtArray.size.toDouble()
+                    val percentage2: Double = (i+1)/facesExtJsonArray.size.toDouble()
                     val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
                     Platform.runLater {
                         lbl1.text = textLbl1
                         pb1.progress = percentage1
-                        lbl2.text = "Recognize face [$i/${facesExtArray.size}]"
+                        lbl2.text = "Recognize face [$i/${facesExtJsonArray.size}]"
                         pb2.progress = percentage2
                     }
 
-                    faceExt.vectorText = faceExt.vector.joinToString(separator = "|", prefix = "", postfix = "")
-                    val face = FaceController.createOrUpdate(faceExt, fileExt)
-
-                    if (faceExt.personRecognizedName != "") {
-                        val person =
-                            Main.personRepo.findByProjectIdAndNameInRecognizer(fileExt.projectExt.project.id, faceExt.personRecognizedName).firstOrNull()
-                                ?:
-                                PersonController.create(fileExt.projectExt.project,"",
-                                    faceExt.personRecognizedName,
-                                    fileExt.file.id, face.frameNumber, face.faceNumberInFrame)
-                        face.personRecognizedId = person.id
-                        FaceController.save(face)
-                        faceExt.personRecognizedId = person.id
-                    }
+                    FaceController.createOrUpdate(faceExtJson, fileExt)
 
                 }
             }

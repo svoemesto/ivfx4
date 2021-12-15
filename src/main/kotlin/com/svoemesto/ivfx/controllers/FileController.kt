@@ -37,6 +37,7 @@ class FileController() {
             return fld
         }
 
+
         fun getFolderLossless(fileExt: FileExt): String{
             val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.LOSSLESS.propertyCdfKey)
             return if (value == "") fileExt.projectExt.folderLossless + IOFile.separator + fileExt.file.shortName else value
@@ -153,6 +154,18 @@ class FileController() {
             return FaceController.getListFaces(file).isNotEmpty()
         }
 
+        fun hasCreatedFacesPreview(fileExt: FileExt): Boolean {
+            if (fileExt.folderFramesFull != "") {
+                val fld = fileExt.folderFramesFull + ".faces.preview"
+                if (IOFile(fld).exists()) {
+                    val fileNameRegexp = fileExt.file.shortName.replace(".", "\\.").replace("-", "\\-")
+                    val faceFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}_face_\\d{2}\\.jpg\$")
+                    return (IOFile(fld).listFiles { _, name -> name.contains(faceFilenameRegex) }?.size ?: 0) > 0
+                }
+            }
+            return false
+        }
+
         fun getListFilesExt(project: Project): List<FileExt> {
             val list = getListFiles(project)
             val resultedList: MutableList<FileExt> = mutableListOf()
@@ -227,7 +240,7 @@ class FileController() {
             entity.cdfs.add(cdf)
 
             FileCdfController.save(entity.cdfs.first())
-            Folders.values().forEach {
+            Folders.values().filter{ it.forFile }.forEach {
                 PropertyCdfController.editOrCreate(entity::class.java.simpleName, entity.id, it.propertyCdfKey)
             }
             TrackController.createTracksFromMediaInfo(entity)
