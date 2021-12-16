@@ -43,16 +43,15 @@ data_of_images = json.loads(open(file_json_images, "rb").read())
 
 for face_data in data_of_images:
 
-    person_id = face_data['personId']
+    person_type = face_data['personType']
 
     # если лицо "не обучено"
-    if person_id == 0:
+    if person_type == 'UNDEFINDED':
         print(face_data['pathToFaceFile'])
 
         vec_flat = np.array(face_data['vector'])
         vec = vec_flat.reshape(-1, 128)
         vec_flat2 = vec.flatten()
-
 
         # perform classification to recognize the face
         preds = recognizer.predict_proba(vec)[0]
@@ -60,6 +59,7 @@ for face_data in data_of_images:
         proba = preds[j]
         name = le.classes_[j]
 
+        face_data['personId'] = 0
         face_data['personRecognizedName'] = name
         face_data['recognizeProbability'] = proba
 

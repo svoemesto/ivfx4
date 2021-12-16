@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1000.0" prefWidth="210.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.PersonSelectFXController">
+   <children>
+      <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+         <children>
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+               <children>
+                  <TableView fx:id="tblPersons" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="10000.0" prefWidth="150.0">
+                    <columns>
+                      <TableColumn fx:id="colPersonName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="PERSON" />
+                    </columns>
+                     <HBox.margin>
+                        <Insets right="5.0" />
+                     </HBox.margin>
+                  </TableView>
+                  <VBox alignment="CENTER" minWidth="46.0">
+                     <children>
+                        <Button fx:id="btnPersonAdd" mnemonicParsing="false" onAction="#doPersonAdd" prefHeight="46.0" prefWidth="46.0" text="➕">
+                           <font>
+                              <Font name="Arial" size="18.0" />
+                           </font>
+                           <tooltip>
+                              <Tooltip text="Добавить файл" />
+                           </tooltip>
+                        </Button>
+                        <Button fx:id="btnPersonDelete" mnemonicParsing="false" onAction="#doPersonDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
+                           <font>
+                              <Font name="Arial" size="18.0" />
+                           </font>
+                           <tooltip>
+                              <Tooltip text="Удалить файл из проекта" />
+                           </tooltip>
+                        </Button>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            <Button fx:id="btnOk" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doOk" text="OK">
+               <VBox.margin>
+                  <Insets top="5.0" />
+               </VBox.margin>
+            </Button>
+            <Button fx:id="btnCancel" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doCancel" text="Отмена">
+               <VBox.margin>
+                  <Insets top="5.0" />
+               </VBox.margin>
+            </Button>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

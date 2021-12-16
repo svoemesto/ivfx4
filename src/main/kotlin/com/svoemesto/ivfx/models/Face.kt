@@ -30,20 +30,18 @@ class Face {
     @JoinColumn(name = "file_id")
     lateinit var file: File
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "person_id")
+    lateinit var person: Person
+
     @Column(name = "face_number_in_frame", nullable = false, columnDefinition = "int default 0")
     var faceNumberInFrame: Int = 0
 
     @Column(name = "frame_number", nullable = false, columnDefinition = "int default 0")
     var frameNumber: Int = 0
 
-    @Column(name = "person_id", nullable = false, columnDefinition = "int default 0")
-    var personId: Long = 0
-
     @Column(name = "person_recognized_name", nullable = false, columnDefinition = "varchar(255) default ''")
     var personRecognizedName: String = ""
-
-    @Column(name = "person_recognized_id", nullable = false, columnDefinition = "int default 0")
-    var personRecognizedId: Long = 0
 
     @Column(name = "recognize_probability")
     var recognizeProbability: Double = 0.0

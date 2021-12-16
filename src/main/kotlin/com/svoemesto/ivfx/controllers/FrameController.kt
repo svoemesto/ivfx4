@@ -132,6 +132,11 @@ class FrameController() {
             return FrameExt(frame, fileExt)
         }
 
+        fun getFrameExt(fileExt: FileExt, frameNumber: Int): FrameExt {
+            val frame = getOrCreate(fileExt.file, frameNumber)
+            return FrameExt(frame, fileExt)
+        }
+
     }
 
 

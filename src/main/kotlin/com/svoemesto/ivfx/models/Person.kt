@@ -1,9 +1,12 @@
 package com.svoemesto.ivfx.models
 
 import com.svoemesto.ivfx.enums.PersonType
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import javax.persistence.CascadeType
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -12,6 +15,7 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import javax.persistence.OneToMany
 import javax.persistence.Table
 import javax.validation.constraints.NotNull
 
@@ -34,6 +38,10 @@ class Person: Comparable<Person> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     lateinit var project: Project
+
+    @OneToMany(mappedBy = "person", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SUBSELECT)
+    var faces: MutableList<Face> = mutableListOf()
 
     @Column(name = "person_type", nullable = false, columnDefinition = "int default 0")
     var personType: PersonType = PersonType.PERSON

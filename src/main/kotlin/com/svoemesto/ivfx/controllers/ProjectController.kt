@@ -45,6 +45,7 @@ class ProjectController() {
                 project.cdfs = mutableListOf()
                 project.cdfs.add(ProjectCdfController.getProjectCdf(project))
                 project.files = FileController.getListFiles(project)
+                project.persons = PersonController.getListPersons(project)
             }
             return result
         }
@@ -191,6 +192,7 @@ class ProjectController() {
             project.cdfs = mutableListOf()
             project.cdfs.add(ProjectCdfController.getProjectCdf(project))
             project.files = FileController.getListFiles(project)
+            project.persons = PersonController.getListPersons(project)
             return project
         }
 

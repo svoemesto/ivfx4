@@ -1,8 +1,12 @@
 package com.svoemesto.ivfx.fxcontrollers
 
-import com.svoemesto.ivfx.controllers.FileController
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
+import com.svoemesto.ivfx.controllers.FaceController
+import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.modelsext.FileExt
+import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.threads.RunListThreads
 import com.svoemesto.ivfx.threads.projectactions.AnalyzeFrames
 import com.svoemesto.ivfx.threads.projectactions.CreateFaces
@@ -15,6 +19,7 @@ import com.svoemesto.ivfx.threads.projectactions.CreatePreview
 import com.svoemesto.ivfx.threads.projectactions.CreateShots
 import com.svoemesto.ivfx.threads.projectactions.DetectFaces
 import com.svoemesto.ivfx.threads.projectactions.RecognizeFaces
+import com.svoemesto.ivfx.utils.FaceDetection
 import javafx.application.HostServices
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -33,8 +38,9 @@ import javafx.scene.control.TableView
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.stage.Modality
 import javafx.stage.Stage
+import java.io.FileWriter
 import java.io.IOException
-
+import java.io.File as IOFile
 
 class ProjectActionsFXController {
     @FXML
@@ -118,6 +124,9 @@ class ProjectActionsFXController {
 
     @FXML
     private var checkRecognizeFaces: CheckBox? = null
+
+    @FXML
+    private var btnTrainFaceModel: Button? = null
 
     @FXML
     private var pb1: ProgressBar? = null
@@ -326,5 +335,53 @@ class ProjectActionsFXController {
 
     }
 
+    class Embeddings(
+        @SerializedName("embeddings") var vectors: Array<DoubleArray?>,
+        @SerializedName("names") var tags: Array<String?>
+    )
+
+    @FXML
+    fun doTrainFaceModel(event: ActionEvent?) {
+
+        val listFacesToTrain = FaceController.getListFacesToTrain(currentProject)
+        val embeddings = Embeddings( arrayOfNulls(listFacesToTrain.size), arrayOfNulls(listFacesToTrain.size))
+        for ((i, face) in listFacesToTrain.withIndex()) {
+            embeddings.vectors[i] = face.vector
+            embeddings.tags[i] = face.personRecognizedName
+        }
+
+        val builder = GsonBuilder()
+        var gson = builder.create()
+        val pathToFileJSON: String = currentProject.folder + IOFile.separator + "embeddings.json"
+
+        try {
+            FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(embeddings, fileWriter) }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        val faceDetectorPath = FaceDetection.FACE_DETECTOR_PATH
+
+        val param: MutableList<String> = mutableListOf()
+
+        param.add("${faceDetectorPath.first()}:\n")
+        param.add("cd \"${faceDetectorPath}\"\n")
+        param.add("py")
+        param.add("\"${faceDetectorPath}/train_model_json.py\"")
+        param.add("-e")
+        param.add("\"${pathToFileJSON}\"")
+        param.add("-r")
+        param.add("\"${currentProject.folder}${IOFile.separator}recognizer.pickle\"")
+        param.add("-l")
+        param.add("\"${currentProject.folder}${IOFile.separator}le.pickle\"")
+
+        val cmdText = param.joinToString(separator=" ").replace("/","\\")
+
+        println(cmdText)
+
+        val runCmd = RunCmd(cmdText)
+        runCmd.run()
+
+    }
 
 }

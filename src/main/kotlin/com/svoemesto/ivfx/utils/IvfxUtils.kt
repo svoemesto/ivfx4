@@ -4,6 +4,9 @@ import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
 import java.io.InputStreamReader
 
+
+
+
 //@Throws(IOException::class, InterruptedException::class)
 fun executeExe(exePath: String, parameters: List<String>): String {
 

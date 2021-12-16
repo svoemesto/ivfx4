@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.modelsext
 
+import com.google.gson.annotations.SerializedName
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.controllers.FrameController
@@ -13,23 +14,70 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import java.io.File as IOFile
 
-class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt) {
+class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Transient var personExt: PersonExt) {
 
-    val fileId: Long get() = face.file.id
+    @SerializedName("projectId")
+    var projectId: Long  = fileExt.projectExt.project.id
+
+    @SerializedName("faceId")
+    var faceId: Long = face.id
+
+    @SerializedName("fileId")
+    var fileId: Long = fileExt.file.id
+
+    @SerializedName("personId")
+    var personId: Long = personExt.person.id
+
+    @SerializedName("personType")
+    var personType: String = personExt.person.personType.name
+
     val frameNumber: Int get() = face.frameNumber
+    @SerializedName("frameNumber")
+    var toSerializeFrameNumber = frameNumber
+
     val faceNumberInFrame: Int get() = face.faceNumberInFrame
+    @SerializedName("faceNumberInFrame")
+    var toSerializeFaceNumberInFrame = faceNumberInFrame
+
     val pathToFrameFile: String get() = "${fileExt.folderFramesFull}${IOFile.separator}${face.file.shortName}_frame_${String.format("%06d", face.frameNumber)}.jpg"
+    @SerializedName("pathToFrameFile")
+    var toSerializePathToFrameFile = pathToFrameFile
+
     val pathToFaceFile: String get() = "${fileExt.folderFramesFull}.faces${IOFile.separator}${face.file.shortName}_frame_${String.format("%06d", face.frameNumber)}_face_${String.format("%02d", face.faceNumberInFrame)}.jpg"
+    @SerializedName("pathToFaceFile")
+    var toSerializePathToFaceFile = pathToFaceFile
+
     val pathToPreviewFile: String get() = "${fileExt.folderFramesFull}.faces.preview${IOFile.separator}${face.file.shortName}_frame_${String.format("%06d", face.frameNumber)}_face_${String.format("%02d", face.faceNumberInFrame)}.jpg"
-    val personId: Long get() = face.personId
-    val personRecognizedName: String get() = face.personRecognizedName
-    val personRecognizedId: Long get() = face.personRecognizedId
+    @SerializedName("pathToPreviewFile")
+    var toSerializePathToPreviewFile = pathToPreviewFile
+
+    @SerializedName("personRecognizedName")
+    var personRecognizedName: String = face.personRecognizedName
+
     val recognizeProbability: Double get() = face.recognizeProbability
+    @SerializedName("recognizeProbability")
+    var toSerializeRecognizeProbability = recognizeProbability
+
     val startX: Int get() = face.startX
+    @SerializedName("startX")
+    var toSerializeStartX = startX
+
     val startY: Int get() = face.startY
+    @SerializedName("startY")
+    var toSerializeStartY = startY
+
     val endX: Int get() = face.endX
+    @SerializedName("endX")
+    var toSerializeEndX = endX
+
     val endY: Int get() = face.endY
+    @SerializedName("endY")
+    var toSerializeEndY = endY
+
     val isConfirmed: Boolean get() = face.isConfirmed
+    @SerializedName("isConfirmed")
+    var toSerializeIsConfirmed = isConfirmed
+
     var vector: DoubleArray
         get() {
             val textVector: Array<String> = face.vectorText.split("\\|".toRegex()).toTypedArray()
@@ -43,6 +91,8 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt) {
             face.vectorText = value.joinToString(separator = "|", prefix = "", postfix = "")
             FaceController.save(face)
         }
+    @SerializedName("vector")
+    var toSerializeVector = vector
 
     @Transient
     var previewSmall: ImageView? = null
@@ -53,11 +103,21 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt) {
                     bi = ImageIO.read(IOFile(pathToPreviewFile))
                 } else {
                     if (!IOFile(pathToPreviewFile).parentFile.exists()) IOFile(pathToPreviewFile).parentFile.mkdir()
-                    val biSource = ImageIO.read(IOFile(FrameController.getFrameExt(fileId, frameNumber, fileExt!!.projectExt.project).pathToFull))
+                    val biSource = ImageIO.read(IOFile(FrameController.getFrameExt(fileId, frameNumber, fileExt.projectExt.project).pathToFull))
                     bi = OverlayImage.extractRegion(biSource, startX, startY, endX, endY, Main.PREVIEW_FACE_W.toInt(), Main.PREVIEW_FACE_H.toInt(), Main.PREVIEW_FACE_EXPAND_FACTOR, Main.PREVIEW_FACE_CROPPING)
                     val outputfile = IOFile(pathToPreviewFile)
                     ImageIO.write(bi, "jpg", outputfile)
                 }
+                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
+            }
+            return field
+        }
+
+    @Transient
+    var previewMediumMarked: ImageView? = null
+        get() {
+            if (field == null) {
+                var bi: BufferedImage? = FaceController.getOverlayedFrame(this)
                 field = ImageView(ConvertToFxImage.convertToFxImage(bi))
             }
             return field
@@ -70,6 +130,18 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt) {
                 field = Label()
                 field!!.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
                 field!!.graphic = previewSmall
+                field!!.alignment = Pos.CENTER
+            }
+            return field
+        }
+
+    @Transient
+    var labelMediumMarked: Label? = null
+        get() {
+            if (field == null) {
+                field = Label()
+                field!!.setPrefSize(Main.MEDIUM_FRAME_W, Main.MEDIUM_FRAME_H)
+                field!!.graphic = previewMediumMarked
                 field!!.alignment = Pos.CENTER
             }
             return field

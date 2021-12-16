@@ -3,8 +3,11 @@ package com.svoemesto.ivfx.fxcontrollers
 import com.sun.javafx.scene.control.skin.TableViewSkin
 import com.sun.javafx.scene.control.skin.VirtualFlow
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.controllers.FrameController
+import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.controllers.ShotController
+import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.enums.ShotTypePerson
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -18,7 +21,7 @@ import com.svoemesto.ivfx.modelsext.ShotExt
 import com.svoemesto.ivfx.threads.RunListThreads
 import com.svoemesto.ivfx.threads.loadlists.LoadListFramesExt
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonFacesExt
-import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExt
+import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForFile
 import com.svoemesto.ivfx.threads.loadlists.LoadListShotsExt
 import com.svoemesto.ivfx.threads.updatelists.UpdateListFramesExt
 import com.svoemesto.ivfx.utils.ConvertToFxImage
@@ -46,20 +49,27 @@ import javafx.scene.control.ProgressBar
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Skin
 import javafx.scene.control.TableColumn
+import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
+import javafx.scene.control.TextInputDialog
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.image.ImageView
+import javafx.scene.input.ClipboardContent
+import javafx.scene.input.Dragboard
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import javafx.scene.input.ScrollEvent
+import javafx.scene.input.TransferMode
 import javafx.scene.layout.Pane
 import javafx.stage.Modality
 import javafx.stage.Stage
 import org.springframework.transaction.annotation.Transactional
 import java.awt.image.BufferedImage
 import java.io.IOException
+import java.util.*
 import javax.imageio.ImageIO
 import java.io.File as IOFile
+
 
 @Transactional
 class ShotsEditFXController {
@@ -130,6 +140,7 @@ class ShotsEditFXController {
         private const val fxBorderDefault = "-fx-border-color:#0f0f0f;-fx-border-width:1" // стиль бордюра лейбла по-умолчанию
         private const val fxBorderFocused = "-fx-border-color:YELLOW;-fx-border-width:1" // стиль бордюра лейбла в фокусе
         private const val fxBorderSelected = "-fx-border-color:RED;-fx-border-width:1" // стиль бордюра лейбла выбранного
+        private const val fxBorderSelectedFocused = "-fx-border-color:ORANGE;-fx-border-width:1" // стиль бордюра лейбла выбранного
 
         private val runListThreadsFramesFlagIsDone = SimpleBooleanProperty(false)
         private val runListThreadsFacesFlagIsDone = SimpleBooleanProperty(false)
@@ -146,13 +157,14 @@ class ShotsEditFXController {
 
         private var listMatrixPageFrames: ObservableList<MatrixPageFrames> = FXCollections.observableArrayList()
         private var listMatrixPageFaces: ObservableList<MatrixPageFaces> = FXCollections.observableArrayList()
-        private var listPersonsExtAll: ObservableList<PersonExt> = FXCollections.observableArrayList()
+        private var listPersonsExtForFile: ObservableList<PersonExt> = FXCollections.observableArrayList()
         private var listFacesExt: ObservableList<FaceExt> = FXCollections.observableArrayList()
         private var countColumnsInPage = 0
         private var countRowsInPage = 0
 
         private var isWorking = false
         private var isPressedControl = false
+        private var isPressedShift = false
         private var isPlayingForward = false
 
         private var currentMatrixPageFrames: MatrixPageFrames? = null
@@ -173,6 +185,10 @@ class ShotsEditFXController {
         private var wasClickTablePersonsAll = false
         private var wasClickFrameLabel = false
 
+        private var selectedMatrixFaces: MutableSet<MatrixFace> = mutableSetOf()
+        private var lastClickedMatrixFace: MatrixFace? = null
+        private var currentPersonExtHovered: PersonExt? = null
+        private var isNeedToAddDraggedFacesToPerson: Boolean = false
 
         fun editShots(fileExt: FileExt, hostServices: HostServices? = null) {
             currentFileExt = fileExt
@@ -197,12 +213,14 @@ class ShotsEditFXController {
 
             mainStage?.scene!!.onKeyPressed = EventHandler { event ->
                 if (event.code == KeyCode.CONTROL) isPressedControl = true
+                if (event.code == KeyCode.SHIFT) isPressedShift = true
                 if (event.code == KeyCode.Z) isPressedPlayBackward.set(true)
                 if (event.code == KeyCode.X) isPressedPlayForward.set(true)
             }
 
             mainStage?.scene!!.onKeyReleased = EventHandler { event ->
                 if (event.code == KeyCode.CONTROL) isPressedControl = false
+                if (event.code == KeyCode.SHIFT) isPressedShift = false
                 if (event.code == KeyCode.Z) isPressedPlayBackward.set(false)
                 if (event.code == KeyCode.X) isPressedPlayForward.set(false)
             }
@@ -223,7 +241,7 @@ class ShotsEditFXController {
          * Первичная инициализация переменных. Нужна для правильно работы при повторном открытии формы
          */
         listMatrixPageFrames = FXCollections.observableArrayList()
-        listPersonsExtAll = FXCollections.observableArrayList()
+        listPersonsExtForFile = FXCollections.observableArrayList()
         listFacesExt = FXCollections.observableArrayList()
         countColumnsInPage = 0
         countRowsInPage = 0
@@ -246,6 +264,7 @@ class ShotsEditFXController {
         sbpCurrentMatrixFrameWasChanged.value = false
         sbpCurrentShotExtWasChanged.value = false
         sbpNeedCreatePagesWasChanged.value = false
+        lastClickedMatrixFace = null
 
         tblPagesFrames?.placeholder = ProgressIndicator(-1.0)
         tblShots?.placeholder = ProgressIndicator(-1.0)
@@ -253,7 +272,7 @@ class ShotsEditFXController {
         mainStage?.title = "Редактор планов. Файл: ${currentFileExt!!.file.name}"
 
         var listThreads: MutableList<Thread> = mutableListOf()
-        listThreads.add(LoadListPersonsExt(listPersonsExtAll, currentFileExt!!.projectExt, pb, lblPb))
+        listThreads.add(LoadListPersonsExtForFile(listPersonsExtForFile, currentFileExt!!, pb, lblPb))
         listThreads.add(LoadListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb))
         listThreads.add(LoadListShotsExt(currentFileExt!!.shotsExt, currentFileExt!!, pb, lblPb))
         var runListThreadsFrames = RunListThreads(listThreads, runListThreadsFramesFlagIsDone)
@@ -265,7 +284,7 @@ class ShotsEditFXController {
                 currentFileExt!!.shotsExt.forEach { shotExt ->
                     shotExt.buttonGetType.setOnAction { onActionButtonGetShotType(shotExt) }
                 }
-                tblPersonsAll!!.items = listPersonsExtAll
+                tblPersonsAll!!.items = listPersonsExtForFile
 
                 listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                 tblPagesFaces!!.items = listMatrixPageFaces
@@ -315,7 +334,7 @@ class ShotsEditFXController {
         tblShots!!.items = currentFileExt!!.shotsExt
 
         colTblPersonsAllName?.cellValueFactory = PropertyValueFactory("labelSmall")
-        tblPersonsAll!!.items = listPersonsExtAll
+        tblPersonsAll!!.items = listPersonsExtForFile
 
         colTblPagesFacesNumber?.cellValueFactory = PropertyValueFactory("pageNumber")
         tblPagesFaces!!.items = listMatrixPageFaces
@@ -502,8 +521,22 @@ class ShotsEditFXController {
             if (currentMatrixPageFaces == null) {
                 goToFace(listMatrixPageFaces.first().matrixFaces.first())
             } else {
-                val faceToGo = if (delta < 0) getPrevMatrixFace(currentMatrixPageFaces!!.matrixFaces.first()) else getNextMatrixFace(
-                    currentMatrixPageFaces!!.matrixFaces.last())
+                if (currentMatrixPageFaces!!.matrixFaces.isNotEmpty()) {
+
+                }
+                val faceToGo = if (delta < 0)
+                    if (currentMatrixPageFaces!!.matrixFaces.isNotEmpty()) {
+                        getPrevMatrixFace(currentMatrixPageFaces!!.matrixFaces.first())
+                    } else {
+                        null
+                    }
+                else
+                    if (currentMatrixPageFaces!!.matrixFaces.isNotEmpty()) {
+                        getNextMatrixFace(currentMatrixPageFaces!!.matrixFaces.last())
+                    } else {
+                        null
+                    }
+
                 goToFace(faceToGo)
             }
         }
@@ -570,6 +603,69 @@ class ShotsEditFXController {
             }
         }
 
+        tblPersonsAll!!.onDragOver = EventHandler { mouseEvent ->
+            if (mouseEvent.dragboard.string == "labelFace") {
+                mouseEvent.acceptTransferModes(*TransferMode.COPY_OR_MOVE)
+            }
+            mouseEvent.consume()
+        }
+
+        tblPersonsAll!!.onDragDropped = EventHandler { mouseEvent ->
+            var success = false
+            if (mouseEvent.dragboard.string == "labelFace") {
+                isNeedToAddDraggedFacesToPerson = true;
+                success = true
+            }
+            mouseEvent.isDropCompleted = success
+            mouseEvent.consume()
+        }
+
+        tblPersonsAll!!.setRowFactory {
+            val row: TableRow<PersonExt> = TableRow()
+            row.hoverProperty().addListener { observable ->
+                val personExt = row.item
+                if (row.isHover && personExt != null) {
+                    currentPersonExtHovered = personExt
+                } else {
+                    currentPersonExtHovered = null
+                }
+
+                if (isNeedToAddDraggedFacesToPerson && currentPersonExtHovered != null) {
+                    isNeedToAddDraggedFacesToPerson = false
+                    if (!(listPersonsExtForFile.any { it.person == currentPersonExtHovered!!.person })) {
+                        listPersonsExtForFile.add(currentPersonExtHovered)
+                        listPersonsExtForFile.sort()
+                    }
+                    selectedMatrixFaces.forEach { mf->
+
+                        if (mf.faceExt!!.personExt.person.personType != PersonType.EXTRAS) {
+                            mf.faceExt!!.personExt = currentPersonExtHovered as PersonExt
+                            mf.faceExt!!.face.person = currentPersonExtHovered!!.person
+                            if (currentPersonExtHovered!!.person.personType == PersonType.UNDEFINDED) {
+                                mf.faceExt!!.face.personRecognizedName = ""
+                                mf.faceExt!!.face.isConfirmed = false
+                            } else {
+                                mf.faceExt!!.face.personRecognizedName = currentPersonExtHovered!!.person.nameInRecognizer
+                                mf.faceExt!!.face.isConfirmed = true
+                            }
+                            FaceController.save(mf.faceExt!!.face)
+                            listFacesExt.remove(mf.faceExt!!)
+                            mf.faceExt!!.labelSmall?.graphic = null
+                            mf.faceExt!!.labelSmall?.style = fxBorderDefault
+                            currentMatrixPageFaces?.matrixFaces?.remove(mf)
+                        }
+                    }
+                    selectedMatrixFaces.clear()
+                }
+                println("currentPersonExtHovered = $currentPersonExtHovered")
+            }
+            return@setRowFactory row
+        }
+
+
+
+
+
     }
 
 
@@ -607,7 +703,8 @@ class ShotsEditFXController {
         }
         return listMatrixPageFaces[listMatrixPageFaces.indexOf(matrixFace.matrixPageFaces)-1].matrixFaces.last()
     }
-    
+
+
     fun loadPictureToFullFrameLabel(matrixFrame: MatrixFrame?) {
 
         if (matrixFrame != null) {
@@ -866,6 +963,7 @@ class ShotsEditFXController {
                 //событие двойного клика
                 if (mouseEvent.button == MouseButton.PRIMARY) {
                     if (mouseEvent.clickCount == 1) {
+
                         wasClickTablePagesFrames = false
                         wasClickTableShots = false
                         wasClickFrameLabel = true
@@ -909,6 +1007,21 @@ class ShotsEditFXController {
         }
     }
 
+//    fun changePersonForFace() {
+//        matrixFace.faceExt!!.personExt = personExtNonperson
+//        matrixFace.faceExt!!.face.person = personExtNonperson.person
+//        FaceController.save(matrixFace.faceExt!!.face)
+//        var indexPreviousFaceExt = matrixPageFaces.matrixFaces.indexOf(matrixFace)-1
+//        if (indexPreviousFaceExt < 0 ) indexPreviousFaceExt = 0
+//        listFacesExt.remove(matrixFace.faceExt!!)
+//        if (matrixPageFaces.matrixFaces.size > 0) {
+//            matrixPageFaces.matrixFaces.remove(matrixFace)
+//            lbl.graphic = null
+//            val matrixFaceToGo = matrixPageFaces.matrixFaces[indexPreviousFaceExt]
+//            goToFace(matrixFaceToGo)
+//        }
+//    }
+
     fun showMatrixPageFaces(matrixPageFaces: MatrixPageFaces) {
         val heightPadding = 10 // по высоте двойной отступ
         val widthPadding = 10 // по ширине двойной отступ
@@ -932,31 +1045,279 @@ class ShotsEditFXController {
             lbl.graphic = null //сбрасываем графику лейбла
             lbl.graphic = screenImageView // устанавливаем вьювер источником графики для лейбла
 
+            val contextMenu = ContextMenu()
+
+            var menuItem = MenuItem("UNDEFINDED")
+            menuItem.setOnAction {
+                selectedMatrixFaces.add(matrixFace)
+                selectedMatrixFaces.forEach { mf->
+
+                    var personExtUndefinded = listPersonsExtForFile.firstOrNull{it.person.personType == PersonType.UNDEFINDED}
+                    if (personExtUndefinded == null) {
+                        personExtUndefinded = PersonController.getNonpersonExt(currentFileExt!!.projectExt)
+                        listPersonsExtForFile.add(personExtUndefinded)
+                        listPersonsExtForFile.sort()
+                    }
+
+                    if (mf.faceExt!!.personExt.person.personType != PersonType.UNDEFINDED) {
+                        mf.faceExt!!.personExt = personExtUndefinded
+                        mf.faceExt!!.face.person = personExtUndefinded.person
+                        if (personExtUndefinded.person.personType == PersonType.UNDEFINDED) {
+                            mf.faceExt!!.face.personRecognizedName = ""
+                            mf.faceExt!!.face.isConfirmed = false
+                        } else {
+                            mf.faceExt!!.face.personRecognizedName = personExtUndefinded.person.nameInRecognizer
+                            mf.faceExt!!.face.isConfirmed = true
+                        }
+                        FaceController.save(mf.faceExt!!.face)
+                        var indexPreviousFaceExt = matrixPageFaces.matrixFaces.indexOf(mf)-1
+                        if (indexPreviousFaceExt < 0 ) indexPreviousFaceExt = 0
+                        listFacesExt.remove(mf.faceExt!!)
+                        if (matrixPageFaces.matrixFaces.size > 0) {
+                            matrixPageFaces.matrixFaces.remove(mf)
+                            mf.faceExt!!.labelSmall?.graphic = null
+                            mf.faceExt!!.labelSmall?.style = fxBorderDefault
+                        }
+                    }
+
+                }
+                selectedMatrixFaces.clear()
+
+            }
+            contextMenu.items.add(menuItem)
+
+            menuItem = MenuItem("NONPERSON")
+            menuItem.setOnAction {
+                selectedMatrixFaces.add(matrixFace)
+                selectedMatrixFaces.forEach { mf->
+
+                    var personExtNonperson = listPersonsExtForFile.firstOrNull{it.person.personType == PersonType.NONPERSON}
+                    if (personExtNonperson == null) {
+                        personExtNonperson = PersonController.getNonpersonExt(currentFileExt!!.projectExt)
+                        listPersonsExtForFile.add(personExtNonperson)
+                        listPersonsExtForFile.sort()
+                    }
+
+                    if (mf.faceExt!!.personExt.person.personType != PersonType.NONPERSON) {
+                        mf.faceExt!!.personExt = personExtNonperson
+                        mf.faceExt!!.face.person = personExtNonperson.person
+                        if (personExtNonperson.person.personType == PersonType.UNDEFINDED) {
+                            mf.faceExt!!.face.personRecognizedName = ""
+                            mf.faceExt!!.face.isConfirmed = false
+                        } else {
+                            mf.faceExt!!.face.personRecognizedName = personExtNonperson.person.nameInRecognizer
+                            mf.faceExt!!.face.isConfirmed = true
+                        }
+                        FaceController.save(mf.faceExt!!.face)
+                        var indexPreviousFaceExt = matrixPageFaces.matrixFaces.indexOf(mf)-1
+                        if (indexPreviousFaceExt < 0 ) indexPreviousFaceExt = 0
+                        listFacesExt.remove(mf.faceExt!!)
+                        if (matrixPageFaces.matrixFaces.size > 0) {
+                            matrixPageFaces.matrixFaces.remove(mf)
+                            mf.faceExt!!.labelSmall?.graphic = null
+                            mf.faceExt!!.labelSmall?.style = fxBorderDefault
+                        }
+                    }
+
+                }
+                selectedMatrixFaces.clear()
+
+            }
+            contextMenu.items.add(menuItem)
+
+            menuItem = MenuItem("EXTRAS")
+            menuItem.setOnAction {
+
+                selectedMatrixFaces.add(matrixFace)
+                selectedMatrixFaces.forEach { mf->
+
+                    var personExtExtras = listPersonsExtForFile.firstOrNull{it.person.personType == PersonType.EXTRAS}
+                    if (personExtExtras == null) {
+                        personExtExtras = PersonController.getExtrasExt(currentFileExt!!.projectExt)
+                        listPersonsExtForFile.add(personExtExtras)
+                        listPersonsExtForFile.sort()
+                    }
+
+                    if (mf.faceExt!!.personExt.person.personType != PersonType.EXTRAS) {
+                        mf.faceExt!!.personExt = personExtExtras
+                        mf.faceExt!!.face.person = personExtExtras.person
+                        if (personExtExtras.person.personType == PersonType.UNDEFINDED) {
+                            mf.faceExt!!.face.personRecognizedName = ""
+                            mf.faceExt!!.face.isConfirmed = false
+                        } else {
+                            mf.faceExt!!.face.personRecognizedName = personExtExtras.person.nameInRecognizer
+                            mf.faceExt!!.face.isConfirmed = true
+                        }
+                        FaceController.save(mf.faceExt!!.face)
+                        var indexPreviousFaceExt = matrixPageFaces.matrixFaces.indexOf(mf)-1
+                        if (indexPreviousFaceExt < 0 ) indexPreviousFaceExt = 0
+                        listFacesExt.remove(mf.faceExt!!)
+                        if (matrixPageFaces.matrixFaces.size > 0) {
+                            matrixPageFaces.matrixFaces.remove(mf)
+                            mf.faceExt!!.labelSmall?.graphic = null
+                            mf.faceExt!!.labelSmall?.style = fxBorderDefault
+                        }
+                    }
+
+                }
+                selectedMatrixFaces.clear()
+
+            }
+
+            contextMenu.items.add(menuItem)
+
+            menuItem = MenuItem("SELECT PERSON")
+            menuItem.setOnAction {
+
+                selectedMatrixFaces.add(matrixFace)
+                var selectedPerson = PersonSelectFXController.getPersonExt(currentFileExt!!.projectExt)
+
+                if (selectedPerson != null) {
+                    if (!(listPersonsExtForFile.any { it.person == selectedPerson.person })) {
+                        listPersonsExtForFile.add(selectedPerson)
+                        listPersonsExtForFile.sort()
+                    }
+                    selectedMatrixFaces.forEach { mf->
+
+                        mf.faceExt!!.personExt = selectedPerson
+                        mf.faceExt!!.face.person = selectedPerson.person
+                        if (selectedPerson.person.personType == PersonType.UNDEFINDED) {
+                            mf.faceExt!!.face.personRecognizedName = ""
+                            mf.faceExt!!.face.isConfirmed = false
+                        } else {
+                            mf.faceExt!!.face.personRecognizedName = selectedPerson.person.nameInRecognizer
+                            mf.faceExt!!.face.isConfirmed = true
+                        }
+                        FaceController.save(mf.faceExt!!.face)
+                        var indexPreviousFaceExt = matrixPageFaces.matrixFaces.indexOf(mf)-1
+                        if (indexPreviousFaceExt < 0 ) indexPreviousFaceExt = 0
+                        listFacesExt.remove(mf.faceExt!!)
+                        if (matrixPageFaces.matrixFaces.size > 0) {
+                            matrixPageFaces.matrixFaces.remove(mf)
+                            mf.faceExt!!.labelSmall?.graphic = null
+                            mf.faceExt!!.labelSmall?.style = fxBorderDefault
+                        }
+
+                    }
+                }
+
+                selectedMatrixFaces.clear()
+
+            }
+
+            contextMenu.items.add(menuItem)
+
+            menuItem = MenuItem("CREATE NEW PERSON")
+            menuItem.setOnAction {
+
+                selectedMatrixFaces.add(matrixFace)
+
+                val dialog = TextInputDialog("New person")
+
+                dialog.title = "Create new person"
+                dialog.headerText = "Enter person name:"
+                dialog.contentText = "Name:"
+
+                val result: Optional<String> = dialog.showAndWait()
+                var personName: String? = null
+                result.ifPresent { name -> personName = name }
+
+                if (personName != null) {
+                    var newPerson = PersonController.create(currentFileExt!!.projectExt.project, personName!!,
+                        PersonType.PERSON,"", currentFileExt!!.file.id, matrixFace.faceExt!!.frameNumber,
+                        matrixFace.faceExt!!.faceNumberInFrame)
+                    var selectedPerson = PersonExt(newPerson, currentFileExt!!.projectExt)
+                    if (!listPersonsExtForFile.contains(selectedPerson)) {
+                        listPersonsExtForFile.add(selectedPerson)
+                        listPersonsExtForFile.sort()
+                    }
+
+                    selectedMatrixFaces.forEach { mf ->
+                        mf.faceExt!!.personExt = selectedPerson
+                        mf.faceExt!!.face.person = selectedPerson.person
+                        if (selectedPerson.person.personType == PersonType.UNDEFINDED) {
+                            mf.faceExt!!.face.personRecognizedName = ""
+                            mf.faceExt!!.face.isConfirmed = false
+                        } else {
+                            mf.faceExt!!.face.personRecognizedName = selectedPerson.person.nameInRecognizer
+                            mf.faceExt!!.face.isConfirmed = true
+                        }
+
+                        FaceController.save(mf.faceExt!!.face)
+                        var indexPreviousFaceExt = matrixPageFaces.matrixFaces.indexOf(mf)-1
+                        if (indexPreviousFaceExt < 0 ) indexPreviousFaceExt = 0
+                        listFacesExt.remove(mf.faceExt!!)
+                        if (matrixPageFaces.matrixFaces.size > 0) {
+                            matrixPageFaces.matrixFaces.remove(mf)
+                            mf.faceExt!!.labelSmall?.graphic = null
+                            mf.faceExt!!.labelSmall?.style = fxBorderDefault
+                        }
+                    }
+                }
+
+                selectedMatrixFaces.clear()
+
+            }
+
+            contextMenu.items.add(menuItem)
+
+
+            lbl.contextMenu = contextMenu
+
             pane.children.add(lbl)
 
             //событие "наведение мыши"
             lbl.onMouseEntered = EventHandler {
-                lbl.style = fxBorderFocused
+                lbl.style = if (selectedMatrixFaces.contains(matrixFace)) fxBorderSelectedFocused else fxBorderFocused
                 lbl.toFront()
             }
 
             //событие "уход мыши"
             lbl.onMouseExited = EventHandler {
-                lbl.style = if (matrixFace == currentMatrixFace) fxBorderSelected else fxBorderDefault
+                lbl.style = if (selectedMatrixFaces.contains(matrixFace)) fxBorderSelected else fxBorderDefault
             }
 
             lbl.onMouseClicked = EventHandler { mouseEvent ->
 
-                //событие двойного клика
                 if (mouseEvent.button == MouseButton.PRIMARY) {
                     if (mouseEvent.clickCount == 1) {
-                        currentMatrixFace!!.faceExt?.labelSmall!!.style = fxBorderDefault
+
+                        if (!isPressedControl && !isPressedShift) {
+                            selectedMatrixFaces.forEach { it.faceExt?.labelSmall?.style = fxBorderDefault }
+                            selectedMatrixFaces.clear()
+                        } else if(isPressedShift) {
+                            val indexLastClicked = currentMatrixPageFaces!!.matrixFaces.indexOf(lastClickedMatrixFace)
+                            val indexCurrentClicked = currentMatrixPageFaces!!.matrixFaces.indexOf(matrixFace)
+                            if (indexLastClicked < indexCurrentClicked) {
+                                for (i in indexLastClicked..indexCurrentClicked) {
+                                    val mf = currentMatrixPageFaces!!.matrixFaces[i]
+                                    selectedMatrixFaces.add(mf)
+                                    mf.faceExt?.labelSmall?.style = fxBorderSelected
+                                }
+                            }
+                        }
+                        lastClickedMatrixFace = matrixFace
+                        selectedMatrixFaces.add(matrixFace)
+
+                        currentMatrixFace!!.faceExt?.labelSmall!!.style = if (selectedMatrixFaces.contains(currentMatrixFace)) fxBorderSelected else fxBorderDefault
                         currentMatrixFace = matrixFace
+                        lbl.style = fxBorderSelected
 //                        loadPictureToFullFrameLabel(currentMatrixFace.faceExt.pathToFrameFile)
                     }
 
                 }
             }
+
+            lbl.onDragDetected = EventHandler { mouseEvent ->
+                selectedMatrixFaces.add(matrixFace)
+                val db: Dragboard = lbl.startDragAndDrop(*TransferMode.ANY)
+                val content = ClipboardContent()
+                content.putString("labelFace")
+                db.setContent(content)
+                mouseEvent.consume()
+            }
+
+
         }
     }
 
