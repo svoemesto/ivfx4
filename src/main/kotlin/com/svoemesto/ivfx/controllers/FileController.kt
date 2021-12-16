@@ -2,6 +2,7 @@ package com.svoemesto.ivfx.controllers
 
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.Folders
+import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
@@ -147,7 +148,8 @@ class FileController() {
         }
 
         fun hasRecognizedFaces(file: File): Boolean {
-            return FaceController.getListFaces(file).any { it.personRecognizedId != 0L }
+            val personUndefinded = PersonController.getUndefinded(file.project)
+            return Main.faceRepo.findByFileIdAndPersonIdNotEqual(file.id, personUndefinded.id).any()
         }
 
         fun hasCreatedFaces(file: File): Boolean {
@@ -185,10 +187,6 @@ class FileController() {
                 val cdf = FileCdfController.getFileCdf(file)
                 file.cdfs = mutableListOf()
                 file.cdfs.add(cdf)
-
-//                initializeTransientFields(file)
-    //            file.frames = Main.frameController.getListFrames(file)
-    //            file.shots = Main.shotController.getListShots(file)
                 file.tracks = TrackController.getListTracks(file)
             }
             return result

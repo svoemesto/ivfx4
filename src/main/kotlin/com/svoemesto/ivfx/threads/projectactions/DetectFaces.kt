@@ -39,7 +39,6 @@ class DetectFaces(var fileExt: FileExt,
         val builder = GsonBuilder()
         var gson = builder.create()
         val pathToFileJSON: String = fileExt.folderFramesFull + IOFile.separator + "frames.json"
-//        val pathToFileJSON: String = fileExt.file.folderFramesFull + IOFile.separator + "frames.json"
 
         fileExt.file.shots = ShotController.getListShots(fileExt.file)
         val arrFrameToDetectFaces: Array<FaceController.Companion.FrameToDetectFaces> = FaceController.getArrayFramesToDetectFaces(fileExt)

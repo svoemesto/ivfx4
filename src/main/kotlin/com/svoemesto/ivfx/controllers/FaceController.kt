@@ -8,9 +8,11 @@ import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
+import com.svoemesto.ivfx.modelsext.FrameExt
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import org.springframework.stereotype.Controller
+import java.awt.image.BufferedImage
 import java.io.File as IOFile
 
 @Controller
@@ -19,23 +21,37 @@ class FaceController {
 
     companion object {
 
-        fun createOrUpdate(faceExtJson: FaceExtJson, fileExt: FileExt): Face {
+        fun createOrUpdate(faceExtJson: FaceExtJson, fileExt: FileExt): FaceExt {
 
-            var face = Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame).firstOrNull()
+            var face = if (faceExtJson.frameId == 0L) {
+                Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame).firstOrNull()
+            } else {
+                Main.faceRepo.findById(faceExtJson.frameId).orElse(null)
+            }
+
             if (face != null) {
                 face.file = fileExt.file
-                val faceExt = FaceExt(face, fileExt)
+                if (faceExtJson.personRecognizedName != "") {
+                    face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                        faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                } else {
+                    face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
+                }
+
+                val personExt = PersonExt(face.person, fileExt.projectExt)
+                val faceExt = FaceExt(face, fileExt, personExt)
+
                 if (!faceExt.isConfirmed) {
                     var needToSave = false
                     if (face.personRecognizedName != faceExtJson.personRecognizedName) {
 
                         if (faceExtJson.personRecognizedName != "") {
                             face.personRecognizedName = faceExtJson.personRecognizedName
-                            face.personRecognizedId = PersonController.getPersonExtIdByProjectExtIdAndNameInRecognizer(fileExt.projectExt,
-                                faceExtJson.personRecognizedName, true, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                            face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                                faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
                             needToSave = true
                         } else {
-                            face.personRecognizedId = PersonController.getUndefinded(fileExt.projectExt).person.id
+                            face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
                         }
 
                     }
@@ -65,21 +81,31 @@ class FaceController {
                     }
                     if (needToSave) save(face)
                 }
-                return face
+                return faceExt
 
             } else {
                 face = Face()
             }
+
             face.file = fileExt.file
+            if (faceExtJson.personRecognizedName != "") {
+                face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                    faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+            } else {
+                face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
+            }
+
+            val personExt = PersonExt(face.person, fileExt.projectExt)
+            val faceExt = FaceExt(face, fileExt, personExt)
+
             face.frameNumber = faceExtJson.frameNumber
             face.faceNumberInFrame = faceExtJson.faceNumberInFrame
-            face.personId = 0
             face.personRecognizedName = faceExtJson.personRecognizedName
             if (faceExtJson.personRecognizedName != "") {
-                face.personRecognizedId = PersonController.getPersonExtIdByProjectExtIdAndNameInRecognizer(fileExt.projectExt,
-                    faceExtJson.personRecognizedName, true, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                    faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
             } else {
-                face.personRecognizedId = PersonController.getUndefinded(fileExt.projectExt).person.id
+                face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
             }
             face.recognizeProbability = faceExtJson.recognizeProbability
             face.startX = faceExtJson.startX
@@ -90,7 +116,8 @@ class FaceController {
             face.isConfirmed = false
 
             save(face)
-            return face
+
+            return faceExt
 
         }
 
@@ -100,26 +127,91 @@ class FaceController {
 
         fun getListFaces(file: File): MutableList<Face> {
             val result = Main.faceRepo.findByFileId(file.id).toMutableList()
-            result.forEach { it.file = file }
+            result.forEach { face->
+                face.file = file
+                if (face.personRecognizedName != "") {
+                    face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(file.project,
+                        face.personRecognizedName, face.file.id, face.frameNumber, face.faceNumberInFrame)
+                } else {
+                    face.person = PersonController.getUndefinded(file.project)
+                }
+            }
             return result
         }
 
         fun getListFacesExt(fileExt: FileExt): MutableList<FaceExt> {
             val result = Main.faceRepo.findByFileId(fileExt.file.id).toMutableList()
             var listFacesExt: MutableList<FaceExt> = mutableListOf()
+            val personExtMap: MutableMap<String, PersonExt> = mutableMapOf()
             result.forEach { face->
                 face.file = fileExt.file
-                listFacesExt.add(FaceExt(face, fileExt))
+                var person = if (personExtMap.containsKey(face.personRecognizedName)) personExtMap[face.personRecognizedName]?.person else {
+                    if (face.personRecognizedName != "") {
+                        PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                            face.personRecognizedName, face.file.id, face.frameNumber, face.faceNumberInFrame)
+                    } else {
+                        PersonController.getUndefinded(fileExt.projectExt.project)
+                    }
+                }
+                val personExt = PersonExt(person!!, fileExt.projectExt)
+                personExtMap[face.personRecognizedName] = personExt
+                face.person = person
+
+                listFacesExt.add(FaceExt(face, fileExt , personExt))
+            }
+            return listFacesExt
+        }
+
+        fun getListFacesExtToRecognize(fileExt: FileExt): MutableList<FaceExt> {
+            val result = Main.faceRepo.findByFileIdAndNotConfirmed(fileExt.file.id).toMutableList()
+            var listFacesExt: MutableList<FaceExt> = mutableListOf()
+            val personExtMap: MutableMap<String, PersonExt> = mutableMapOf()
+            result.forEach { face->
+                face.file = fileExt.file
+                var person = if (personExtMap.containsKey(face.personRecognizedName)) personExtMap[face.personRecognizedName]?.person else {
+                    if (face.personRecognizedName != "") {
+                        PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                            face.personRecognizedName, face.file.id, face.frameNumber, face.faceNumberInFrame)
+                    } else {
+                        PersonController.getUndefinded(fileExt.projectExt.project)
+                    }
+                }
+                val personExt = PersonExt(person!!, fileExt.projectExt)
+                personExtMap[face.personRecognizedName] = personExt
+                face.person = person
+
+                listFacesExt.add(FaceExt(face, fileExt , personExt))
+            }
+            return listFacesExt
+        }
+
+        fun getListFacesToTrain(project: Project): MutableList<Face> {
+            return Main.faceRepo.getListFacesToTrain(project.id).toMutableList()
+        }
+
+        fun getListFacesExt(frameExt: FrameExt): MutableList<FaceExt> {
+            val result = Main.faceRepo.findByFileIdAndFrameNumber(frameExt.fileExt.file.id, frameExt.frame.frameNumber).toMutableList()
+            var listFacesExt: MutableList<FaceExt> = mutableListOf()
+            result.forEach { face->
+                face.file = frameExt.fileExt.file
+                if (face.personRecognizedName != "") {
+                    face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(frameExt.fileExt.projectExt.project,
+                        face.personRecognizedName, face.file.id, face.frameNumber, face.faceNumberInFrame)
+                } else {
+                    face.person = PersonController.getUndefinded(frameExt.fileExt.projectExt.project)
+                }
+                listFacesExt.add(FaceExt(face, frameExt.fileExt, PersonExt(face.person, frameExt.fileExt.projectExt)))
             }
             return listFacesExt
         }
 
         fun getListFacesExt(fileExt: FileExt, personExt: PersonExt): MutableList<FaceExt> {
-            val result = Main.faceRepo.findByFileIdAndPersonRecognizedId(fileExt.file.id, personExt.person.id).toMutableList()
+            val result = Main.faceRepo.findByFileIdAndPersonId(fileExt.file.id, personExt.person.id).toMutableList()
             var listFacesExt: MutableList<FaceExt> = mutableListOf()
             result.forEach { face->
                 face.file = fileExt.file
-                listFacesExt.add(FaceExt(face, fileExt))
+                face.person = personExt.person
+                listFacesExt.add(FaceExt(face, fileExt, personExt))
             }
             return listFacesExt
         }
@@ -168,9 +260,21 @@ class FaceController {
             if (face != null) {
                 val file = project.files.first { it.id == fileId }
                 face.file = file
-                val fileExt = FileExt(file, ProjectExt(project))
-                return FaceExt(face, fileExt)
+                if (face.personRecognizedName != "") {
+                    face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(file.project,
+                        face.personRecognizedName, face.file.id, face.frameNumber, face.faceNumberInFrame)
+                } else {
+                    face.person = PersonController.getUndefinded(file.project)
+                }
+                val projectExt = ProjectExt(project)
+                val fileExt = FileExt(file, projectExt)
+                return FaceExt(face, fileExt, PersonExt(face.person, fileExt.projectExt))
             }
+            return null
+        }
+
+        fun getOverlayedFrame(faceExt: FaceExt): BufferedImage? {
+            val listFacesExt = getListFacesExt(faceExt.fileExt)
             return null
         }
 

@@ -3,7 +3,9 @@ package com.svoemesto.ivfx.threads.projectactions
 import com.google.gson.GsonBuilder
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FaceController
+import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.controllers.PersonController
+import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -44,7 +46,13 @@ class RecognizeFaces(var fileExt: FileExt,
         val gson = builder.create()
 
         val pathToFileJSON: String = fileExt.folderFramesFull + IOFile.separator + "faces.json"
-        val arrFrameFaces: Array<FaceExt> = FaceController.getListFacesExt(fileExt).toTypedArray()
+        val arrFrameFaces: Array<FaceExt> = FaceController.getListFacesExtToRecognize(fileExt).toTypedArray()
+
+        arrFrameFaces.forEach {
+            it.personId = 0
+            it.personType = PersonType.UNDEFINDED.name
+            it.personRecognizedName = ""
+        }
 
         try {
             FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(arrFrameFaces, fileWriter) }

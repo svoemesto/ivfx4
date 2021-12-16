@@ -60,12 +60,13 @@ data_faces = []
 for i in range(0, len(listframes)):
     frame_info = listframes[i]
 
-    #projectid = frame_info["projectid"]
+    projectid = frame_info["projectId"]
+    frameid = frame_info["frameId"]
     fileid = frame_info["fileId"]
     imagePath = frame_info["pathToFrameFile"]
-    frameId = frame_info["frameNumber"]
+    frameNumber = frame_info["frameNumber"]
 
-# for (i, imagePath) in enumerate(imagePaths):
+    # for (i, imagePath) in enumerate(imagePaths):
 
     # if i % every_frames != 0:
     #     continue
@@ -130,17 +131,16 @@ for i in range(0, len(listframes)):
             # print(list(map(str, vec.flatten().tolist())))
 
             # создаем объект для лица и записываем в него все нужные атрибуты
-            face_data = {'fileId': fileid,
-                         #'projectid': projectid,
-                         'pathToFrameFile': imagePath,
-                         'faceNumberInFrame': face_count_in_image,
+            face_data = {'projectid': projectid,
+                         'frameId': frameid,
+                         'fileId': fileid,
                          'personId': 0,
+                         'frameNumber': frameNumber,     
+                         'faceNumberInFrame': face_count_in_image,                          
+                         'pathToFrameFile': imagePath,   
+                         'pathToFaceFile': face_file_name_and_path,                         
                          'personRecognizedName': '',
-                         'personRecognizedId': 0,
-                         'personRecognizedId': 0,
                          'recognizeProbability': 0.0,
-                         'frameNumber': frameId,
-                         'pathToFaceFile': face_file_name_and_path,
                          'startX': int(startX),
                          'startY': int(startY),
                          'endX': int(endX),

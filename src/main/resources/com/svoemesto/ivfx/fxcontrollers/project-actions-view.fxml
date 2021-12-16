@@ -52,6 +52,7 @@
                         <CheckBox fx:id="checkCreateFaces" mnemonicParsing="false" text="[CF] Create faces" />
                         <CheckBox fx:id="checkCreateFacesPreview" mnemonicParsing="false" text="[CFP] Create faces preview" />
                         <CheckBox fx:id="checkRecognizeFaces" mnemonicParsing="false" text="[RF] Recognize faces" />
+                        <Button fx:id="btnTrainFaceModel" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doTrainFaceModel" text="Train face model" />
                      </children>
                   </VBox>
                </children>

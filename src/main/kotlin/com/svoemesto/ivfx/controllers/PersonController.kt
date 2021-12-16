@@ -17,6 +17,7 @@ class PersonController() {
 
         fun getListPersons(project: Project): MutableList<Person> {
             val result = Main.personRepo.findByProjectId(project.id).toMutableList()
+            result.forEach { it.project = project }
             result.sort()
             return result
         }
@@ -37,28 +38,43 @@ class PersonController() {
             persons.forEach { save(it) }
         }
 
-        fun getUndefinded(projectExt: ProjectExt): PersonExt {
-            var person = Main.personRepo.findByProjectIdAndPersonType(projectExt.project.id, PersonType.UNDEFINDED).firstOrNull()
+        fun getUndefinded(project: Project): Person {
+            var person = project.persons.firstOrNull { it.personType == PersonType.UNDEFINDED }
+//            var person = Main.personRepo.findByProjectIdAndPersonType(project.id, PersonType.UNDEFINDED).firstOrNull()
             if (person == null) {
-                person = create(projectExt.project,"UNDEFINDED", PersonType.UNDEFINDED)
+                person = create(project,"UNDEFINDED", PersonType.UNDEFINDED)
             }
-            return PersonExt(person, projectExt)
+            return person
         }
 
-        fun getNonperson(projectExt: ProjectExt): PersonExt {
-            var person = Main.personRepo.findByProjectIdAndPersonType(projectExt.project.id, PersonType.NONPERSON).firstOrNull()
+        fun getNonperson(project: Project): Person {
+            var person = project.persons.firstOrNull { it.personType == PersonType.NONPERSON }
+//            var person = Main.personRepo.findByProjectIdAndPersonType(project.id, PersonType.NONPERSON).firstOrNull()
             if (person == null) {
-                person = create(projectExt.project,"NONPERSON", PersonType.NONPERSON)
+                person = create(project,"NONPERSON", PersonType.NONPERSON)
             }
-            return PersonExt(person, projectExt)
+            return person
         }
 
-        fun getExtras(projectExt: ProjectExt): PersonExt {
-            var person = Main.personRepo.findByProjectIdAndPersonType(projectExt.project.id, PersonType.EXTRAS).firstOrNull()
+        fun getExtras(project: Project): Person {
+            var person = project.persons.firstOrNull { it.personType == PersonType.EXTRAS }
+//            var person = Main.personRepo.findByProjectIdAndPersonType(project.id, PersonType.EXTRAS).firstOrNull()
             if (person == null) {
-                person = create(projectExt.project,"EXTRAS", PersonType.EXTRAS)
+                person = create(project,"EXTRAS", PersonType.EXTRAS)
             }
-            return PersonExt(person, projectExt)
+            return person
+        }
+
+        fun getUndefindedExt(projectExt: ProjectExt): PersonExt {
+            return PersonExt(getUndefinded(projectExt.project), projectExt)
+        }
+
+        fun getNonpersonExt(projectExt: ProjectExt): PersonExt {
+            return PersonExt(getNonperson(projectExt.project), projectExt)
+        }
+
+        fun getExtrasExt(projectExt: ProjectExt): PersonExt {
+            return PersonExt(getExtras(projectExt.project), projectExt)
         }
 
         fun create(project: Project, name: String = "", personType: PersonType = PersonType.PERSON,
@@ -76,6 +92,7 @@ class PersonController() {
             entity.uuid = UUID.randomUUID().toString()
             entity.nameInRecognizer = if (nameInRecognizer != "") nameInRecognizer else entity.uuid
             save(entity)
+            project.persons.add(entity)
 
             return entity
         }
@@ -91,15 +108,19 @@ class PersonController() {
             getListPersons(project).forEach { delete(it) }
         }
 
-        fun getPersonExtIdByProjectExtIdAndNameInRecognizer(projectExt: ProjectExt,
-                                                            personRecognizedName: String,
-                                                            createIfNotFound: Boolean = false,
-                                                            fileIdToCreate: Long = 0,
-                                                            frameNumberToCreate: Int = 0,
-                                                            faceNumberInFrameToCreate: Int = 0): Long {
-            val person = Main.personRepo.findByProjectIdAndNameInRecognizer(projectExt.project.id, personRecognizedName).firstOrNull()
-            return person?.id
-                ?: if (createIfNotFound) create(projectExt.project,"", PersonType.PERSON, personRecognizedName, fileIdToCreate, frameNumberToCreate, faceNumberInFrameToCreate).id else 0
+        fun getPersonByProjectIdAndNameInRecognizer(project: Project,
+                                                    personRecognizedName: String,
+                                                    fileIdToCreate: Long = 0,
+                                                    frameNumberToCreate: Int = 0,
+                                                    faceNumberInFrameToCreate: Int = 0): Person {
+            val person = project.persons.firstOrNull { it.nameInRecognizer == personRecognizedName }
+//            val person = Main.personRepo.findByProjectIdAndNameInRecognizer(project.id, personRecognizedName).firstOrNull()
+            if (person != null) {
+                return person
+            } else {
+                return create(project,"", PersonType.PERSON, personRecognizedName, fileIdToCreate, frameNumberToCreate, faceNumberInFrameToCreate)
+            }
+//            return person ?: create(project,"", PersonType.PERSON, personRecognizedName, fileIdToCreate, frameNumberToCreate, faceNumberInFrameToCreate)
         }
 
     }

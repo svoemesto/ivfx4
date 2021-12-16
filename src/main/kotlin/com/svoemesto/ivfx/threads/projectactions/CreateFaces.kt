@@ -2,8 +2,11 @@ package com.svoemesto.ivfx.threads.projectactions
 
 import com.google.gson.GsonBuilder
 import com.svoemesto.ivfx.controllers.FaceController
+import com.svoemesto.ivfx.controllers.FrameController
+import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
+import com.svoemesto.ivfx.modelsext.FrameExt
 import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar

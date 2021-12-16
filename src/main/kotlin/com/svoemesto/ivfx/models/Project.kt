@@ -84,6 +84,10 @@ class Project {
 
     @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
+    var persons: MutableList<Person> = mutableListOf()
+
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SUBSELECT)
     var cdfs: MutableList<ProjectCdf> = mutableListOf()
 
     var folder: String

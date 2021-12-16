@@ -67,7 +67,7 @@
                                        <children>
                                           <Pane fx:id="paneFrames" prefHeight="10000.0" prefWidth="10000.0" style="-fx-background-color: black;" />
                                           <Separator orientation="VERTICAL" prefHeight="200.0" />
-                                          <TableView fx:id="tblPagesFrames" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="300.0" prefHeight="5000.0" prefWidth="300.0">
+                                          <TableView fx:id="tblPagesFrames" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="300.0" prefHeight="5000.0" prefWidth="300.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                             <columns>
                                               <TableColumn fx:id="colDurationStart" prefWidth="75.0" text="Время: с" />
                                               <TableColumn fx:id="colDurationEnd" prefWidth="75.0" text="Время: по" />
@@ -89,7 +89,7 @@
                                        <children>
                                           <VBox prefHeight="10000.0" prefWidth="175.0">
                                              <children>
-                                                <TableView fx:id="tblPersonsAll" maxWidth="175.0" minWidth="175.0" prefHeight="10000.0" prefWidth="175.0">
+                                                <TableView fx:id="tblPersonsAll" maxWidth="175.0" minWidth="175.0" prefHeight="10000.0" prefWidth="175.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                                   <columns>
                                                     <TableColumn fx:id="colTblPersonsAllName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
                                                   </columns>
@@ -97,9 +97,9 @@
                                              </children>
                                           </VBox>
                                           <Pane fx:id="paneFaces" prefHeight="10000.0" prefWidth="10000.0" style="-fx-background-color: black;" />
-                                          <TableView fx:id="tblPagesFaces" minWidth="60.0" prefHeight="200.0" prefWidth="200.0">
+                                          <TableView fx:id="tblPagesFaces" minWidth="60.0" prefHeight="200.0" prefWidth="200.0" style="-fx-selection-bar-non-focused: red; -fx-selection-bar: red;">
                                             <columns>
-                                              <TableColumn fx:id="colTblPagesFacesNumber" maxWidth="40.0" minWidth="40.0" prefWidth="40.0" text="C1" />
+                                              <TableColumn fx:id="colTblPagesFacesNumber" maxWidth="40.0" minWidth="40.0" prefWidth="40.0" text="#" />
                                             </columns>
                                           </TableView>
                                        </children>

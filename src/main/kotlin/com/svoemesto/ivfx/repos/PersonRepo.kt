@@ -30,5 +30,7 @@ interface PersonRepo : CrudRepository<Person, Long> {
 //    fun findByProjectIdAndPersonTypeId(project_id: Long, personTypeId: Int): Iterable<Person>
     fun findByProjectIdAndPersonType(projectId: Long, personType: PersonType): Iterable<Person>
 
+    @Query(value = "select distinct tp.* from tbl_persons as tp inner join tbl_faces tf on tp.id = tf.person_id where tf.file_id = ?", nativeQuery = true)
+    fun findByFileId(fileId: Long): Iterable<Person>
 
 }
