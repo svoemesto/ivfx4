@@ -5,10 +5,14 @@ import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import com.svoemesto.ivfx.threads.RunListThreads
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForProject
+import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import javafx.collections.transformation.FilteredList
+import javafx.collections.transformation.SortedList
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.fxml.FXML
@@ -18,14 +22,23 @@ import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
+import javafx.scene.control.TextField
 import javafx.scene.control.cell.PropertyValueFactory
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseButton
 import javafx.stage.Modality
 import javafx.stage.Stage
 import java.io.IOException
+import java.util.*
+import java.util.function.Predicate
 
 
 class PersonSelectFXController {
+
+    @FXML
+    private var fldFind: TextField? = null
+
     @FXML
     private var tblPersons: TableView<PersonExt>? = null
 
@@ -48,29 +61,32 @@ class PersonSelectFXController {
         private var currentPersonExt: PersonExt? = null
         private var currentProjectExt: ProjectExt? = null
         private var mainStage: Stage? = null
-        private var listPersonsExtAll: ObservableList<PersonExt> = FXCollections.observableArrayList()
-        private val runListThreadsPersonFlagIsDone = SimpleBooleanProperty(false)
-        fun getPersonExt(projectExt: ProjectExt, personExt: PersonExt? = null): PersonExt? {
-            mainStage = Stage()
-            currentProjectExt = projectExt
-            currentPersonExt = personExt
-
-            try {
-                val root = FXMLLoader.load<Parent>(PersonSelectFXController::class.java.getResource("person-select-view.fxml"))
-                mainStage?.scene = Scene(root)
-                mainStage?.initModality(Modality.APPLICATION_MODAL)
-                mainStage?.showAndWait()
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            println("Завершение работы PersonSelectFXController.")
-            mainStage = null
-
-            return currentPersonExt
-        }
-
     }
+
+    private var listPersonsExtAll: ObservableList<PersonExt> = FXCollections.observableArrayList()
+    private val runListThreadsPersonFlagIsDone = SimpleBooleanProperty(false)
+    private var filteredPersonExt: FilteredList<PersonExt>? = FilteredList(listPersonsExtAll)
+
+    fun getPersonExt(projectExt: ProjectExt, personExt: PersonExt? = null): PersonExt? {
+        mainStage = Stage()
+        currentProjectExt = projectExt
+        currentPersonExt = personExt
+
+        try {
+            val root = FXMLLoader.load<Parent>(PersonSelectFXController::class.java.getResource("person-select-view.fxml"))
+            mainStage?.scene = Scene(root)
+            mainStage?.initModality(Modality.WINDOW_MODAL)
+            mainStage?.showAndWait()
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        println("Завершение работы PersonSelectFXController.")
+        mainStage = null
+
+        return currentPersonExt
+    }
+
 
     @FXML
     fun initialize() {
@@ -121,6 +137,57 @@ class PersonSelectFXController {
             }
         }
 
+
+        // обработка события отпускания кнопки в поле поиска fldFind
+        fldFind!!.onKeyReleased = EventHandler { e: KeyEvent? ->
+            fldFind!!.textProperty()
+                .addListener(ChangeListener { v: ObservableValue<out String?>?, oldValue: String?, newValue: String? ->
+                    filteredPersonExt!!.setPredicate(Predicate<PersonExt?> { personExt: PersonExt? ->
+                        if (newValue == null || newValue.isEmpty()) {
+                            return@Predicate true
+                        }
+                        val lowerCaseFilter = newValue.lowercase(Locale.getDefault())
+                        if (personExt!!.person.name.lowercase().contains(lowerCaseFilter)) return@Predicate true
+                        return@Predicate false
+                    } as Predicate<in PersonExt?>?)
+                })
+            val sortedTags: SortedList<PersonExt> = SortedList(filteredPersonExt)
+            sortedTags.comparatorProperty().bind(tblPersons!!.comparatorProperty())
+            tblPersons!!.items = sortedTags
+            if (sortedTags.size > 0) {
+                Platform.runLater {
+                    tblPersons!!.selectionModel.select(sortedTags[0])
+                    tblPersons!!.scrollTo(sortedTags[0])
+                }
+            }
+        }
+
+        // нажатие Enter в поле fldFind - переход на первую запись в таблице tblPersons
+        fldFind!!.onKeyPressed = EventHandler { ke: KeyEvent ->
+            if (ke.code == KeyCode.ENTER) {
+                Platform.runLater {
+                    tblPersons!!.requestFocus()
+                    tblPersons!!.selectionModel.select(0)
+                    tblPersons!!.scrollTo(0)
+                }
+            }
+        }
+
+        // нажатие Enter в поле в таблице tblPersons
+        tblPersons!!.onKeyPressed = EventHandler { ke: KeyEvent ->
+            if (ke.code == KeyCode.ENTER) {
+                btnOk!!.requestFocus()
+//                fldFind!!.text = ""
+            }
+        }
+
+
+        // обработка события нажатия Enter на кнопке btnOK - нажатие на кнопку OK
+        btnOk!!.setOnKeyPressed(EventHandler { ke: KeyEvent ->
+            if (ke.code == KeyCode.ENTER) {
+                doOk(null)
+            }
+        })
     }
 
 

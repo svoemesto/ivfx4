@@ -8,6 +8,7 @@ class FaceExtJson() {
     var frameId: Long = 0
     var fileId: Long = 0
     var personId: Long = 0
+    var faceId: Long = 0
     var personType: String = PersonType.UNDEFINDED.name
     var frameNumber: Int = 0
     var faceNumberInFrame: Int = 0

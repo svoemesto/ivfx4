@@ -61,7 +61,6 @@ for i in range(0, len(listframes)):
     frame_info = listframes[i]
 
     projectid = frame_info["projectId"]
-    frameid = frame_info["frameId"]
     fileid = frame_info["fileId"]
     imagePath = frame_info["pathToFrameFile"]
     frameNumber = frame_info["frameNumber"]
@@ -132,7 +131,7 @@ for i in range(0, len(listframes)):
 
             # создаем объект для лица и записываем в него все нужные атрибуты
             face_data = {'projectid': projectid,
-                         'frameId': frameid,
+                         'frameId': 0,
                          'fileId': fileid,
                          'personId': 0,
                          'frameNumber': frameNumber,     

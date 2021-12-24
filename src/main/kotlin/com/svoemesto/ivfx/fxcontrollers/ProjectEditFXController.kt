@@ -380,55 +380,53 @@ class ProjectEditFXController {
     private var colTrackPropertyValue: TableColumn<Property, String>? = null
 
     companion object {
-
-        private var hostServices: HostServices? = null
-
-        private var mainStage: Stage? = null
         private var currentProjectExt: ProjectExt? = null
-        private var currentFileExt: FileExt? = null
-        private var listFilesExt: ObservableList<FileExt> = FXCollections.observableArrayList()
-        private var currentFileProperty: Property? = null
-        private var listFileProperties: ObservableList<Property> = FXCollections.observableArrayList()
-        private var currentFilePropertyCdf: PropertyCdf? = null
-        private var listFilePropertiesCdf: ObservableList<PropertyCdf> = FXCollections.observableArrayList()
-        private var currentProjectProperty: Property? = null
-        private var listProjectProperties: ObservableList<Property> = FXCollections.observableArrayList()
-        private var currentProjectPropertyCdf: PropertyCdf? = null
-        private var listProjectPropertiesCdf: ObservableList<PropertyCdf> = FXCollections.observableArrayList()
-        private var currentTrack: Track? = null
-        private var listTracks: ObservableList<Track> = FXCollections.observableArrayList()
-        private var currentTrackProperty: Property? = null
-        private var listTrackProperties: ObservableList<Property> = FXCollections.observableArrayList()
+        private var hostServices: HostServices? = null
+    }
 
-        private var listVideoCodecs: ObservableList<String> = FXCollections.observableArrayList()
-        private var listLosslessVideoCodecs: ObservableList<String> = FXCollections.observableArrayList()
-        private var listAudioCodecs: ObservableList<String> = FXCollections.observableArrayList()
-        private var listVideoContainers: ObservableList<String> = FXCollections.observableArrayList()
-        private var listLosslessContainers: ObservableList<String> = FXCollections.observableArrayList()
+    private var mainStage: Stage? = null
+    private var currentFileExt: FileExt? = null
+    private var listFilesExt: ObservableList<FileExt> = FXCollections.observableArrayList()
+    private var currentFileProperty: Property? = null
+    private var listFileProperties: ObservableList<Property> = FXCollections.observableArrayList()
+    private var currentFilePropertyCdf: PropertyCdf? = null
+    private var listFilePropertiesCdf: ObservableList<PropertyCdf> = FXCollections.observableArrayList()
+    private var currentProjectProperty: Property? = null
+    private var listProjectProperties: ObservableList<Property> = FXCollections.observableArrayList()
+    private var currentProjectPropertyCdf: PropertyCdf? = null
+    private var listProjectPropertiesCdf: ObservableList<PropertyCdf> = FXCollections.observableArrayList()
+    private var currentTrack: Track? = null
+    private var listTracks: ObservableList<Track> = FXCollections.observableArrayList()
+    private var currentTrackProperty: Property? = null
+    private var listTrackProperties: ObservableList<Property> = FXCollections.observableArrayList()
 
-        fun editProject(project: Project? = null, hostServices: HostServices? = null): ProjectExt? {
-            if (project == null) {
-                val firstProject = ProjectController.getListProjects().firstOrNull()
-                if (firstProject != null) currentProjectExt = ProjectExt(firstProject)
-            } else {
-                currentProjectExt = ProjectExt(project)
-            }
-            mainStage = Stage()
-            try {
-                val root = FXMLLoader.load<Parent>(ProjectEditFXController::class.java.getResource("project-edit-view.fxml"))
-                mainStage?.setScene(Scene(root))
-                this.hostServices = hostServices
-                mainStage?.initModality(Modality.APPLICATION_MODAL)
-                mainStage?.showAndWait()
+    private var listVideoCodecs: ObservableList<String> = FXCollections.observableArrayList()
+    private var listLosslessVideoCodecs: ObservableList<String> = FXCollections.observableArrayList()
+    private var listAudioCodecs: ObservableList<String> = FXCollections.observableArrayList()
+    private var listVideoContainers: ObservableList<String> = FXCollections.observableArrayList()
+    private var listLosslessContainers: ObservableList<String> = FXCollections.observableArrayList()
 
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            println("Завершение работы ProjectEditFXController.")
-            mainStage = null
-            return currentProjectExt
+    fun editProject(project: Project? = null, incomingHostServices: HostServices? = null): ProjectExt? {
+        if (project == null) {
+            val firstProject = ProjectController.getListProjects().firstOrNull()
+            if (firstProject != null) currentProjectExt = ProjectExt(firstProject)
+        } else {
+            currentProjectExt = ProjectExt(project)
         }
+        mainStage = Stage()
+        try {
+            val root = FXMLLoader.load<Parent>(ProjectEditFXController::class.java.getResource("project-edit-view.fxml"))
+            mainStage?.scene = Scene(root)
+            hostServices = incomingHostServices
+            mainStage?.initModality(Modality.WINDOW_MODAL)
+            mainStage?.showAndWait()
 
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        println("Завершение работы ProjectEditFXController.")
+        mainStage = null
+        return currentProjectExt
     }
 
     @FXML
@@ -657,7 +655,8 @@ class ProjectEditFXController {
                     fldFilePropertyCdfKey?.text = ""
                     fldFilePropertyCdfValue?.text = ""
 
-                    listTracks = FXCollections.observableArrayList(TrackController.getListTracks(currentFileExt!!.file))
+                    listTracks = FXCollections.observableArrayList(currentFileExt!!.file.tracks.toMutableList())
+                    listTracks.sort()
                     tblTracks?.items = listTracks
 
                 }
@@ -1206,7 +1205,8 @@ class ProjectEditFXController {
     fun doGetFileTracksFromMediaInfo(event: ActionEvent?) {
         if (currentFileExt != null) {
             TrackController.createTracksFromMediaInfo(currentFileExt!!.file)
-            listTracks = FXCollections.observableArrayList(TrackController.getListTracks(currentFileExt!!.file))
+            listTracks = FXCollections.observableArrayList(currentFileExt!!.file.tracks.toMutableList())
+            listTracks.sort()
             tblTracks?.items = listTracks
         }
     }
@@ -1244,21 +1244,21 @@ class ProjectEditFXController {
     fun doMenuOpen(event: ActionEvent?) {
         saveCurrentFile()
         saveCurrentProject()
-        currentProjectExt = ProjectExt(ProjectSelectFXController.getProject(currentProjectExt!!.project)!!)
+        currentProjectExt = ProjectExt(ProjectSelectFXController().getProject(currentProjectExt!!.project)!!)
         initialize()
     }
 
     @FXML
     fun doMenuProjectActions(event: ActionEvent?) {
         if (currentProjectExt != null) {
-            ProjectActionsFXController.actionsProject(currentProjectExt!!.project, listFilesExt, hostServices)
+            ProjectActionsFXController().actionsProject(currentProjectExt!!.project, listFilesExt, hostServices)
         }
     }
 
     @FXML
     fun doMenuEditShots(event: ActionEvent?) {
         if (currentFileExt != null) {
-            ShotsEditFXController.editShots(FileExt(currentFileExt!!.file, currentProjectExt!!), hostServices)
+            ShotsEditFXController().editShots(FileExt(currentFileExt!!.file, currentProjectExt!!), hostServices)
 //            ShotsEditFXController.editShots(currentFile!!, hostServices)
         }
     }
@@ -1267,7 +1267,7 @@ class ProjectEditFXController {
     fun doSelectDatabase(event: ActionEvent?) {
 
         val currentDatabase = getCurrentDatabase()
-        val result = DatabaseSelectFXController.getDatabase(getCurrentDatabase())
+        val result = DatabaseSelectFXController().getDatabase(getCurrentDatabase())
         if (currentDatabase != result) {
             setPropertyValue(H2DB_PROPERTYKEY_CURRENTDB_ID,result?.id.toString())
             val alert = Alert(Alert.AlertType.INFORMATION)
@@ -1312,7 +1312,8 @@ class ProjectEditFXController {
             FileController.save(currentFileExt!!.file)
 //            Main.fileController.save(currentFile!!)
             TrackController.createTracksFromMediaInfo(currentFileExt!!.file)
-            listTracks = FXCollections.observableArrayList(TrackController.getListTracks(currentFileExt!!.file))
+            listTracks = FXCollections.observableArrayList(currentFileExt!!.file.tracks.toMutableList())
+            listTracks.sort()
             tblTracks?.items = listTracks
         }
 
@@ -1330,22 +1331,19 @@ class ProjectEditFXController {
         if (IOFile(initialDirectory).exists()) fileChooser.initialDirectory = IOFile(initialDirectory)
         val ioFile = fileChooser.showOpenDialog(Stage())
         if (ioFile != null) {
-            val foundFile = FileController.getListFiles(currentProjectExt!!.project).firstOrNull { it.path == ioFile.absolutePath }
-//            val foundFile = Main.fileController.getListFiles(currentProject!!).firstOrNull { it.path == ioFile.absolutePath }
+            val foundFile = currentProjectExt!!.project.files.firstOrNull { it.path == ioFile.absolutePath }
             if (foundFile != null) {
                 tblFiles?.selectionModel?.select(listFilesExt.filter { it.file == foundFile }.first())
             } else {
                 val file = FileController.create(currentProjectExt!!.project, ioFile.absolutePath)
-//                val file = Main.fileController.create(currentProject!!, ioFile.absolutePath)
                 val id = file.id
                 LoadListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles).start()
-//                listFilesExt = FXCollections.observableArrayList(FileController.getListFiles(currentProjectExt!!.project))
-//                listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
                 tblFiles?.items = listFilesExt
                 currentFileExt = listFilesExt.filter { it.file.id == id }.first()
                 tblFiles?.selectionModel?.select(currentFileExt)
                 TrackController.createTracksFromMediaInfo(currentFileExt!!.file)
-                listTracks = FXCollections.observableArrayList(TrackController.getListTracks(currentFileExt!!.file))
+                listTracks = FXCollections.observableArrayList(currentFileExt!!.file.tracks.toMutableList())
+                listTracks.sort()
                 tblTracks?.items = listTracks
             }
         }
@@ -1363,15 +1361,11 @@ class ProjectEditFXController {
         val directorySelected = directoryChooser.showDialog(Stage())
         if (directorySelected != null) {
             directorySelected.listFiles()?.forEach { ioFile ->
-                if (FileController.getListFiles(currentProjectExt!!.project).filter { it.path == ioFile.absolutePath }.count() == 0) {
-//                if (Main.fileController.getListFiles(currentProject!!).filter { it.path == ioFile.absolutePath }.count() == 0) {
+                if (currentProjectExt!!.project.files.filter { it.path == ioFile.absolutePath }.isEmpty()) {
                     val file = FileController.create(currentProjectExt!!.project, ioFile.absolutePath)
-//                    val file = Main.fileController.create(currentProject!!, ioFile.absolutePath)
                 }
             }
             LoadListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles).start()
-//            listFilesExt = FXCollections.observableArrayList(FileController.getListFiles(currentProjectExt!!))
-//            listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
             tblFiles?.items = listFilesExt
         }
 

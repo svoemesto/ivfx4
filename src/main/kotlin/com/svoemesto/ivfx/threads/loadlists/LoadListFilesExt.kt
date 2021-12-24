@@ -39,9 +39,9 @@ class LoadListFilesExt(
 
             file.project = projectExt.project
             val cdf = FileCdfController.getFileCdf(file)
-            file.cdfs = mutableListOf()
+            file.cdfs = mutableSetOf()
             file.cdfs.add(cdf)
-            file.tracks = TrackController.getListTracks(file)
+            file.tracks = TrackController.getSetTracks(file)
 
             val fileExt = FileExt(file, projectExt)
             list.add(fileExt)

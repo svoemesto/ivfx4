@@ -14,7 +14,6 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane maxHeight="900.0" maxWidth="730.0" minHeight="900.0" minWidth="730.0" prefHeight="900.0" prefWidth="730.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.PersonEditFXController">
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -76,7 +75,7 @@
                                           <Tooltip text="На один уровень вниз" />
                                        </tooltip>
                                     </Button>
-                                    <Button fx:id="btnPropertyMoveToLast" mnemonicParsing="false" onAction="#doFilePropertyMoveToLast" prefHeight="46.0" prefWidth="46.0" text="⟱">
+                                    <Button fx:id="btnPropertyMoveToLast" mnemonicParsing="false" onAction="#doPropertyMoveToLast" prefHeight="46.0" prefWidth="46.0" text="⟱">
                                        <font>
                                           <Font name="Arial" size="18.0" />
                                        </font>

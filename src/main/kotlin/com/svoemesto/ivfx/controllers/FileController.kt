@@ -132,7 +132,7 @@ class FileController() {
         }
 
         fun hasCreatedShots(file: File): Boolean {
-            return ShotController.getListShots(file).isNotEmpty()
+            return ShotController.getSetShots(file).isNotEmpty()
         }
 
         fun hasDetectedFaces(fileExt: FileExt): Boolean {
@@ -169,27 +169,35 @@ class FileController() {
         }
 
         fun getListFilesExt(project: Project): List<FileExt> {
-            val list = getListFiles(project)
-            val resultedList: MutableList<FileExt> = mutableListOf()
             val projectExt = ProjectExt(project)
-            list.forEach { file ->
-                val fileExt = FileExt(file, projectExt)
-                resultedList.add(fileExt)
-            }
-            return resultedList
+            val result = getSetFiles(project).map { FileExt(it, projectExt) }.toMutableList()
+            result.sort()
+            return result
         }
 
-        fun getListFiles(project: Project): MutableList<File> {
-            val result = Main.fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toMutableList()
-            result.forEach { file ->
-                file.project = project
+//        fun getListFiles(project: Project): MutableList<File> {
+//            val result = Main.fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0).toMutableList()
+//            result.forEach { file ->
+//                file.project = project
+//
+//                val cdf = FileCdfController.getFileCdf(file)
+//                file.cdfs = mutableSetOf()
+//                file.cdfs.add(cdf)
+//                file.tracks = TrackController.getSetTracks(file)
+//            }
+//            return result
+//        }
 
+        fun getSetFiles(project: Project): MutableSet<File> {
+            val files = Main.fileRepo.findByProjectIdAndOrderGreaterThanOrderByOrder(project.id,0)
+            return files.map { file ->
+                file.project = project
                 val cdf = FileCdfController.getFileCdf(file)
-                file.cdfs = mutableListOf()
+                file.cdfs = mutableSetOf()
                 file.cdfs.add(cdf)
-                file.tracks = TrackController.getListTracks(file)
-            }
-            return result
+                file.tracks = TrackController.getSetTracks(file)
+                file
+            }.toMutableSet()
         }
 
         fun getProperties(file: File) : List<Property> {
@@ -231,7 +239,7 @@ class FileController() {
             entity.shortName = entity.name
             save(entity)
 
-            entity.cdfs = mutableListOf()
+            entity.cdfs = mutableSetOf()
             val cdf = FileCdfController.create(entity)
             cdf.path = path
             FileCdfController.save(cdf)
@@ -263,9 +271,7 @@ class FileController() {
         }
 
         fun deleteAll(project: Project) {
-            getListFiles(project).forEach { file ->
-                delete(file)
-            }
+            project.files.forEach { delete(it) }
         }
 
         fun reOrder(reorderType: ReorderTypes, file: File) {
@@ -320,9 +326,9 @@ class FileController() {
             val file = Main.fileRepo.findById(fileId).get()
             file.project = project
             val cdf = FileCdfController.getFileCdf(file)
-            file.cdfs = mutableListOf()
+            file.cdfs = mutableSetOf()
             file.cdfs.add(cdf)
-            file.tracks = TrackController.getListTracks(file)
+            file.tracks = TrackController.getSetTracks(file)
             return file
         }
 

@@ -31,7 +31,10 @@ interface FaceRepo : CrudRepository<Face, Long> {
     @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ? AND is_confirmed = false", nativeQuery = true)
     fun findByFileIdAndNotConfirmed(fileId: Long): Iterable<Face>
 
-    @Query(value = "SELECT * FROM tbl_faces INNER JOIN tbl_files ON tbl_faces.file_id = tbl_files.id WHERE tbl_files.project_id = ? AND tbl_faces.is_confirmed = true", nativeQuery = true)
-    fun getListFacesToTrain(projectId: Long): Iterable<Face>
+    @Query(value = "SELECT * FROM tbl_faces INNER JOIN tbl_files ON tbl_faces.file_id = tbl_files.id WHERE tbl_files.project_id = ?1 AND tbl_faces.person_id != ?2", nativeQuery = true)
+    fun getListFacesToTrain(projectId: Long, personUndefindedId: Long): Iterable<Face>
+
+    @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 AND frame_number = ?2", nativeQuery = true)
+    fun getListFacesInFrame(fileId: Long, frameNumber: Int): Iterable<Face>
 
 }

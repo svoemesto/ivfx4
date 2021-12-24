@@ -89,9 +89,9 @@
                                        <children>
                                           <VBox prefHeight="10000.0" prefWidth="175.0">
                                              <children>
-                                                <TableView fx:id="tblPersonsAll" maxWidth="175.0" minWidth="175.0" prefHeight="10000.0" prefWidth="175.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                                <TableView fx:id="tblPersonsAllForFile" maxWidth="175.0" minWidth="175.0" prefHeight="10000.0" prefWidth="175.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                                   <columns>
-                                                    <TableColumn fx:id="colTblPersonsAllName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
+                                                    <TableColumn fx:id="colTblPersonsAllForFileName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
                                                   </columns>
                                                 </TableView>
                                              </children>

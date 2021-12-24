@@ -40,30 +40,29 @@ class DatabaseEditFXController {
     private var btnCancel: Button? = null
 
     companion object {
-
-        private var mainStage: Stage? = null
         private var currentDatabase: H2database = H2database()
+    }
 
-        fun editH2database(h2database: H2database): H2database {
-            currentDatabase = h2database
-            try {
-                val root = FXMLLoader.load<Parent>(DatabaseEditFXController::class.java.getResource("database-edit-view.fxml"))
-                mainStage = Stage()
-                mainStage?.setTitle(if (h2database.id != null) "Редактирование базы данных" else "Добавление базы данных")
-                mainStage?.setScene(Scene(root))
-                mainStage?.initModality(Modality.APPLICATION_MODAL)
+    private var mainStage: Stage? = null
 
-                mainStage?.setOnCloseRequest { println("Закрытие окна DatabaseEditFXController.") }
+    fun editH2database(h2database: H2database): H2database {
+        currentDatabase = h2database
+        try {
+            val root = FXMLLoader.load<Parent>(DatabaseEditFXController::class.java.getResource("database-edit-view.fxml"))
+            mainStage = Stage()
+            mainStage?.setTitle(if (h2database.id != null) "Редактирование базы данных" else "Добавление базы данных")
+            mainStage?.setScene(Scene(root))
+            mainStage?.initModality(Modality.WINDOW_MODAL)
 
-                mainStage?.showAndWait()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            println("Завершение работы DatabaseEditFXController.")
-            mainStage = null
-            return currentDatabase
+            mainStage?.setOnCloseRequest { println("Закрытие окна DatabaseEditFXController.") }
+
+            mainStage?.showAndWait()
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
-
+        println("Завершение работы DatabaseEditFXController.")
+        mainStage = null
+        return currentDatabase
     }
 
     @FXML

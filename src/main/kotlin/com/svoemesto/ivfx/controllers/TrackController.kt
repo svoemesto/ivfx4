@@ -27,10 +27,16 @@ class TrackController() {
 
     companion object {
 
-        fun getListTracks(file: File): MutableList<Track> {
-            val result = Main.trackRepo.findByFileIdAndOrderGreaterThanOrderByOrder(file.id,0).toMutableList()
-            result.forEach { it.file = file }
-            return result
+//        fun getListTracks(file: File): MutableList<Track> {
+//            val result = Main.trackRepo.findByFileIdAndOrderGreaterThanOrderByOrder(file.id,0).toMutableList()
+//            result.forEach { it.file = file }
+//            return result
+//        }
+
+        fun getSetTracks(file: File): MutableSet<Track> {
+            return Main.trackRepo.findByFileIdAndOrderGreaterThanOrderByOrder(file.id, 0)
+                .map { it.file = file; it }
+                .toMutableSet()
         }
 
         fun getProperties(track: Track) : List<Property> {
@@ -103,7 +109,7 @@ class TrackController() {
         }
 
         fun deleteAll(file: File) {
-            getListTracks(file).forEach { track ->
+            file.tracks.forEach { track ->
                 PropertyController.deleteAll(track::class.java.simpleName, track.id)
                 PropertyCdfController.deleteAll(track::class.java.simpleName, track.id)
             }

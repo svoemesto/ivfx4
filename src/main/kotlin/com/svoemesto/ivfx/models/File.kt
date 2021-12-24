@@ -24,7 +24,11 @@ import javax.validation.constraints.NotNull
 @Entity
 @Table(name = "tbl_files")
 @Transactional
-class File {
+class File: Comparable<File> {
+
+    override fun compareTo(other: File): Int {
+        return this.order - other.order
+    }
 
     @NotNull(message = "ID файла не может быть NULL")
     @Id
@@ -47,23 +51,23 @@ class File {
 
     @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
-    var tracks: MutableList<Track> = mutableListOf()
+    var tracks: MutableSet<Track> = mutableSetOf()
 
     @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
-    var frames: MutableList<Frame> = mutableListOf()
+    var frames: MutableSet<Frame> = mutableSetOf()
 
     @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
-    var faces: MutableList<Face> = mutableListOf()
+    var faces: MutableSet<Face> = mutableSetOf()
 
     @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
-    var cdfs: MutableList<FileCdf> = mutableListOf()
+    var cdfs: MutableSet<FileCdf> = mutableSetOf()
 
     @OneToMany(mappedBy = "file", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
-    var shots: MutableList<Shot> = mutableListOf()
+    var shots: MutableSet<Shot> = mutableSetOf()
 
     var path: String
         get() {
@@ -81,5 +85,7 @@ class File {
                 cdfs.add(cdf)
             }
         }
+
+
 
 }

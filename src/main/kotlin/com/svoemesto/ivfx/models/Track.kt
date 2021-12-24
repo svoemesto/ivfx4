@@ -17,7 +17,11 @@ import javax.validation.constraints.NotNull
 @Entity
 @Table(name = "tbl_files_tracks")
 @Transactional
-class Track {
+class Track: Comparable<Track> {
+
+    override fun compareTo(other: Track): Int {
+        return this.order - other.order
+    }
 
     @NotNull(message = "ID трека файла не может быть NULL")
     @Id
@@ -40,5 +44,6 @@ class Track {
 
     @Column(name = "use_track", columnDefinition = "boolean default true")
     var use: Boolean = true
+
 
 }

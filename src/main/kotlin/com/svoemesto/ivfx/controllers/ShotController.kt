@@ -17,8 +17,20 @@ class ShotController() {
             return Main.propertyRepo.findByParentClassAndParentId(shot::class.simpleName!!, shot.id).toList()
         }
 
-        fun getListShots(file: File): MutableList<Shot> {
-            val result = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(file.id,0).toMutableList()
+//        fun getListShots(file: File): MutableList<Shot> {
+//            val result = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(file.id,0).toMutableList()
+//            val fileScenesShots = Main.sceneShotRepo.getScenesShotsForFile(file.id)
+//            val fileEventsShots = Main.eventShotRepo.getEventsShotsForFile(file.id)
+//            result.forEach { shot ->
+//                shot.file = file
+//                shot.scenesShots = fileScenesShots.filter { it.shot.id == shot.id }.toMutableSet()
+//                shot.eventsShots = fileEventsShots.filter { it.shot.id == shot.id }.toMutableSet()
+//            }
+//            return result
+//        }
+
+        fun getSetShots(file: File): MutableSet<Shot> {
+            val result = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(file.id,0).toMutableSet()
             val fileScenesShots = Main.sceneShotRepo.getScenesShotsForFile(file.id)
             val fileEventsShots = Main.eventShotRepo.getEventsShotsForFile(file.id)
             result.forEach { shot ->
@@ -54,7 +66,7 @@ class ShotController() {
         }
 
         fun deleteAll(file: File) {
-            getListShots(file).forEach { shot ->
+            getSetShots(file).forEach { shot ->
                 PropertyController.deleteAll(shot::class.java.simpleName, shot.id)
                 PropertyCdfController.deleteAll(shot::class.java.simpleName, shot.id)
                 TagController.deleteAll(shot::class.java.simpleName, shot.id)

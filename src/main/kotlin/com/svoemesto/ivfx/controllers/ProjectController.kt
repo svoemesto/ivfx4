@@ -42,10 +42,10 @@ class ProjectController() {
             LOG.info("fun getListProjects started")
             val result = Main.projectRepo.findByOrderGreaterThanOrderByOrder(0).toList()
             result.forEach { project ->
-                project.cdfs = mutableListOf()
+                project.cdfs = mutableSetOf()
                 project.cdfs.add(ProjectCdfController.getProjectCdf(project))
-                project.files = FileController.getListFiles(project)
-                project.persons = PersonController.getListPersons(project)
+                project.files = FileController.getSetFiles(project)
+                project.persons = PersonController.getSetPersons(project)
             }
             return result
         }
@@ -126,7 +126,7 @@ class ProjectController() {
             val lastEntity = Main.projectRepo.getEntityWithGreaterOrder().firstOrNull()
             entity.order = if (lastEntity != null) lastEntity.order + 1 else 1
             entity.name = "New order ${entity.order}"
-            entity.cdfs = mutableListOf()
+            entity.cdfs = mutableSetOf()
             entity.cdfs.add(ProjectCdfController.create(entity))
             save(entity)
             Folders.values().filter{it.forProject}.forEach {
@@ -189,10 +189,10 @@ class ProjectController() {
 
         fun getProject(projectId: Long): Project {
             val project = Main.projectRepo.findById(projectId).get()
-            project.cdfs = mutableListOf()
+            project.cdfs = mutableSetOf()
             project.cdfs.add(ProjectCdfController.getProjectCdf(project))
-            project.files = FileController.getListFiles(project)
-            project.persons = PersonController.getListPersons(project)
+            project.files = FileController.getSetFiles(project)
+            project.persons = PersonController.getSetPersons(project)
             return project
         }
 
