@@ -12,6 +12,7 @@ import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
+import com.svoemesto.ivfx.modelsext.ShotExt
 import javafx.geometry.Pos
 import org.springframework.stereotype.Controller
 import java.awt.AlphaComposite
@@ -52,50 +53,51 @@ class FaceController {
                 val personExt = PersonExt(face.person, fileExt.projectExt)
                 val faceExt = FaceExt(face, fileExt, personExt)
 
-                if (!faceExt.isConfirmed) {
-                    var needToSave = false
-                    if (face.personRecognizedName != faceExtJson.personRecognizedName) {
+                var needToSave = false
+                if (face.personRecognizedName != faceExtJson.personRecognizedName) {
 
-                        if (faceExtJson.personRecognizedName != "") {
-                            face.personRecognizedName = faceExtJson.personRecognizedName
-                            face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
-                                faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
-                            needToSave = true
-                        } else {
-                            face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
-                        }
+                    if (faceExtJson.personRecognizedName != "") {
+                        face.personRecognizedName = faceExtJson.personRecognizedName
+                        face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                            faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                        needToSave = true
+                    } else {
+                        face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
+                    }
 
-                    }
-                    if (face.recognizeProbability != faceExtJson.recognizeProbability) {
-                        face.recognizeProbability = faceExtJson.recognizeProbability
-                        needToSave = true
-                    }
-                    if (face.startX != faceExtJson.startX) {
-                        face.startX = faceExtJson.startX
-                        needToSave = true
-                    }
-                    if (face.startY != faceExtJson.startY) {
-                        face.startY = faceExtJson.startY
-                        needToSave = true
-                    }
-                    if (face.endX != faceExtJson.endX) {
-                        face.endX = faceExtJson.endX
-                        needToSave = true
-                    }
-                    if (face.endY != faceExtJson.endY) {
-                        face.endY = faceExtJson.endY
-                        needToSave = true
-                    }
-                    if (!faceExt.vector.contentEquals(faceExtJson.vector)) {
-                        faceExt.vector = faceExtJson.vector
-                        needToSave = true
-                    }
-                    if (needToSave) save(face)
                 }
+                if (face.recognizeProbability != faceExtJson.recognizeProbability) {
+                    face.recognizeProbability = faceExtJson.recognizeProbability
+                    needToSave = true
+                }
+                if (face.startX != faceExtJson.startX) {
+                    face.startX = faceExtJson.startX
+                    needToSave = true
+                }
+                if (face.startY != faceExtJson.startY) {
+                    face.startY = faceExtJson.startY
+                    needToSave = true
+                }
+                if (face.endX != faceExtJson.endX) {
+                    face.endX = faceExtJson.endX
+                    needToSave = true
+                }
+                if (face.endY != faceExtJson.endY) {
+                    face.endY = faceExtJson.endY
+                    needToSave = true
+                }
+                if (!faceExt.vector.contentEquals(faceExtJson.vector)) {
+                    faceExt.vector = faceExtJson.vector
+                    needToSave = true
+                }
+                if (needToSave) save(face)
+
                 return faceExt
 
             } else {
                 face = Face()
+                face.isExample = false
+                face.isManual = false
             }
 
             face.file = fileExt.file
@@ -124,7 +126,6 @@ class FaceController {
             face.endX = faceExtJson.endX
             face.endY = faceExtJson.endY
             face.vectorText = faceExtJson.vector.joinToString(separator = "|", prefix = "", postfix = "")
-            face.isConfirmed = false
 
             save(face)
 
@@ -216,15 +217,105 @@ class FaceController {
             return listFacesExt
         }
 
-        fun getListFacesExt(fileExt: FileExt, personExt: PersonExt): MutableList<FaceExt> {
-            val result = Main.faceRepo.findByFileIdAndPersonId(fileExt.file.id, personExt.person.id).toMutableList()
-            var listFacesExt: MutableList<FaceExt> = mutableListOf()
-            result.forEach { face->
-                face.file = fileExt.file
-                face.person = personExt.person
-                listFacesExt.add(FaceExt(face, fileExt, personExt))
-            }
-            return listFacesExt
+        fun getListFacesExt(fileExt: FileExt,
+                            personExt: PersonExt,
+                            loadNotExample: Boolean = true,
+                            loadExample: Boolean = true,
+                            loadNotManual: Boolean = true,
+                            loadManual: Boolean = true): MutableList<FaceExt> {
+
+            var result: MutableList<Face> = mutableListOf()
+
+            result = Main.faceRepo.findByFileIdAndPersonId(fileExt.file.id, personExt.person.id, loadNotExample, loadExample, loadNotManual, loadManual).toMutableList()
+
+            return result.map {
+                it.file = fileExt.file
+                it.person = personExt.person
+                FaceExt(it, fileExt, personExt)
+            }.toMutableList()
+
+        }
+
+        fun getListFacesExt(shotExt: ShotExt,
+                            personExt: PersonExt,
+                            loadNotExample: Boolean = true,
+                            loadExample: Boolean = true,
+                            loadNotManual: Boolean = true,
+                            loadManual: Boolean = true): MutableList<FaceExt> {
+
+            var result: MutableList<Face> = mutableListOf()
+
+            result = Main.faceRepo.findByShotIdAndPersonId(shotExt.shot.id, personExt.person.id, loadNotExample, loadExample, loadNotManual, loadManual).toMutableList()
+
+            val setFilesExt: MutableSet<FileExt> = mutableSetOf()
+            return result.mapNotNull { face ->
+
+                var fileId = 0L
+                var fileExt: FileExt? = null
+
+                val sqlFaces = "select * from tbl_faces as tf where tf.id = ?"
+                val stFaces = Main.connection.prepareStatement(sqlFaces)
+                stFaces.setLong(1, face.id)
+                val rsFaces = stFaces.executeQuery()
+                while (rsFaces.next()) {
+                    fileId = rsFaces.getLong("file_id")
+                    break
+                }
+                if (fileId != 0L) {
+                    fileExt = setFilesExt.firstOrNull { it.file.id == fileId }
+                    if (fileExt == null) {
+                        fileExt = FileController.getFileExt(fileId, shotExt.fileExt.projectExt.project)
+                        setFilesExt.add(fileExt)
+                    }
+                    face.file = fileExt.file
+                    face.person = personExt.person
+                    FaceExt(face, fileExt, personExt)
+                } else {
+                    null
+                }
+            }.toMutableList()
+
+        }
+
+        fun getListFacesExt(projectExt: ProjectExt,
+                            personExt: PersonExt,
+                            loadNotExample: Boolean = true,
+                            loadExample: Boolean = true,
+                            loadNotManual: Boolean = true,
+                            loadManual: Boolean = true): MutableList<FaceExt> {
+
+            var result: MutableList<Face> = mutableListOf()
+
+            result = Main.faceRepo.findByProjectIdAndPersonId(projectExt.project.id, personExt.person.id, loadNotExample, loadExample, loadNotManual, loadManual).toMutableList()
+
+            val setFilesExt: MutableSet<FileExt> = mutableSetOf()
+            return result.mapNotNull { face ->
+
+                var fileId = 0L
+                var fileExt: FileExt? = null
+
+                val sqlFaces = "select * from tbl_faces as tf where tf.id = ?"
+                val stFaces = Main.connection.prepareStatement(sqlFaces)
+                stFaces.setLong(1, face.id)
+                val rsFaces = stFaces.executeQuery()
+                while (rsFaces.next()) {
+                    fileId = rsFaces.getLong("file_id")
+                    break
+                }
+                if (fileId != 0L) {
+                    fileExt = setFilesExt.firstOrNull { it.file.id == fileId }
+                    if (fileExt == null) {
+                        fileExt = FileController.getFileExt(fileId, projectExt.project)
+                        setFilesExt.add(fileExt)
+                    }
+                    face.file = fileExt.file
+                    face.person = personExt.person
+                    FaceExt(face, fileExt, personExt)
+                } else {
+                    null
+                }
+            }.toMutableList()
+
         }
 
         data class FrameToDetectFaces(val projectId: Long,

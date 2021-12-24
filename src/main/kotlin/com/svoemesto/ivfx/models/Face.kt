@@ -64,8 +64,11 @@ class Face: Comparable<Face> {
     @Column(name = "end_y", nullable = false, columnDefinition = "int default 0")
     var endY: Int = 0
 
-    @Column(name = "is_confirmed", columnDefinition = "boolean default false")
-    var isConfirmed: Boolean = false
+    @Column(name = "is_exsample", columnDefinition = "boolean default false")
+    var isExample: Boolean = false
+
+    @Column(name = "is_manual", columnDefinition = "boolean default false")
+    var isManual: Boolean = false
 
     @Lob
     @Column(name = "vector")
