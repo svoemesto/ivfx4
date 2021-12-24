@@ -18,6 +18,7 @@ import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TableView
 import javafx.scene.image.ImageView
+import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.FileReader
 import java.io.IOException
@@ -85,7 +86,9 @@ class CreateFacesPreview(var fileExt: FileExt,
                                                            it.frame.frameNumber == faceExt.frameNumber }
                 if (frameExt == null) frameExt = FrameController.getFrameExt(faceExt.fileId, faceExt.frameNumber, fileExt.projectExt.project)
                 val biSource = ImageIO.read(IOFile(frameExt.pathToFull))
-                val bi = OverlayImage.extractRegion(biSource, faceExt.startX, faceExt.startY, faceExt.endX, faceExt.endY, Main.PREVIEW_FACE_W.toInt(), Main.PREVIEW_FACE_H.toInt(), Main.PREVIEW_FACE_EXPAND_FACTOR, Main.PREVIEW_FACE_CROPPING)
+                var bi = OverlayImage.extractRegion(biSource, faceExt.startX, faceExt.startY, faceExt.endX, faceExt.endY, Main.PREVIEW_FACE_W.toInt(), Main.PREVIEW_FACE_H.toInt(), Main.PREVIEW_FACE_EXPAND_FACTOR, Main.PREVIEW_FACE_CROPPING)
+                if (faceExt.face.isExample) bi = OverlayImage.setOverlayTriangle(bi,3,0.2, Color.GREEN, 1.0F)
+                if (faceExt.face.isManual) bi = OverlayImage.setOverlayTriangle(bi,3,0.2, Color.RED, 1.0F)
                 val outputfile = IOFile(faceExt.pathToPreviewFile)
                 ImageIO.write(bi, "jpg", outputfile)
             }

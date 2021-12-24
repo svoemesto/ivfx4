@@ -10,6 +10,7 @@ import com.svoemesto.ivfx.utils.OverlayImage
 import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.image.ImageView
+import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import java.io.File as IOFile
@@ -78,9 +79,13 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
     @SerializedName("endY")
     var toSerializeEndY = endY
 
-    val isConfirmed: Boolean get() = face.isConfirmed
-    @SerializedName("isConfirmed")
-    var toSerializeIsConfirmed = isConfirmed
+    val isExample: Boolean get() = face.isExample
+    @SerializedName("isExample")
+    var toSerializeIsExample = isExample
+
+    val isManual: Boolean get() = face.isManual
+    @SerializedName("isManual")
+    var toSerializeIsManual = isManual
 
     var vector: DoubleArray
         get() {
@@ -109,6 +114,8 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
                     if (!IOFile(pathToPreviewFile).parentFile.exists()) IOFile(pathToPreviewFile).parentFile.mkdir()
                     val biSource = ImageIO.read(IOFile(FrameController.getFrameExt(fileId, frameNumber, fileExt.projectExt.project).pathToFull))
                     bi = OverlayImage.extractRegion(biSource, startX, startY, endX, endY, Main.PREVIEW_FACE_W.toInt(), Main.PREVIEW_FACE_H.toInt(), Main.PREVIEW_FACE_EXPAND_FACTOR, Main.PREVIEW_FACE_CROPPING)
+                    if (face.isExample) bi = OverlayImage.setOverlayTriangle(bi,3,0.2, Color.GREEN, 1.0F)
+                    if (face.isManual) bi = OverlayImage.setOverlayTriangle(bi,3,0.2, Color.RED, 1.0F)
                     val outputfile = IOFile(pathToPreviewFile)
                     ImageIO.write(bi, "jpg", outputfile)
                 }
