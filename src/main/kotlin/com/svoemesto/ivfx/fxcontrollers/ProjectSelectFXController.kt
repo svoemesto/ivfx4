@@ -55,35 +55,36 @@ class ProjectSelectFXController {
     private var btnCancel: Button? = null
 
     companion object {
-
-        private var mainStage: Stage? = null
         private var currentProject: Project? = null
         private var incomingProject: Project? = null
-        private var listProjects: ObservableList<Project> = FXCollections.observableArrayList()
-
-        fun getProject(project: Project?): Project? {
-            currentProject = project
-            incomingProject = project
-            mainStage = Stage()
-            try {
-                val root = FXMLLoader.load<Parent>(ProjectSelectFXController::class.java.getResource("project-select-view.fxml"))
-                mainStage?.setTitle("Выбор проекта.")
-                mainStage?.setScene(Scene(root))
-                mainStage?.initModality(Modality.APPLICATION_MODAL)
-
-                mainStage?.setOnCloseRequest { println("Закрытие окна ProjectSelectFXController.") }
-
-                mainStage?.showAndWait()
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            println("Завершение работы ProjectSelectFXController.")
-            mainStage = null
-            return currentProject
-        }
-
     }
+
+    private var mainStage: Stage? = null
+
+    private var listProjects: ObservableList<Project> = FXCollections.observableArrayList()
+
+    fun getProject(project: Project?): Project? {
+        currentProject = project
+        incomingProject = project
+        mainStage = Stage()
+        try {
+            val root = FXMLLoader.load<Parent>(ProjectSelectFXController::class.java.getResource("project-select-view.fxml"))
+            mainStage?.setTitle("Выбор проекта.")
+            mainStage?.setScene(Scene(root))
+            mainStage?.initModality(Modality.WINDOW_MODAL)
+
+            mainStage?.setOnCloseRequest { println("Закрытие окна ProjectSelectFXController.") }
+
+            mainStage?.showAndWait()
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        println("Завершение работы ProjectSelectFXController.")
+        mainStage = null
+        return currentProject
+    }
+
 
     @FXML
     fun initialize() {

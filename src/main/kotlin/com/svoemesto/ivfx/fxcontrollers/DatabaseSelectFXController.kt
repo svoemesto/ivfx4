@@ -42,33 +42,31 @@ class DatabaseSelectFXController {
     private var btnCancel: Button? = null
 
     companion object {
-
-        private var mainStage: Stage? = null
         private var currentDatabase: H2database? = null
         private var incomingDatabase: H2database? = null
-        private var listDatabases: ObservableList<H2database> = FXCollections.observableArrayList()
+    }
+    private var mainStage: Stage? = null
+    private var listDatabases: ObservableList<H2database> = FXCollections.observableArrayList()
 
-        fun getDatabase(h2database: H2database?): H2database? {
-            mainStage = Stage()
-            currentDatabase = h2database
-            incomingDatabase = h2database
-            try {
-                val root = FXMLLoader.load<Parent>(DatabaseSelectFXController::class.java.getResource("database-select-view.fxml"))
-                mainStage?.setTitle("Выбор базы данных")
-                mainStage?.setScene(Scene(root))
-                mainStage?.initModality(Modality.APPLICATION_MODAL)
+    fun getDatabase(h2database: H2database?): H2database? {
+        mainStage = Stage()
+        currentDatabase = h2database
+        incomingDatabase = h2database
+        try {
+            val root = FXMLLoader.load<Parent>(DatabaseSelectFXController::class.java.getResource("database-select-view.fxml"))
+            mainStage?.setTitle("Выбор базы данных")
+            mainStage?.setScene(Scene(root))
+            mainStage?.initModality(Modality.WINDOW_MODAL)
 
-                mainStage?.setOnCloseRequest { println("Закрытие окна DatabaseSelectFXController.") }
+            mainStage?.setOnCloseRequest { println("Закрытие окна DatabaseSelectFXController.") }
 
-                mainStage?.showAndWait()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            println("Завершение работы DatabaseSelectFXController.")
-            mainStage = null
-            return currentDatabase
+            mainStage?.showAndWait()
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
-
+        println("Завершение работы DatabaseSelectFXController.")
+        mainStage = null
+        return currentDatabase
     }
 
 
@@ -112,7 +110,7 @@ class DatabaseSelectFXController {
     @FXML
     fun doCreateNewDb(event: ActionEvent?) {
         println("Нажатие кнопки CreateNewDb")
-        DatabaseEditFXController.editH2database(H2database())
+        DatabaseEditFXController().editH2database(H2database())
         listDatabases = FXCollections.observableArrayList(getListH2databases())
         tblDatabases?.items = listDatabases
     }
@@ -128,7 +126,7 @@ class DatabaseSelectFXController {
     @FXML
     fun doEditDb(event: ActionEvent?) {
         println("Нажатие кнопки EditDb")
-        currentDatabase?.let { DatabaseEditFXController.editH2database(it) }
+        currentDatabase?.let { DatabaseEditFXController().editH2database(it) }
         listDatabases = FXCollections.observableArrayList(getListH2databases())
         tblDatabases?.refresh()
     }

@@ -14,7 +14,11 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import java.io.File as IOFile
 
-class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Transient var personExt: PersonExt) {
+class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Transient var personExt: PersonExt): Comparable<FaceExt> {
+
+    override fun compareTo(other: FaceExt): Int {
+        return this.face.compareTo(other.face)
+    }
 
     @SerializedName("projectId")
     var projectId: Long  = fileExt.projectExt.project.id
@@ -113,15 +117,15 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
             return field
         }
 
-    @Transient
-    var previewMediumMarked: ImageView? = null
-        get() {
-            if (field == null) {
-                var bi: BufferedImage? = FaceController.getOverlayedFrame(this)
-                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
-            }
-            return field
-        }
+//    @Transient
+//    var previewMediumMarked: ImageView? = null
+//        get() {
+//            if (field == null) {
+//                var bi: BufferedImage? = FaceController.getOverlayedFrame(this)
+//                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
+//            }
+//            return field
+//        }
 
     @Transient
     var labelSmall: Label? = null
@@ -135,16 +139,18 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
             return field
         }
 
-    @Transient
-    var labelMediumMarked: Label? = null
-        get() {
-            if (field == null) {
-                field = Label()
-                field!!.setPrefSize(Main.MEDIUM_FRAME_W, Main.MEDIUM_FRAME_H)
-                field!!.graphic = previewMediumMarked
-                field!!.alignment = Pos.CENTER
-            }
-            return field
-        }
+
+
+//    @Transient
+//    var labelMediumMarked: Label? = null
+//        get() {
+//            if (field == null) {
+//                field = Label()
+//                field!!.setPrefSize(Main.MEDIUM_FRAME_W, Main.MEDIUM_FRAME_H)
+//                field!!.graphic = previewMediumMarked
+//                field!!.alignment = Pos.CENTER
+//            }
+//            return field
+//        }
 
 }

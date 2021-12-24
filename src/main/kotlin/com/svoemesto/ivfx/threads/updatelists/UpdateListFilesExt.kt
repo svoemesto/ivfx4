@@ -51,6 +51,8 @@ class UpdateListFilesExt(
             fileExt.hasCreatedShots
             fileExt.hasDetectedFaces
             fileExt.hasCreatedFaces
+            fileExt.hasCreatedFacesPreview
+            fileExt.hasRecognizedFaces
 
         }
         Platform.runLater {

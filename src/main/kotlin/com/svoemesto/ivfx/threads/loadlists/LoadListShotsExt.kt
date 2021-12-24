@@ -34,7 +34,8 @@ class LoadListShotsExt(
         }
 
 //        val sourceIterable = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(fileExt.file.id, 0)
-        val sourceIterable = ShotController.getListShots(fileExt.file)
+        val sourceIterable = ShotController.getSetShots(fileExt.file).toMutableList()
+        sourceIterable.sort()
         list.clear()
 
         for ((i, shot) in sourceIterable.withIndex()) {

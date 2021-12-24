@@ -65,9 +65,8 @@ class Shot: Comparable<Shot> {
 
     val isBodyScene: Boolean
         get() {
-            val list: MutableList<Shot> = mutableListOf()
             scenesShots.forEach { sceneShotForShot->
-                sceneShotForShot.scene.scenesShots.forEach { list.add(it.shot) }
+                val list = sceneShotForShot.scene.scenesShots.map {it.shot}.toMutableList()
                 list.sort()
                 if (list.contains(this) && this != list.firstOrNull() && this != list.lastOrNull()) return true
             }
@@ -76,9 +75,8 @@ class Shot: Comparable<Shot> {
 
     val isStartScene: Boolean
         get() {
-            val list: MutableList<Shot> = mutableListOf()
             scenesShots.forEach { sceneShotForShot->
-                sceneShotForShot.scene.scenesShots.forEach { list.add(it.shot) }
+                val list = sceneShotForShot.scene.scenesShots.map {it.shot}.toMutableList()
                 list.sort()
                 if (this == list.firstOrNull()) return true
             }
@@ -87,9 +85,8 @@ class Shot: Comparable<Shot> {
 
     val isEndScene: Boolean
         get() {
-            val list: MutableList<Shot> = mutableListOf()
             scenesShots.forEach { sceneShotForShot->
-                sceneShotForShot.scene.scenesShots.forEach { list.add(it.shot) }
+                val list = sceneShotForShot.scene.scenesShots.map {it.shot}.toMutableList()
                 list.sort()
                 if (this == list.lastOrNull()) return true
             }
@@ -98,9 +95,8 @@ class Shot: Comparable<Shot> {
 
     val isBodyEvent: Boolean
         get() {
-            val list: MutableList<Shot> = mutableListOf()
             eventsShots.forEach { sceneShotForShot->
-                sceneShotForShot.event.eventsShots.forEach { list.add(it.shot) }
+                val list = sceneShotForShot.event.eventsShots.map {it.shot}.toMutableList()
                 list.sort()
                 if (list.contains(this) && this != list.firstOrNull() && this != list.lastOrNull()) return true
             }
@@ -109,9 +105,8 @@ class Shot: Comparable<Shot> {
 
     val isStartEvent: Boolean
         get() {
-            val list: MutableList<Shot> = mutableListOf()
             eventsShots.forEach { sceneShotForShot->
-                sceneShotForShot.event.eventsShots.forEach { list.add(it.shot) }
+                val list = sceneShotForShot.event.eventsShots.map {it.shot}.toMutableList()
                 list.sort()
                 if (this == list.firstOrNull()) return true
             }
@@ -120,9 +115,8 @@ class Shot: Comparable<Shot> {
 
     val isEndEvent: Boolean
         get() {
-            val list: MutableList<Shot> = mutableListOf()
             eventsShots.forEach { sceneShotForShot->
-                sceneShotForShot.event.eventsShots.forEach { list.add(it.shot) }
+                val list = sceneShotForShot.event.eventsShots.map {it.shot}.toMutableList()
                 list.sort()
                 if (this == list.lastOrNull()) return true
             }

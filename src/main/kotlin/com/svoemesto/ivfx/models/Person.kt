@@ -41,7 +41,7 @@ class Person: Comparable<Person> {
 
     @OneToMany(mappedBy = "person", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
-    var faces: MutableList<Face> = mutableListOf()
+    var faces: MutableSet<Face> = mutableSetOf()
 
     @Column(name = "person_type", nullable = false, columnDefinition = "int default 0")
     var personType: PersonType = PersonType.PERSON

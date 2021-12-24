@@ -18,7 +18,13 @@ import javax.validation.constraints.NotNull
 @Entity
 @Table(name = "tbl_faces")
 @Transactional
-class Face {
+class Face: Comparable<Face> {
+
+    override fun compareTo(other: Face): Int {
+        if (this.file.order != other.file.order) return this.file.order - other.file.order
+        if (this.frameNumber != other.frameNumber) return this.frameNumber - other.frameNumber
+        return this.faceNumberInFrame - other.faceNumberInFrame
+    }
 
     @NotNull(message = "ID face не может быть NULL")
     @Id
@@ -77,4 +83,6 @@ class Face {
         set(value) {
             vectorText = if (vector.isEmpty()) "" else value.joinToString(separator = "|", prefix = "", postfix = "")
             }
+
+
 }

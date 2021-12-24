@@ -42,48 +42,49 @@ class TagCreateFXController {
     private var btnCancel: Button? = null
 
     companion object {
-
-        private var mainStage: Stage? = null
         private var currentParentClass: String? = null
         private var currentParentId: Long? = null
         private var currentTagType: TagType? = null
         private var currentTagName: String = ""
         private var currentDisableChoiceTagType: Boolean = false
-        private var currentTag: Tag? = null
-        private var listTagsTypes: ObservableList<TagType> = FXCollections.observableArrayList()
-
-        fun getNewTag(parentClass: String,
-                      parentId: Long,
-                      name: String = "",
-                      tagType: TagType = TagType.NONE,
-                      disableChoiceTagType: Boolean = false): Tag? {
-            currentParentClass = parentClass
-            currentParentId = parentId
-            currentTagName = name
-            currentTagType = tagType
-            currentDisableChoiceTagType = disableChoiceTagType
-
-            mainStage = Stage()
-            try {
-                val root = FXMLLoader.load<Parent>(TagCreateFXController::class.java.getResource("tag-create-view.fxml"))
-                mainStage?.title = "Создание нового тэга."
-                mainStage?.scene = Scene(root)
-                mainStage?.initModality(Modality.APPLICATION_MODAL)
-
-                mainStage?.setOnCloseRequest { println("Закрытие окна TagCreateFXController.") }
-
-                mainStage?.showAndWait()
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            println("Завершение работы TagCreateFXController.")
-            mainStage = null
-            return currentTag
-
-        }
 
     }
+
+    private var mainStage: Stage? = null
+    private var currentTag: Tag? = null
+    private var listTagsTypes: ObservableList<TagType> = FXCollections.observableArrayList()
+
+    fun getNewTag(parentClass: String,
+                  parentId: Long,
+                  name: String = "",
+                  tagType: TagType = TagType.NONE,
+                  disableChoiceTagType: Boolean = false): Tag? {
+        currentParentClass = parentClass
+        currentParentId = parentId
+        currentTagName = name
+        currentTagType = tagType
+        currentDisableChoiceTagType = disableChoiceTagType
+
+        mainStage = Stage()
+        try {
+            val root = FXMLLoader.load<Parent>(TagCreateFXController::class.java.getResource("tag-create-view.fxml"))
+            mainStage?.title = "Создание нового тэга."
+            mainStage?.scene = Scene(root)
+            mainStage?.initModality(Modality.WINDOW_MODAL)
+
+            mainStage?.setOnCloseRequest { println("Закрытие окна TagCreateFXController.") }
+
+            mainStage?.showAndWait()
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        println("Завершение работы TagCreateFXController.")
+        mainStage = null
+        return currentTag
+
+    }
+
 
     @FXML
     fun initialize() {

@@ -15,6 +15,7 @@ import javafx.scene.control.TableView
 import org.sikuli.basics.Settings
 import org.sikuli.script.Finder
 import org.sikuli.script.Pattern
+import kotlin.math.abs
 
 class AnalyzeFrames(var fileExt: FileExt,
                     val table: TableView<FileExt>,
@@ -53,23 +54,28 @@ class AnalyzeFrames(var fileExt: FileExt,
         var currentBlock = 0
 
         // 1. создаем список кадров и заполняем его номером, файлом и признаком isIFrame
-        currentBlock++
-        val listFramesExt = FrameController.getListFramesExt(fileExt)
-        for (frameNumber in 1..framesCount) {
-            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
-            val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-            val percentage2: Double = ((currentBlock-1) + frameNumber/framesCount.toDouble() ) / countBlocks.toDouble()
-            val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
-            Platform.runLater {
-                lbl1.text = textLbl1
-                pb1.progress = percentage1
-                lbl2.text = "Create list Frames [$frameNumber/$framesCount]"
-                pb2.progress = percentage2
-            }
-            val frameExt: FrameExt = listFramesExt.first { it.frame.frameNumber == frameNumber }
-            frameExt.frame.isIFrame = listIFrames.contains(frameNumber)
-
+        Platform.runLater {
+            lbl1.text = textLbl1
+            lbl2.text = "Create list Frames"
         }
+        currentBlock++
+        var listFramesExt = FrameController.getListFramesExt(fileExt)
+        listFramesExt.filter{listIFrames.contains(it.frame.frameNumber)}.forEach{it.frame.isIFrame = true}
+//        for (frameNumber in 1..framesCount) {
+//            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
+//            val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
+//            val percentage2: Double = ((currentBlock-1) + frameNumber/framesCount.toDouble() ) / countBlocks.toDouble()
+//            val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
+//            Platform.runLater {
+//                lbl1.text = textLbl1
+//                pb1.progress = percentage1
+//                lbl2.text = "Create list Frames [$frameNumber/$framesCount]"
+//                pb2.progress = percentage2
+//            }
+//            val frameExt: FrameExt = listFramesExt.first { it.frame.frameNumber == frameNumber }
+//            frameExt.frame.isIFrame = listIFrames.contains(frameNumber)
+//
+//        }
 
         // 2. заполняем simScore's
         currentBlock++
@@ -90,8 +96,9 @@ class AnalyzeFrames(var fileExt: FileExt,
             val frameNextExt2: FrameExt? = if (i < listFramesExt.size - 2) listFramesExt[i + 2] else null
             val frameNextExt3: FrameExt? = if (i < listFramesExt.size - 3) listFramesExt[i + 3] else null
             simScore = 0.9999
+            val f = Finder(currentFrameExt.pathToSmall)
             if (frameNextExt1 != null) {
-                val f = Finder(currentFrameExt.pathToSmall)
+//                val f = Finder(currentFrameExt.pathToSmall)
                 f.find(Pattern(frameNextExt1.pathToSmall))
                 simScore = if (f.hasNext()) f.next().score else 0.0
                 frameNextExt1.frame.simScorePrev1 = simScore
@@ -99,7 +106,7 @@ class AnalyzeFrames(var fileExt: FileExt,
             currentFrameExt.frame.simScoreNext1 = simScore
             simScore = 0.9999
             if (frameNextExt2 != null) {
-                val f = Finder(currentFrameExt.pathToSmall)
+//                val f = Finder(currentFrameExt.pathToSmall)
                 f.find(Pattern(frameNextExt2.pathToSmall))
                 simScore = if (f.hasNext()) f.next().score else 0.0
                 frameNextExt2.frame.simScorePrev2 = simScore
@@ -107,7 +114,7 @@ class AnalyzeFrames(var fileExt: FileExt,
             currentFrameExt.frame.simScoreNext2 = simScore
             simScore = 0.9999
             if (frameNextExt3 != null) {
-                val f = Finder(currentFrameExt.pathToSmall)
+//                val f = Finder(currentFrameExt.pathToSmall)
                 f.find(Pattern(frameNextExt3.pathToSmall))
                 simScore = if (f.hasNext()) f.next().score else 0.0
                 frameNextExt3.frame.simScorePrev3 = simScore
@@ -134,31 +141,43 @@ class AnalyzeFrames(var fileExt: FileExt,
             val framePrevExt2: FrameExt? = if (i > 1) listFramesExt[i - 2] else null
             val frameNextExt1: FrameExt? = if (i < listFramesExt.size - 1) listFramesExt[i + 1] else null
             val frameNextExt2: FrameExt? = if (i < listFramesExt.size - 2) listFramesExt[i + 2] else null
-            var diffNext: Double
-            diffNext = 0.0
-            if (frameNextExt1 != null) {
-                diffNext = currentFrameExt.frame.simScoreNext1 - frameNextExt1.frame.simScoreNext1
-                if (diffNext < 0) diffNext = -diffNext
+            with(currentFrameExt.frame) {
+                this.diffNext1 = if (frameNextExt1 != null) abs(this.simScoreNext1 - frameNextExt1.frame.simScoreNext1) else 0.0
+                this.diffNext2 = if (frameNextExt1 != null && frameNextExt2 != null) abs(frameNextExt1.frame.simScoreNext1 - frameNextExt2.frame.simScoreNext1) else 0.0
+                this.diffPrev1 = if (framePrevExt1 != null) abs(framePrevExt1.frame.simScoreNext1 - this.simScoreNext1) else 0.0
+                this.diffPrev1 = if (framePrevExt1 != null && framePrevExt2 != null) abs(framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1) else 0.0
             }
-            currentFrameExt.frame.diffNext1 = diffNext
-            diffNext = 0.0
-            if (frameNextExt1 != null && frameNextExt2 != null) {
-                diffNext = frameNextExt1.frame.simScoreNext1 - frameNextExt2.frame.simScoreNext1
-                if (diffNext < 0) diffNext = -diffNext
-            }
-            currentFrameExt.frame.diffNext2 = diffNext
-            diffNext = 0.0
-            if (framePrevExt1 != null) {
-                diffNext = framePrevExt1.frame.simScoreNext1 - currentFrameExt.frame.simScoreNext1
-                if (diffNext < 0) diffNext = -diffNext
-            }
-            currentFrameExt.frame.diffPrev1 = diffNext
-            diffNext = 0.0
-            if (framePrevExt1 != null && framePrevExt2 != null) {
-                diffNext = framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1
-                if (diffNext < 0) diffNext = -diffNext
-            }
-            currentFrameExt.frame.diffPrev2 = diffNext
+
+//            currentFrameExt.frame.diffNext1 = if (frameNextExt1 != null) abs(currentFrameExt.frame.simScoreNext1 - frameNextExt1.frame.simScoreNext1) else 0.0
+//            currentFrameExt.frame.diffNext2 = if (frameNextExt1 != null && frameNextExt2 != null) abs(frameNextExt1.frame.simScoreNext1 - frameNextExt2.frame.simScoreNext1) else 0.0
+//            currentFrameExt.frame.diffPrev1 = if (framePrevExt1 != null) abs(framePrevExt1.frame.simScoreNext1 - currentFrameExt.frame.simScoreNext1) else 0.0
+//            currentFrameExt.frame.diffPrev1 = if (framePrevExt1 != null && framePrevExt2 != null) abs(framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1) else 0.0
+
+        //            var diffNext: Double
+//            diffNext = 0.0
+//            if (frameNextExt1 != null) {
+//                diffNext = currentFrameExt.frame.simScoreNext1 - frameNextExt1.frame.simScoreNext1
+//                if (diffNext < 0) diffNext = -diffNext
+//            }
+//            currentFrameExt.frame.diffNext1 = diffNext
+//            diffNext = 0.0
+//            if (frameNextExt1 != null && frameNextExt2 != null) {
+//                diffNext = frameNextExt1.frame.simScoreNext1 - frameNextExt2.frame.simScoreNext1
+//                if (diffNext < 0) diffNext = -diffNext
+//            }
+//            currentFrameExt.frame.diffNext2 = diffNext
+//            diffNext = 0.0
+//            if (framePrevExt1 != null) {
+//                diffNext = framePrevExt1.frame.simScoreNext1 - currentFrameExt.frame.simScoreNext1
+//                if (diffNext < 0) diffNext = -diffNext
+//            }
+//            currentFrameExt.frame.diffPrev1 = diffNext
+//            diffNext = 0.0
+//            if (framePrevExt1 != null && framePrevExt2 != null) {
+//                diffNext = framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1
+//                if (diffNext < 0) diffNext = -diffNext
+//            }
+//            currentFrameExt.frame.diffPrev2 = diffNext
         }
 
         // 4. находим переходы

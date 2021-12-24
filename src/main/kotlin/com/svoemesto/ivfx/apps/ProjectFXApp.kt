@@ -17,7 +17,7 @@ class ProjectFXApp: Application() {
     override fun start(stage: Stage) {
 
         initializeH2db()
-        ProjectEditFXController.editProject(null, hostServices)
+        ProjectEditFXController().editProject(null, hostServices)
 
 //        val context = AnnotationConfigApplicationContext(SpringConfig::class.java)
 

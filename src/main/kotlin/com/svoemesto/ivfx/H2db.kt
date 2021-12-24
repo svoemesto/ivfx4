@@ -22,7 +22,7 @@ fun main() {
 
     initializeH2db()
 
-    DatabaseSelectFXController.getDatabase(null)
+    DatabaseSelectFXController().getDatabase(null)
 
 }
 

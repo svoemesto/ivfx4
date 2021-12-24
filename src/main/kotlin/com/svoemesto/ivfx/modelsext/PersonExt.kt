@@ -37,6 +37,7 @@ class PersonExt(val person: Person, val projectExt: ProjectExt) : Comparable<Per
                             if (faceExt != null) {
                                 if (!IOFile(pathToSmall).parentFile.exists()) IOFile(pathToSmall).parentFile.mkdir()
                                 val biSource = ImageIO.read(IOFile(FrameController.getFrameExt(faceExt.fileId, faceExt.frameNumber, faceExt.fileExt.projectExt.project).pathToFull))
+
                                 bi = OverlayImage.extractRegion(biSource, faceExt.startX, faceExt.startY, faceExt.endX, faceExt.endY,
                                     Main.PREVIEW_FRAME_W.toInt(), Main.PREVIEW_FRAME_H.toInt(), Main.PREVIEW_FACE_EXPAND_FACTOR, Main.PREVIEW_PERSON_CROPPING)
                                 val outputfile = IOFile(pathToSmall)

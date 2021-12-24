@@ -6,6 +6,7 @@ import com.svoemesto.ivfx.utils.ConvertToFxImage
 import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.image.ImageView
+import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import java.io.File as IOFile
 
@@ -21,10 +22,17 @@ data class FrameExt(val frame: Frame,
     val pathToSmall: String get() = "${fileExt.folderFramesSmall}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     val pathToMedium: String get() = "${fileExt.folderFramesMedium}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     val pathToFull: String get() = "${fileExt.folderFramesFull}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
+    var biSmall: BufferedImage? = null
+        get() {
+            if (field == null) {
+                field = ImageIO.read(IOFile(if (IOFile(pathToSmall).exists()) pathToSmall else pathToStubSmall))
+            }
+            return field
+        }
     var previewSmall: ImageView? = null
         get() {
             if (field == null) {
-                field = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(if (IOFile(pathToSmall).exists()) pathToSmall else pathToStubSmall))))
+                field = ImageView(ConvertToFxImage.convertToFxImage(biSmall))
             }
             return field
         }
@@ -38,10 +46,17 @@ data class FrameExt(val frame: Frame,
             }
             return field
         }
+    var biMedium: BufferedImage? = null
+        get() {
+            if (field == null) {
+                field = ImageIO.read(IOFile(if (IOFile(pathToMedium).exists()) pathToMedium else pathToStubMedium))
+            }
+            return field
+        }
     var previewMedium: ImageView? = null
         get() {
             if (field == null) {
-                field = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(if (IOFile(pathToMedium).exists()) pathToMedium else pathToStubMedium))))
+                field = ImageView(ConvertToFxImage.convertToFxImage(biMedium))
             }
             return field
         }

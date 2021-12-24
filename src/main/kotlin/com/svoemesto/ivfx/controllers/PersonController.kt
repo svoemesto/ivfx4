@@ -15,19 +15,21 @@ class PersonController() {
 
     companion object {
 
-        fun getListPersons(project: Project): MutableList<Person> {
-            val result = Main.personRepo.findByProjectId(project.id).toMutableList()
-            result.forEach { it.project = project }
-            result.sort()
-            return result
+//        fun getListPersons(project: Project): MutableList<Person> {
+//            val result = Main.personRepo.findByProjectId(project.id).toMutableList()
+//            result.forEach { it.project = project }
+//            result.sort()
+//            return result
+//        }
+
+        fun getSetPersons(project: Project): MutableSet<Person> {
+            return Main.personRepo.findByProjectId(project.id).map { it.project = project;it }.toMutableSet()
         }
 
         fun getListPersonsExt(projectExt: ProjectExt): MutableList<PersonExt> {
-
-            val listPersonsExt: MutableList<PersonExt> = mutableListOf()
-            getListPersons(projectExt.project).forEach { listPersonsExt.add(PersonExt(it, projectExt)) }
-
-            return listPersonsExt
+            val result = projectExt.project.persons.map {PersonExt(it, projectExt)}.toMutableList()
+            result.sort()
+            return result
         }
 
         fun save(person: Person) {
@@ -105,7 +107,7 @@ class PersonController() {
         }
 
         fun deleteAll(project: Project) {
-            getListPersons(project).forEach { delete(it) }
+            project.persons.forEach { delete(it) }
         }
 
         fun getPersonByProjectIdAndNameInRecognizer(project: Project,

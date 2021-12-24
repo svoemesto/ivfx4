@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.fxcontrollers
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import com.svoemesto.ivfx.controllers.FaceController
+import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -140,36 +141,37 @@ class ProjectActionsFXController {
     @FXML
     private var lblPb2: Label? = null
 
-
     companion object {
-
-        private var hostServices: HostServices? = null
-
-        private var mainStage: Stage? = null
         private var currentProject: Project = Project()
-        private var currentFileExt: FileExt? = null
         private var listFilesExt: ObservableList<FileExt> = FXCollections.observableArrayList()
+        private var hostServices: HostServices? = null
+    }
 
-        fun actionsProject(project: Project, listFilesExt: ObservableList<FileExt>, hostServices: HostServices? = null) {
-            currentProject = project
-            this.listFilesExt = listFilesExt
-            mainStage = Stage()
-            try {
-                val root = FXMLLoader.load<Parent>(ProjectEditFXController::class.java.getResource("project-actions-view.fxml"))
-                mainStage?.setScene(Scene(root))
-                this.hostServices = hostServices
-                mainStage?.initModality(Modality.APPLICATION_MODAL)
-                mainStage?.showAndWait()
 
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            println("Завершение работы ProjectActionsFXController.")
-            mainStage = null
+    private var mainStage: Stage? = null
 
+    private var currentFileExt: FileExt? = null
+
+
+    fun actionsProject(project: Project, listFilesExt: ObservableList<FileExt>, hostServices: HostServices? = null) {
+        currentProject = project
+        ProjectActionsFXController.listFilesExt = listFilesExt
+        mainStage = Stage()
+        try {
+            val root = FXMLLoader.load<Parent>(ProjectEditFXController::class.java.getResource("project-actions-view.fxml"))
+            mainStage?.setScene(Scene(root))
+            ProjectActionsFXController.hostServices = hostServices
+            mainStage?.initModality(Modality.NONE)
+            mainStage?.showAndWait()
+
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
+        println("Завершение работы ProjectActionsFXController.")
+        mainStage = null
 
     }
+
 
     @FXML
     fun initialize() {
@@ -306,7 +308,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     CreateFaces(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
+                        "File: ${fileExt.file.name}, Action: Create Faces, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
@@ -315,7 +317,7 @@ class ProjectActionsFXController {
                 counterPb1++
                 listThreads.add(
                     CreateFacesPreview(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
+                        "File: ${fileExt.file.name}, Action: Create Faces Preview, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }

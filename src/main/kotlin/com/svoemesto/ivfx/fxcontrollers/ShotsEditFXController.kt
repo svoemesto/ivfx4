@@ -104,10 +104,10 @@ class ShotsEditFXController {
     private var colButtonGetType: TableColumn<ShotExt, String>? = null
 
     @FXML
-    private var tblPersonsAll: TableView<PersonExt>? = null
+    private var tblPersonsAllForFile: TableView<PersonExt>? = null
 
     @FXML
-    private var colTblPersonsAllName: TableColumn<PersonExt, String>? = null
+    private var colTblPersonsAllForFileName: TableColumn<PersonExt, String>? = null
 
     @FXML
     private var tblPagesFaces: TableView<MatrixPageFaces>? = null
@@ -137,78 +137,15 @@ class ShotsEditFXController {
     private var lblPb: Label? = null
 
     companion object {
-        private const val fxBorderDefault = "-fx-border-color:#0f0f0f;-fx-border-width:1" // стиль бордюра лейбла по-умолчанию
-        private const val fxBorderFocused = "-fx-border-color:YELLOW;-fx-border-width:1" // стиль бордюра лейбла в фокусе
-        private const val fxBorderSelected = "-fx-border-color:RED;-fx-border-width:1" // стиль бордюра лейбла выбранного
-        private const val fxBorderSelectedFocused = "-fx-border-color:ORANGE;-fx-border-width:1" // стиль бордюра лейбла выбранного
-
-        private val runListThreadsFramesFlagIsDone = SimpleBooleanProperty(false)
-        private val runListThreadsFacesFlagIsDone = SimpleBooleanProperty(false)
-        private val sbpCurrentMatrixPageWasChanged = SimpleBooleanProperty(false)
-        private val sbpCurrentMatrixFrameWasChanged = SimpleBooleanProperty(false)
-        private val sbpCurrentShotExtWasChanged = SimpleBooleanProperty(false)
-        private val sbpNeedCreatePagesWasChanged = SimpleBooleanProperty(false)
-        private var isPressedPlayForward = SimpleBooleanProperty(false)
-        private var isPressedPlayBackward = SimpleBooleanProperty(false)
-
-        private var hostServices: HostServices? = null
         private var currentFileExt: FileExt? = null
+        private var hostServices: HostServices? = null
         private var mainStage: Stage? = null
-
-        private var listMatrixPageFrames: ObservableList<MatrixPageFrames> = FXCollections.observableArrayList()
-        private var listMatrixPageFaces: ObservableList<MatrixPageFaces> = FXCollections.observableArrayList()
-        private var listPersonsExtForFile: ObservableList<PersonExt> = FXCollections.observableArrayList()
-        private var listFacesExt: ObservableList<FaceExt> = FXCollections.observableArrayList()
-        private var countColumnsInPage = 0
-        private var countRowsInPage = 0
-
         private var isWorking = false
         private var isPressedControl = false
         private var isPressedShift = false
         private var isPlayingForward = false
-
-        private var currentMatrixPageFrames: MatrixPageFrames? = null
-        private var currentMatrixPageFaces: MatrixPageFaces? = null
-        private var currentMatrixFrame: MatrixFrame? = null
-        private var currentMatrixFace: MatrixFace? = null
-        private var currentShotExt: ShotExt? = null
-        private var currentPersonExt: PersonExt? = null
-        private var currentNumPage = 0
-        private var flowTblPagesFrames: VirtualFlow<*>? = null
-        private var flowTblPagesFaces: VirtualFlow<*>? = null
-        private var flowTblShots: VirtualFlow<*>? = null
-        private var flowTblPersonsAll: VirtualFlow<*>? = null
-
-        private var wasClickTablePagesFrames = false
-        private var wasClickTablePagesFaces = false
-        private var wasClickTableShots = false
-        private var wasClickTablePersonsAll = false
-        private var wasClickFrameLabel = false
-
-        private var selectedMatrixFaces: MutableSet<MatrixFace> = mutableSetOf()
-        private var lastClickedMatrixFace: MatrixFace? = null
-        private var currentPersonExtHovered: PersonExt? = null
-        private var isNeedToAddDraggedFacesToPerson: Boolean = false
-
-        fun editShots(fileExt: FileExt, hostServices: HostServices? = null) {
-            currentFileExt = fileExt
-            mainStage = Stage()
-            try {
-                val root = FXMLLoader.load<Parent>(ShotsEditFXController::class.java.getResource("shots-edit-view.fxml"))
-                mainStage?.scene = Scene(root)
-                this.hostServices = hostServices
-                mainStage?.initModality(Modality.APPLICATION_MODAL)
-                onStart()
-                mainStage?.showAndWait()
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            println("Завершение работы ShotsEditFXController.")
-            mainStage = null
-
-        }
-
+        private var isPressedPlayForward = SimpleBooleanProperty(false)
+        private var isPressedPlayBackward = SimpleBooleanProperty(false)
         fun onStart() {
 
             mainStage?.scene!!.onKeyPressed = EventHandler { event ->
@@ -226,7 +163,79 @@ class ShotsEditFXController {
             }
 
         }
+
     }
+
+    private val fxBorderDefault = "-fx-border-color:#0f0f0f;-fx-border-width:1" // стиль бордюра лейбла по-умолчанию
+    private val fxBorderFocused = "-fx-border-color:YELLOW;-fx-border-width:1" // стиль бордюра лейбла в фокусе
+    private val fxBorderSelected = "-fx-border-color:RED;-fx-border-width:1" // стиль бордюра лейбла выбранного
+    private val fxBorderSelectedFocused = "-fx-border-color:ORANGE;-fx-border-width:1" // стиль бордюра лейбла выбранного
+
+    private val runListThreadsFramesFlagIsDone = SimpleBooleanProperty(false)
+    private val runListThreadsFacesFlagIsDone = SimpleBooleanProperty(false)
+    private val sbpCurrentMatrixPageWasChanged = SimpleBooleanProperty(false)
+    private val sbpCurrentMatrixFrameWasChanged = SimpleBooleanProperty(false)
+    private val sbpCurrentShotExtWasChanged = SimpleBooleanProperty(false)
+    private val sbpNeedCreatePagesWasChanged = SimpleBooleanProperty(false)
+
+
+
+
+    private var listMatrixPageFrames: ObservableList<MatrixPageFrames> = FXCollections.observableArrayList()
+    private var listMatrixPageFaces: ObservableList<MatrixPageFaces> = FXCollections.observableArrayList()
+    private var listPersonsExtForFile: ObservableList<PersonExt> = FXCollections.observableArrayList()
+    private var listFacesExt: ObservableList<FaceExt> = FXCollections.observableArrayList()
+    private var countColumnsInPageFrames = 0
+    private var countRowsInPageFrames = 0
+    private var countColumnsInPageFaces = 0
+    private var countRowsInPageFaces = 0
+
+
+
+    private var currentMatrixPageFrames: MatrixPageFrames? = null
+    private var currentMatrixPageFaces: MatrixPageFaces? = null
+    private var currentMatrixFrame: MatrixFrame? = null
+    private var currentMatrixFace: MatrixFace? = null
+    private var currentShotExt: ShotExt? = null
+    private var currentPersonExt: PersonExt? = null
+    private var currentNumPage = 0
+    private var flowTblPagesFrames: VirtualFlow<*>? = null
+    private var flowTblPagesFaces: VirtualFlow<*>? = null
+    private var flowTblShots: VirtualFlow<*>? = null
+    private var flowTblPersonsAll: VirtualFlow<*>? = null
+
+    private var wasClickTablePagesFrames = false
+    private var wasClickTablePagesFaces = false
+    private var wasClickTableShots = false
+    private var wasClickTablePersonsAllForFile = false
+    private var wasClickFrameLabel = false
+
+    private var selectedMatrixFaces: MutableSet<MatrixFace> = mutableSetOf()
+    private var lastClickedMatrixFace: MatrixFace? = null
+    private var currentPersonExtHovered: PersonExt? = null
+    private var isNeedToAddDraggedFacesToPerson: Boolean = false
+    private var currentMatrixPageFacesPageNumber: Int = 1
+
+    fun editShots(fileExt: FileExt, hostServices: HostServices? = null) {
+        currentFileExt = fileExt
+        mainStage = Stage()
+        try {
+            val root = FXMLLoader.load<Parent>(ShotsEditFXController::class.java.getResource("shots-edit-view.fxml"))
+            mainStage?.scene = Scene(root)
+            ShotsEditFXController.hostServices = hostServices
+            mainStage?.initModality(Modality.WINDOW_MODAL)
+            onStart()
+            mainStage?.showAndWait()
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        println("Завершение работы ShotsEditFXController.")
+        mainStage = null
+
+    }
+
+
 
     @FXML
     fun initialize() {
@@ -243,8 +252,10 @@ class ShotsEditFXController {
         listMatrixPageFrames = FXCollections.observableArrayList()
         listPersonsExtForFile = FXCollections.observableArrayList()
         listFacesExt = FXCollections.observableArrayList()
-        countColumnsInPage = 0
-        countRowsInPage = 0
+        countColumnsInPageFrames = 0
+        countRowsInPageFrames = 0
+        countColumnsInPageFaces = 0
+        countRowsInPageFaces = 0
         isWorking = false
         isPressedControl = false
         isPlayingForward = false
@@ -284,7 +295,7 @@ class ShotsEditFXController {
                 currentFileExt!!.shotsExt.forEach { shotExt ->
                     shotExt.buttonGetType.setOnAction { onActionButtonGetShotType(shotExt) }
                 }
-                tblPersonsAll!!.items = listPersonsExtForFile
+                tblPersonsAllForFile!!.items = listPersonsExtForFile
 
                 listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                 tblPagesFaces!!.items = listMatrixPageFaces
@@ -299,11 +310,13 @@ class ShotsEditFXController {
         runListThreadsFacesFlagIsDone.addListener { observable, oldValue, newValue ->
             if (newValue == true) {
 
-                listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.getWidth(), paneFaces!!.getHeight(), Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
+                listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.width, paneFaces!!.height, Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
                 tblPagesFrames!!.items = listMatrixPageFrames
 
                 currentMatrixFace = listMatrixPageFaces.first().matrixFaces.first()
-                currentMatrixPageFaces = getMatrixPageFacesByMatrixFace(currentMatrixFace!!)
+//                currentMatrixPageFaces = getMatrixPageFacesByMatrixFace(currentMatrixFace!!)
+                if (currentMatrixPageFacesPageNumber > listMatrixPageFaces.size) currentMatrixPageFacesPageNumber = 1
+                currentMatrixPageFaces = listMatrixPageFaces[currentMatrixPageFacesPageNumber-1]
 
                 if (currentMatrixPageFaces != null) {
                     Platform.runLater{
@@ -313,6 +326,8 @@ class ShotsEditFXController {
                     }
 
                 }
+
+                runListThreadsFacesFlagIsDone.set(false)
 
             }
         }
@@ -333,8 +348,8 @@ class ShotsEditFXController {
 
         tblShots!!.items = currentFileExt!!.shotsExt
 
-        colTblPersonsAllName?.cellValueFactory = PropertyValueFactory("labelSmall")
-        tblPersonsAll!!.items = listPersonsExtForFile
+        colTblPersonsAllForFileName?.cellValueFactory = PropertyValueFactory("labelSmall")
+        tblPersonsAllForFile!!.items = listPersonsExtForFile
 
         colTblPagesFacesNumber?.cellValueFactory = PropertyValueFactory("pageNumber")
         tblPagesFaces!!.items = listMatrixPageFaces
@@ -401,7 +416,7 @@ class ShotsEditFXController {
             wasClickTableShots = false
         }
 
-        tblPersonsAll!!.selectionModel.selectedItemProperty()
+        tblPersonsAllForFile!!.selectionModel.selectedItemProperty()
             .addListener { v: ObservableValue<out PersonExt?>?, oldValue: PersonExt?, newValue: PersonExt? ->
                 if (newValue != null) {
 
@@ -416,11 +431,11 @@ class ShotsEditFXController {
                 }
             }
 
-        tblPersonsAll!!.onMouseEntered = EventHandler {
-            wasClickTablePersonsAll = true
+        tblPersonsAllForFile!!.onMouseEntered = EventHandler {
+            wasClickTablePersonsAllForFile = true
         }
-        tblPersonsAll!!.onMouseExited = EventHandler {
-            wasClickTablePersonsAll = false
+        tblPersonsAllForFile!!.onMouseExited = EventHandler {
+            wasClickTablePersonsAllForFile = false
         }
 
 
@@ -593,24 +608,24 @@ class ShotsEditFXController {
             }
         }
 
-        tblPersonsAll!!.onMouseClicked = EventHandler { mouseEvent ->
+        tblPersonsAllForFile!!.onMouseClicked = EventHandler { mouseEvent ->
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
                     if (currentPersonExt != null) {
-                        PersonEditFXController.editPerson(currentPersonExt!!)
+                        PersonEditFXController().editPerson(currentPersonExt!!, hostServices)
                     }
                 }
             }
         }
 
-        tblPersonsAll!!.onDragOver = EventHandler { mouseEvent ->
+        tblPersonsAllForFile!!.onDragOver = EventHandler { mouseEvent ->
             if (mouseEvent.dragboard.string == "labelFace") {
                 mouseEvent.acceptTransferModes(*TransferMode.COPY_OR_MOVE)
             }
             mouseEvent.consume()
         }
 
-        tblPersonsAll!!.onDragDropped = EventHandler { mouseEvent ->
+        tblPersonsAllForFile!!.onDragDropped = EventHandler { mouseEvent ->
             var success = false
             if (mouseEvent.dragboard.string == "labelFace") {
                 isNeedToAddDraggedFacesToPerson = true;
@@ -620,7 +635,7 @@ class ShotsEditFXController {
             mouseEvent.consume()
         }
 
-        tblPersonsAll!!.setRowFactory {
+        tblPersonsAllForFile!!.setRowFactory {
             val row: TableRow<PersonExt> = TableRow()
             row.hoverProperty().addListener { observable ->
                 val personExt = row.item
@@ -638,26 +653,24 @@ class ShotsEditFXController {
                     }
                     selectedMatrixFaces.forEach { mf->
 
-                        if (mf.faceExt!!.personExt.person.personType != PersonType.EXTRAS) {
-                            mf.faceExt!!.personExt = currentPersonExtHovered as PersonExt
-                            mf.faceExt!!.face.person = currentPersonExtHovered!!.person
-                            if (currentPersonExtHovered!!.person.personType == PersonType.UNDEFINDED) {
-                                mf.faceExt!!.face.personRecognizedName = ""
-                                mf.faceExt!!.face.isConfirmed = false
-                            } else {
-                                mf.faceExt!!.face.personRecognizedName = currentPersonExtHovered!!.person.nameInRecognizer
-                                mf.faceExt!!.face.isConfirmed = true
-                            }
-                            FaceController.save(mf.faceExt!!.face)
-                            listFacesExt.remove(mf.faceExt!!)
-                            mf.faceExt!!.labelSmall?.graphic = null
-                            mf.faceExt!!.labelSmall?.style = fxBorderDefault
-                            currentMatrixPageFaces?.matrixFaces?.remove(mf)
+                        mf.faceExt!!.personExt = currentPersonExtHovered as PersonExt
+                        mf.faceExt!!.face.person = currentPersonExtHovered!!.person
+                        if (currentPersonExtHovered!!.person.personType == PersonType.UNDEFINDED) {
+                            mf.faceExt!!.face.personRecognizedName = ""
+                            mf.faceExt!!.face.isConfirmed = false
+                        } else {
+                            mf.faceExt!!.face.personRecognizedName = currentPersonExtHovered!!.person.nameInRecognizer
+                            mf.faceExt!!.face.isConfirmed = true
                         }
+                        FaceController.save(mf.faceExt!!.face)
+                        listFacesExt.remove(mf.faceExt!!)
+                        mf.faceExt!!.labelSmall?.graphic = null
+                        mf.faceExt!!.labelSmall?.style = fxBorderDefault
+                        currentMatrixPageFaces?.matrixFaces?.remove(mf)
                     }
                     selectedMatrixFaces.clear()
+                    reorganizeMatrixFaces()
                 }
-                println("currentPersonExtHovered = $currentPersonExtHovered")
             }
             return@setRowFactory row
         }
@@ -705,7 +718,7 @@ class ShotsEditFXController {
     }
 
 
-    fun loadPictureToFullFrameLabel(matrixFrame: MatrixFrame?) {
+    fun loadPictureToFullFrameLabelForFrame(matrixFrame: MatrixFrame?) {
 
         if (matrixFrame != null) {
 
@@ -719,6 +732,25 @@ class ShotsEditFXController {
                             lblFrameFull?.graphic = imageView
                         }
 
+                    }
+                } catch (exception: IOException) {
+                    exception.printStackTrace()
+                }
+            }.start()
+
+        }
+    }
+
+    fun loadPictureToFullFrameLabelForFace(faceExt: FaceExt?) {
+
+        if (faceExt != null) {
+
+            Thread {
+                try {
+                    val bufferedImage = FaceController.getOverlayedFrame(faceExt)
+                    val imageView = ImageView(ConvertToFxImage.convertToFxImage(bufferedImage))
+                    Platform.runLater {
+                        lblFrameFull?.graphic = imageView
                     }
                 } catch (exception: IOException) {
                     exception.printStackTrace()
@@ -820,7 +852,7 @@ class ShotsEditFXController {
                 tblShots!!.selectionModel.select(currentShotExt)
 
                 currentMatrixFrame?.frameExt?.labelSmall?.style = fxBorderSelected
-                loadPictureToFullFrameLabel(currentMatrixFrame)
+                loadPictureToFullFrameLabelForFrame(currentMatrixFrame)
             }
         }
     }
@@ -880,9 +912,9 @@ class ShotsEditFXController {
         if (flowTblPersonsAll != null && flowTblPersonsAll!!.cellCount > 0) {
             val first: Int = flowTblPersonsAll!!.firstVisibleCell.getIndex()
             val last: Int = flowTblPersonsAll!!.lastVisibleCell.getIndex()
-            val selected = tblPersonsAll!!.selectionModel.selectedIndex
+            val selected = tblPersonsAllForFile!!.selectionModel.selectedIndex
             if (selected < first || selected > last) {
-                tblPersonsAll?.scrollTo(personExt)
+                tblPersonsAllForFile?.scrollTo(personExt)
             }
         }
     }
@@ -971,7 +1003,7 @@ class ShotsEditFXController {
                         currentMatrixFrame = matrixFrame
                         currentShotExt = getShotExtByFrameNumber(matrixFrame.frameNumber!!)
                         tblShots!!.selectionModel.select(currentShotExt)
-                        loadPictureToFullFrameLabel(currentMatrixFrame)
+                        loadPictureToFullFrameLabelForFrame(currentMatrixFrame)
                     }
                     if (mouseEvent.clickCount == 2) {
                         if (matrixFrame.frameExt!!.frame.isFind) { //фрейм найден
@@ -1044,6 +1076,9 @@ class ShotsEditFXController {
             screenImageView.fitHeight = Main.PREVIEW_FACE_H // устанавливаем высоту вьювера
             lbl.graphic = null //сбрасываем графику лейбла
             lbl.graphic = screenImageView // устанавливаем вьювер источником графики для лейбла
+            pane.children.add(lbl)
+
+            if (matrixFace.column == 0 || matrixFace.column == currentMatrixPageFaces!!.countColumns + 1) continue
 
             val contextMenu = ContextMenu()
 
@@ -1054,7 +1089,7 @@ class ShotsEditFXController {
 
                     var personExtUndefinded = listPersonsExtForFile.firstOrNull{it.person.personType == PersonType.UNDEFINDED}
                     if (personExtUndefinded == null) {
-                        personExtUndefinded = PersonController.getNonpersonExt(currentFileExt!!.projectExt)
+                        personExtUndefinded = PersonController.getUndefindedExt(currentFileExt!!.projectExt)
                         listPersonsExtForFile.add(personExtUndefinded)
                         listPersonsExtForFile.sort()
                     }
@@ -1082,7 +1117,7 @@ class ShotsEditFXController {
 
                 }
                 selectedMatrixFaces.clear()
-
+                reorganizeMatrixFaces()
             }
             contextMenu.items.add(menuItem)
 
@@ -1121,7 +1156,7 @@ class ShotsEditFXController {
 
                 }
                 selectedMatrixFaces.clear()
-
+                reorganizeMatrixFaces()
             }
             contextMenu.items.add(menuItem)
 
@@ -1161,6 +1196,7 @@ class ShotsEditFXController {
 
                 }
                 selectedMatrixFaces.clear()
+                reorganizeMatrixFaces()
 
             }
 
@@ -1170,10 +1206,10 @@ class ShotsEditFXController {
             menuItem.setOnAction {
 
                 selectedMatrixFaces.add(matrixFace)
-                var selectedPerson = PersonSelectFXController.getPersonExt(currentFileExt!!.projectExt)
+                var selectedPerson = PersonSelectFXController().getPersonExt(currentFileExt!!.projectExt)
 
                 if (selectedPerson != null) {
-                    if (!(listPersonsExtForFile.any { it.person == selectedPerson.person })) {
+                    if (!(listPersonsExtForFile.any { it.person.id == selectedPerson.person.id })) {
                         listPersonsExtForFile.add(selectedPerson)
                         listPersonsExtForFile.sort()
                     }
@@ -1199,9 +1235,11 @@ class ShotsEditFXController {
                         }
 
                     }
+
                 }
 
                 selectedMatrixFaces.clear()
+                reorganizeMatrixFaces()
 
             }
 
@@ -1253,18 +1291,50 @@ class ShotsEditFXController {
                             mf.faceExt!!.labelSmall?.style = fxBorderDefault
                         }
                     }
+                    PersonEditFXController().editPerson(selectedPerson, hostServices)
+
                 }
 
                 selectedMatrixFaces.clear()
-
+                reorganizeMatrixFaces()
             }
 
             contextMenu.items.add(menuItem)
 
+            menuItem = MenuItem("Set as person picture")
+            menuItem.setOnAction {
+
+                val selectedPerson = listPersonsExtForFile.firstOrNull { it.person.id == currentPersonExt!!.person.id }
+                if (selectedPerson != null) {
+
+                    try {
+                        IOFile(currentPersonExt!!.pathToSmall).delete()
+                        IOFile(currentPersonExt!!.pathToMedium).delete()
+                    } catch (_: IOException) {
+                    }
+
+                    selectedPerson.person.fileIdForPreview = currentFileExt!!.file.id
+                    selectedPerson.person.faceNumberForPreview = matrixFace.faceExt!!.face.faceNumberInFrame
+                    selectedPerson.person.frameNumberForPreview = matrixFace.faceExt!!.face.frameNumber
+                    PersonController.save(selectedPerson.person)
+                    selectedPerson.previewSmall = null
+                    selectedPerson.previewMedium = null
+                    selectedPerson.labelSmall = null
+                    selectedPerson.labelMedium = null
+                    selectedPerson.labelSmall
+                    selectedMatrixFaces.clear()
+//                    tblPersonsAll!!.items = listPersonsExtForFile
+//                    tblPersonsAll!!.selectionModel.select(selectedPerson)
+                    tblPersonsAllForFile!!.refresh()
+                    currentPersonExt = selectedPerson
+                }
+
+
+
+            }
+            contextMenu.items.add(menuItem)
 
             lbl.contextMenu = contextMenu
-
-            pane.children.add(lbl)
 
             //событие "наведение мыши"
             lbl.onMouseEntered = EventHandler {
@@ -1281,7 +1351,7 @@ class ShotsEditFXController {
 
                 if (mouseEvent.button == MouseButton.PRIMARY) {
                     if (mouseEvent.clickCount == 1) {
-
+                        loadPictureToFullFrameLabelForFace(matrixFace.faceExt)
                         if (!isPressedControl && !isPressedShift) {
                             selectedMatrixFaces.forEach { it.faceExt?.labelSmall?.style = fxBorderDefault }
                             selectedMatrixFaces.clear()
@@ -1349,15 +1419,15 @@ class ShotsEditFXController {
             val widthFramePadding = (Main.PREVIEW_FRAME_W + 2) * 2 + 20 // по ширине двойной отступ
             val heightFramePadding = (Main.PREVIEW_FRAME_H + 2) * 2 + 20 // по высоте двойной отступ
             if (paneFramesWidth > widthFramePadding && paneFramesHeight > heightFramePadding) {
-                val prevCountColumnsInPage = countColumnsInPage
-                val prevCountRowsInPage = countRowsInPage
-                countColumnsInPage =
+                val prevCountColumnsInPage = countColumnsInPageFrames
+                val prevCountRowsInPage = countRowsInPageFrames
+                countColumnsInPageFrames =
                     ((paneFramesWidth - widthFramePadding) / (Main.PREVIEW_FRAME_W + 2)).toInt() // количество столбцов, которое влезет на экран
-                countRowsInPage =
+                countRowsInPageFrames =
                     ((paneFramesHeight - heightFramePadding) / (Main.PREVIEW_FRAME_H + 2)).toInt() // количество строк, которое влезет на экран
 
                 // если значения кол-ва столбцов и/или строк изменилось при ресайзе
-                if (prevCountColumnsInPage != countColumnsInPage || prevCountRowsInPage != countRowsInPage) {
+                if (prevCountColumnsInPage != countColumnsInPageFrames || prevCountRowsInPage != countRowsInPageFrames) {
                     val frameNumber = currentMatrixFrame?.frameNumber ?: 1
                     listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                     tblPagesFrames!!.items = listMatrixPageFrames
@@ -1378,15 +1448,15 @@ class ShotsEditFXController {
             val widthFacePadding = (Main.PREVIEW_FACE_W + 2) * 2 + 20 // по ширине двойной отступ
             val heightFacePadding = (Main.PREVIEW_FACE_H + 2) * 2 + 20 // по высоте двойной отступ
             if (paneFacesWidth > widthFacePadding && paneFacesHeight > heightFacePadding) {
-                val prevCountColumnsInPage = countColumnsInPage
-                val prevCountRowsInPage = countRowsInPage
-                countColumnsInPage =
+                val prevCountColumnsInPage = countColumnsInPageFaces
+                val prevCountRowsInPage = countRowsInPageFaces
+                countColumnsInPageFaces =
                     ((paneFacesWidth - widthFacePadding) / (Main.PREVIEW_FRAME_W + 2)).toInt() // количество столбцов, которое влезет на экран
-                countRowsInPage =
+                countRowsInPageFaces =
                     ((paneFacesHeight - heightFacePadding) / (Main.PREVIEW_FRAME_H + 2)).toInt() // количество строк, которое влезет на экран
 
                 // если значения кол-ва столбцов и/или строк изменилось при ресайзе
-                if (prevCountColumnsInPage != countColumnsInPage || prevCountRowsInPage != countRowsInPage) {
+                if (prevCountColumnsInPage != countColumnsInPageFaces || prevCountRowsInPage != countRowsInPageFaces) {
 
                     listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.getWidth(), paneFaces!!.getHeight(), Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
                     tblPagesFaces!!.items = listMatrixPageFaces
@@ -1410,7 +1480,6 @@ class ShotsEditFXController {
     fun onActionButtonGetShotType(shotExt: ShotExt) {
         val contextMenuShotType = ContextMenu()
         ShotTypePerson.values().forEach { shotTypePerson ->
-            println(shotTypePerson.pathToPicture)
             val imageView = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(shotTypePerson.pathToPicture))))
             val contextMenuShotTypeItem = MenuItem(null, imageView)
             contextMenuShotTypeItem.onAction = EventHandler { e: ActionEvent? ->
@@ -1426,6 +1495,23 @@ class ShotsEditFXController {
         shotExt.buttonGetType.contextMenu = contextMenuShotType
         val screenBounds: Bounds = shotExt.buttonGetType.localToScreen(shotExt.buttonGetType.boundsInLocal)
         contextMenuShotType.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
+    }
+
+    fun reorganizeMatrixFaces() {
+        val list: MutableList<FaceExt> = listMatrixPageFaces.flatMap { it.matrixFaces }.mapNotNull { it.faceExt }.toMutableSet().toMutableList()
+        list.sort()
+
+        if (list.isEmpty()) {
+            var index = listPersonsExtForFile.indexOf(currentPersonExt) - 1
+            if (index < 0) index = 0
+            listPersonsExtForFile.remove(currentPersonExt)
+            tblPersonsAllForFile!!.selectionModel.select(index)
+        } else {
+            listFacesExt = FXCollections.observableArrayList(list)
+            currentMatrixPageFacesPageNumber = currentMatrixPageFaces!!.pageNumber!!
+            runListThreadsFacesFlagIsDone.set(true)
+        }
+
     }
 
 }
