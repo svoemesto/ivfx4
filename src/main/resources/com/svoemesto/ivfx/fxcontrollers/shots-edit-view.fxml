@@ -37,6 +37,11 @@
                               <TableColumn fx:id="colButtonGetType" maxWidth="25.0" minWidth="25.0" prefWidth="25.0" />
                           </columns>
                         </TableView>
+                        <TableView fx:id="tblPersonsAllForShot" maxWidth="175.0" minWidth="175.0" prefHeight="10000.0" prefWidth="175.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                           <columns>
+                              <TableColumn fx:id="colTblPersonsAllForShotName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
+                           </columns>
+                        </TableView>
                         <VBox prefHeight="200.0" prefWidth="100.0">
                            <children>
                               <Label text="Persons:" />

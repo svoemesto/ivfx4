@@ -16,6 +16,7 @@ ap = argparse.ArgumentParser()
 # ap.add_argument("-p", "--projectid", type=int, required=True, help="иденитификатор проекта")
 # ap.add_argument("-f", "--fileid", type=int, required=True, help="иденитификатор видеофайла")
 ap.add_argument("-i", "--dataset", required=True, help="путь к папке с изображениями, на которых надо найти лица")
+ap.add_argument("-o", "--output", required=True, help="путь к папке, в которую будут складываться лица")
 ap.add_argument("-d", "--detector", required=True, help="path to OpenCV's deep learning face detector")
 ap.add_argument("-m", "--embedding-model", required=True, help="path to OpenCV's deep learning face embedding model")
 ap.add_argument("-c", "--confidence", type=float, default=0.5, help="minimum probability to filter weak detections")
@@ -49,7 +50,7 @@ print("[INFO] loading frames list from json...")
 listframes = json.loads(open(listframes_file, "rb").read())
 
 # получаем путь к папке с лицами и создаем её
-faces_path = args["dataset"] +".faces"
+faces_path = args["output"]
 os.makedirs(name=faces_path,exist_ok=True)
 
 data_faces = []

@@ -33,4 +33,9 @@ interface PersonRepo : CrudRepository<Person, Long> {
     @Query(value = "select distinct tp.* from tbl_persons as tp inner join tbl_faces tf on tp.id = tf.person_id where tf.file_id = ?", nativeQuery = true)
     fun findByFileId(fileId: Long): Iterable<Person>
 
+    @Query(value = "select distinct tp.* from tbl_persons as tp inner join tbl_faces tf on tp.id = tf.person_id " +
+            "inner join tbl_shots ts on (tf.file_id = ts.file_id and tf.frame_number >= ts.first_frame_number and tf.frame_number <= ts.last_frame_number) " +
+            "where ts.id = ?", nativeQuery = true)
+    fun findByShotId(shotId: Long): Iterable<Person>
+
 }

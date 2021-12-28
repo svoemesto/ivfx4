@@ -60,6 +60,8 @@ class DetectFaces(var fileExt: FileExt,
         param.add("\"${faceDetectorPath}/detect_faces_in_folder.py\"")
         param.add("-i")
         param.add("\"${fileExt.folderFramesFull}\"")
+        param.add("-o")
+        param.add("\"${fileExt.folderFacesFull}\"")
         param.add("-d")
         param.add("\"${faceDetectorPath}/face_detection_model\"")
         param.add("-m")

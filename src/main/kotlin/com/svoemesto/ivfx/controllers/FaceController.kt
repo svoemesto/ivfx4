@@ -1,7 +1,6 @@
 package com.svoemesto.ivfx.controllers
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.fxcontrollers.ProjectActionsFXController
 import com.svoemesto.ivfx.models.Face
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
@@ -28,7 +27,11 @@ class FaceController {
 
     companion object {
 
-        fun createOrUpdate(faceExtJson: FaceExtJson, fileExt: FileExt): FaceExt {
+        fun createOrUpdate(faceExtJson: FaceExtJson, fileExt: FileExt, undefindedPerson: PersonExt, nonPerson: PersonExt): FaceExt {
+
+            val w = faceExtJson.endX - faceExtJson.startX
+            val h = faceExtJson.endY - faceExtJson.startY
+            val d = if(w>h) w/h.toDouble() else h/w.toDouble()
 
             var face = if (faceExtJson.frameId == 0L) {
                 Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame).firstOrNull()
@@ -38,16 +41,23 @@ class FaceController {
                 } else {
                     Main.faceRepo.findById(faceExtJson.frameId).orElse(null)
                 }
-
             }
 
             if (face != null) {
                 face.file = fileExt.file
-                if (faceExtJson.personRecognizedName != "") {
-                    face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
-                        faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                if (d > 4) {
+                    face.person = nonPerson.person
                 } else {
-                    face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
+                    if (faceExtJson.personRecognizedName != "") {
+                        if (faceExtJson.recognizeProbability > 0.3) {
+                            face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                                faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                        } else {
+                            face.person = undefindedPerson.person
+                        }
+                    } else {
+                        face.person = undefindedPerson.person
+                    }
                 }
 
                 val personExt = PersonExt(face.person, fileExt.projectExt)
@@ -58,11 +68,15 @@ class FaceController {
 
                     if (faceExtJson.personRecognizedName != "") {
                         face.personRecognizedName = faceExtJson.personRecognizedName
-                        face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
-                            faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                        if (faceExtJson.recognizeProbability > 0.3) {
+                            face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                                faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                        } else {
+                            face.person = undefindedPerson.person
+                        }
                         needToSave = true
                     } else {
-                        face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
+                        face.person = undefindedPerson.person
                     }
 
                 }
@@ -100,12 +114,19 @@ class FaceController {
                 face.isManual = false
             }
 
-            face.file = fileExt.file
-            if (faceExtJson.personRecognizedName != "") {
-                face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
-                    faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+            if (d > 4) {
+                face.person = nonPerson.person
             } else {
-                face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
+                if (faceExtJson.personRecognizedName != "") {
+                    if (faceExtJson.recognizeProbability > 0.3) {
+                        face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+                            faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                    } else {
+                        face.person = undefindedPerson.person
+                    }
+                } else {
+                    face.person = undefindedPerson.person
+                }
             }
 
             val personExt = PersonExt(face.person, fileExt.projectExt)
@@ -114,12 +135,12 @@ class FaceController {
             face.frameNumber = faceExtJson.frameNumber
             face.faceNumberInFrame = faceExtJson.faceNumberInFrame
             face.personRecognizedName = faceExtJson.personRecognizedName
-            if (faceExtJson.personRecognizedName != "") {
-                face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
-                    faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
-            } else {
-                face.person = PersonController.getUndefindedExt(fileExt.projectExt).person
-            }
+//            if (faceExtJson.personRecognizedName != "") {
+//                face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
+//                    faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+//            } else {
+//                face.person = undefindedPerson.person
+//            }
             face.recognizeProbability = faceExtJson.recognizeProbability
             face.startX = faceExtJson.startX
             face.startY = faceExtJson.startY
@@ -175,7 +196,8 @@ class FaceController {
         }
 
         fun getListFacesExtToRecognize(fileExt: FileExt): MutableList<FaceExt> {
-            val result = Main.faceRepo.findByFileIdAndNotConfirmed(fileExt.file.id).toMutableList()
+            val undefindedPerson = PersonController.getUndefinded(fileExt.projectExt.project)
+            val result = Main.faceRepo.findFacesToRecognize(fileExt.file.id, undefindedPerson.id).toMutableList()
             var listFacesExt: MutableList<FaceExt> = mutableListOf()
             val personExtMap: MutableMap<String, PersonExt> = mutableMapOf()
             result.forEach { face->
@@ -185,7 +207,7 @@ class FaceController {
                         PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
                             face.personRecognizedName, face.file.id, face.frameNumber, face.faceNumberInFrame)
                     } else {
-                        PersonController.getUndefinded(fileExt.projectExt.project)
+                        undefindedPerson
                     }
                 }
                 val personExt = PersonExt(person!!, fileExt.projectExt)
@@ -198,7 +220,7 @@ class FaceController {
         }
 
         fun getListFacesToTrain(project: Project): MutableList<Face> {
-            return Main.faceRepo.getListFacesToTrain(project.id, PersonController.getUndefinded(project).id).toMutableList()
+            return Main.faceRepo.getListFacesToTrain(project.id).toMutableList()
         }
 
         fun getListFacesExt(frameExt: FrameExt): MutableList<FaceExt> {
@@ -343,7 +365,9 @@ class FaceController {
             listShots.sort()
             val countFrames = fileExt.framesCount
             for (shot in listShots) {
-                val stepFrames = if (shot.lastFrameNumber - shot.firstFrameNumber < 60) 10 else 30
+                val stepFrames = if (shot.lastFrameNumber - shot.firstFrameNumber < 15) 3
+                                 else if (shot.lastFrameNumber - shot.firstFrameNumber < 30) 5
+                                 else if (shot.lastFrameNumber - shot.firstFrameNumber < 60) 10 else 20
                 var i: Int = shot.firstFrameNumber
                 while (i < shot.lastFrameNumber) {
                     curr = i
@@ -382,123 +406,123 @@ class FaceController {
             return null
         }
 
-        fun getOverlayedFrame(faceExt: FaceExt): BufferedImage? {
+        fun getOverlayedFrame(frameExt: FrameExt, faceExt: FaceExt? = null, fullFrame: Boolean = false): BufferedImage? {
 
             var bi: BufferedImage? = null
             var fileId: Long = 0L
             var personId: Long = 0L
             var frameId: Long = 0L
 
-            val fileExt = faceExt.fileExt
-            val projectExt = faceExt.fileExt.projectExt
-            val personExt = faceExt.personExt
+            val fileExt = frameExt.fileExt
+            val projectExt = frameExt.fileExt.projectExt
+//            val personExt = faceExt!!.personExt
 
-            val sqlFrames = "select * from tbl_frames where file_id = ? and frame_number = ?"
-            val stFrames = Main.connection.prepareStatement(sqlFrames)
-            stFrames.setLong(1, fileExt.file.id)
-            stFrames.setInt(2, faceExt.face.frameNumber)
-            val rsFrames = stFrames.executeQuery()
-            while (rsFrames.next()) {
-                frameId = rsFrames.getLong("id")
-                break
-            }
+//            val sqlFrames = "select * from tbl_frames where file_id = ? and frame_number = ?"
+//            val stFrames = Main.connection.prepareStatement(sqlFrames)
+//            stFrames.setLong(1, fileExt.file.id)
+//            stFrames.setInt(2, faceExt.face.frameNumber)
+//            val rsFrames = stFrames.executeQuery()
+//            while (rsFrames.next()) {
+//                frameId = rsFrames.getLong("id")
+//                break
+//            }
 
-            if (frameId != 0L) {
-                val frame = Main.frameRepo.findById(frameId).orElse(null)
-                if (frame != null) {
-                    val frameExt = FrameExt(frame, fileExt)
-                    val listFacesInCurrentFrame = Main.faceRepo.getListFacesInFrame(fileExt.file.id, faceExt.face.frameNumber).toMutableList()
-                    val listFacesExt: MutableList<FaceExt> = mutableListOf()
-                    listFacesInCurrentFrame.forEach { face ->
 
-                        face.file = fileExt.file
+//            val listFacesInCurrentFrame = Main.faceRepo.getListFacesInFrame(fileExt.file.id, frameExt.frame.frameNumber).toMutableList()
+//            val listFacesExt: MutableList<FaceExt> = mutableListOf()
+//            listFacesInCurrentFrame.forEach { face ->
+//
+//                face.file = fileExt.file
+//
+//                val sqlFaces = "select * from tbl_faces as tf where tf.id = ?"
+//                val stFaces = Main.connection.prepareStatement(sqlFaces)
+//                stFaces.setLong(1, face.id)
+//                val rsFaces = stFaces.executeQuery()
+//                while (rsFaces.next()) {
+//                    personId = rsFaces.getLong("person_id")
+//                    break
+//                }
+//
+//                if (personId != 0L) {
+//
+//                    val person = Main.personRepo.findById(personId).orElse(null)
+//                    if (person != null) {
+//                        val currentPersonExt = PersonExt(person, projectExt)
+//                        val currentFaceExt = FaceExt(face,fileExt, currentPersonExt)
+//                        listFacesExt.add(currentFaceExt)
+//                    }
+//                }
+//            }
 
-                        val sqlFaces = "select * from tbl_faces as tf where tf.id = ?"
-                        val stFaces = Main.connection.prepareStatement(sqlFaces)
-                        stFaces.setLong(1, face.id)
-                        val rsFaces = stFaces.executeQuery()
-                        while (rsFaces.next()) {
-                            personId = rsFaces.getLong("person_id")
-                            break
-                        }
+            val listFacesExt = frameExt.facesExt()
 
-                        if (personId != 0L) {
+            bi = if (fullFrame) frameExt.biFull else frameExt.biMedium
 
-                            val person = Main.personRepo.findById(personId).orElse(null)
-                            if (person != null) {
-                                val currentPersonExt = PersonExt(person, projectExt)
-                                val currentFaceExt = FaceExt(face,fileExt, currentPersonExt)
-                                listFacesExt.add(currentFaceExt)
-                            }
-                        }
+            if (bi != null) {
+
+                val frameWidth: Int = bi.width
+                val frameHeight: Int = bi.height
+                //TODO Брать ширину картинки из свойств файла
+                val faceSourceFrameWidth = Main.FULL_FRAME_W
+                val scaleFactor = frameWidth / faceSourceFrameWidth
+
+                listFacesExt.forEach { faceExtInFrame ->
+
+
+                    val startX = (scaleFactor * faceExtInFrame.startX).toInt()
+                    val startY = (scaleFactor * faceExtInFrame.startY).toInt()
+                    val endX = (scaleFactor * faceExtInFrame.endX).toInt()
+                    val endY = (scaleFactor * faceExtInFrame.endY).toInt()
+
+                    val opaque = 1.0f
+
+                    var textColor = Color.YELLOW
+                    if (faceExtInFrame.face.isManual) textColor = Color.RED
+                    if (faceExt!=null && faceExt.face.id == faceExtInFrame.face.id && faceExt.face.isManual) {
+                        textColor = Color.ORANGE
+                    } else if (faceExt!=null && faceExt.face.id == faceExtInFrame.face.id && !faceExt.face.isManual) {
+                        textColor = Color.GREEN
                     }
 
-                    bi = frameExt.biMedium
+                    val textFont = Font(Font.SANS_SERIF, Font.PLAIN, 12)
+                    val imageType = BufferedImage.TYPE_INT_ARGB
+                    val textPosition = Pos.BOTTOM_CENTER
+                    val textToOverlay = faceExtInFrame.personExt.person.name
 
-                    if (bi != null) {
+                    val resultImage = BufferedImage(frameWidth, frameHeight, imageType)
+                    val graphics2D = resultImage.graphics as Graphics2D
+                    graphics2D.drawImage(bi, 0, 0, null)
+                    val alphaChannel = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opaque)
+                    graphics2D.composite = alphaChannel
 
-                        val frameWidth: Int = bi.width
-                        val frameHeight: Int = bi.height
-                        //TODO Брать ширину картинки из свойств файла
-                        val faceSourceFrameWidth = 1920
-                        val scaleFactor = frameWidth / faceSourceFrameWidth.toDouble()
+                    graphics2D.font = textFont
+                    val fontMetrics = graphics2D.fontMetrics
+                    val rect = fontMetrics.getStringBounds(textToOverlay, graphics2D)
+                    val rectW = rect.width.toInt()
+                    val rectH = rect.height.toInt()
 
-                        listFacesExt.forEach { faceExtInFrame ->
-
-
-                            val startX = (scaleFactor * faceExtInFrame.startX).toInt()
-                            val startY = (scaleFactor * faceExtInFrame.startY).toInt()
-                            val endX = (scaleFactor * faceExtInFrame.endX).toInt()
-                            val endY = (scaleFactor * faceExtInFrame.endY).toInt()
-
-                            val opaque = 1.0f
-
-                            var textColor = Color.YELLOW
-                            if (faceExt.face.id == faceExtInFrame.face.id) {
-                                textColor = Color.GREEN
-                            }
-
-                            val textFont = Font(Font.SANS_SERIF, Font.PLAIN, 12)
-                            val imageType = BufferedImage.TYPE_INT_ARGB
-                            val textPosition = Pos.BOTTOM_CENTER
-                            val textToOverlay = faceExtInFrame.personExt.person.name
-
-                            val resultImage = BufferedImage(frameWidth, frameHeight, imageType)
-                            val graphics2D = resultImage.graphics as Graphics2D
-                            graphics2D.drawImage(bi, 0, 0, null)
-                            val alphaChannel = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opaque)
-                            graphics2D.composite = alphaChannel
-
-                            graphics2D.font = textFont
-                            val fontMetrics = graphics2D.fontMetrics
-                            val rect = fontMetrics.getStringBounds(textToOverlay, graphics2D)
-                            val rectW = rect.width.toInt()
-                            val rectH = rect.height.toInt()
-
-                            var centerY = startY
-                            centerY = if (centerY < 20) {
-                                endY - startY + 25
-                            } else {
-                                centerY - 3
-                            }
-                            if (centerY > frameHeight) centerY = frameHeight - 5
-
-                            graphics2D.color = Color.BLACK
-                            graphics2D.fillRect(startX - 3, centerY - rectH, rectW + 6, rectH + 6)
-                            graphics2D.color = textColor
-
-                            graphics2D.drawString(textToOverlay, startX, centerY)
-                            graphics2D.drawRect(startX, startY, endX - startX, endY - startY)
-                            if (faceExt.face.id == faceExtInFrame.face.id) {
-                                graphics2D.drawRect(startX - 1, startY - 1, endX - startX + 2, endY - startY + 2)
-                            }
-                            graphics2D.dispose()
-                            bi = resultImage
-                        }
+                    var centerY = startY
+                    centerY = if (centerY < 20) {
+                        endY - startY + 25
+                    } else {
+                        centerY - 3
                     }
+                    if (centerY > frameHeight) centerY = frameHeight - 5
 
+                    graphics2D.color = Color.BLACK
+                    graphics2D.fillRect(startX - 3, centerY - rectH, rectW + 6, rectH + 6)
+                    graphics2D.color = textColor
+
+                    graphics2D.drawString(textToOverlay, startX, centerY)
+                    graphics2D.drawRect(startX, startY, endX - startX, endY - startY)
+                    if (faceExt != null && faceExt.face.id == faceExtInFrame.face.id) {
+                        graphics2D.drawRect(startX - 1, startY - 1, endX - startX + 2, endY - startY + 2)
+                    }
+                    graphics2D.dispose()
+                    bi = resultImage
                 }
             }
+
 
             return bi
         }

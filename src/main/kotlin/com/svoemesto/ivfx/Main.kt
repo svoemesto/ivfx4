@@ -43,6 +43,8 @@ class Main {
         val eventShotRepo = context.getBean("eventShotRepo", EventShotRepo::class.java)
         val personRepo = context.getBean("personRepo", PersonRepo::class.java)
 
+        const val FULL_FRAME_W = 1920.0
+        const val FULL_FRAME_H = 1080.0
         const val MEDIUM_FRAME_W = 720.0
         const val MEDIUM_FRAME_H = 400.0
         const val PREVIEW_FRAME_W = 135.0

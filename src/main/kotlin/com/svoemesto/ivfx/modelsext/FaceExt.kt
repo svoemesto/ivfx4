@@ -48,11 +48,11 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
     @SerializedName("pathToFrameFile")
     var toSerializePathToFrameFile = pathToFrameFile
 
-    val pathToFaceFile: String get() = "${fileExt.folderFramesFull}.faces${IOFile.separator}${face.file.shortName}_frame_${String.format("%06d", face.frameNumber)}_face_${String.format("%02d", face.faceNumberInFrame)}.jpg"
+    val pathToFaceFile: String get() = "${fileExt.folderFacesFull}${IOFile.separator}${face.file.shortName}_frame_${String.format("%06d", face.frameNumber)}_face_${String.format("%02d", face.faceNumberInFrame)}.jpg"
     @SerializedName("pathToFaceFile")
     var toSerializePathToFaceFile = pathToFaceFile
 
-    val pathToPreviewFile: String get() = "${fileExt.folderFramesFull}.faces.preview${IOFile.separator}${face.file.shortName}_frame_${String.format("%06d", face.frameNumber)}_face_${String.format("%02d", face.faceNumberInFrame)}.jpg"
+    val pathToPreviewFile: String get() = "${fileExt.folderFacesPreview}${IOFile.separator}${face.file.shortName}_frame_${String.format("%06d", face.frameNumber)}_face_${String.format("%02d", face.faceNumberInFrame)}.jpg"
     @SerializedName("pathToPreviewFile")
     var toSerializePathToPreviewFile = pathToPreviewFile
 
@@ -124,15 +124,19 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
             return field
         }
 
-//    @Transient
-//    var previewMediumMarked: ImageView? = null
-//        get() {
-//            if (field == null) {
-//                var bi: BufferedImage? = FaceController.getOverlayedFrame(this)
-//                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
-//            }
-//            return field
-//        }
+    @Transient
+    var labelPersonSmall: Label? = null
+        get() {
+            if (field == null) {
+                field = Label()
+                field!!.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
+                field!!.graphic = personExt.previewSmall
+                field!!.alignment = Pos.CENTER
+            }
+            return field
+        }
+
+    val isManualText = if (face.isManual) "✓" else ""
 
     @Transient
     var labelSmall: Label? = null
@@ -145,19 +149,5 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
             }
             return field
         }
-
-
-
-//    @Transient
-//    var labelMediumMarked: Label? = null
-//        get() {
-//            if (field == null) {
-//                field = Label()
-//                field!!.setPrefSize(Main.MEDIUM_FRAME_W, Main.MEDIUM_FRAME_H)
-//                field!!.graphic = previewMediumMarked
-//                field!!.alignment = Pos.CENTER
-//            }
-//            return field
-//        }
 
 }

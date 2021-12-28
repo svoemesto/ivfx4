@@ -3,9 +3,11 @@ package com.svoemesto.ivfx.modelsext
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.utils.ConvertToFxImage
+import com.svoemesto.ivfx.utils.OverlayImage
 import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.image.ImageView
+import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import java.io.File as IOFile
@@ -32,7 +34,8 @@ data class FrameExt(val frame: Frame,
     var previewSmall: ImageView? = null
         get() {
             if (field == null) {
-                field = ImageView(ConvertToFxImage.convertToFxImage(biSmall))
+                val bi: BufferedImage = biSmall!!
+                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
             }
             return field
         }
@@ -64,10 +67,65 @@ data class FrameExt(val frame: Frame,
         get() {
             if (field == null) {
                 field = Label()
-                field!!.setPrefSize(720.0, 400.0)
+                field!!.setPrefSize(Main.MEDIUM_FRAME_W, Main.MEDIUM_FRAME_H)
                 field!!.graphic = previewMedium
                 field!!.alignment = Pos.CENTER
             }
             return field
         }
+
+    var biFull: BufferedImage? = null
+        get() {
+            if (field == null) {
+                field = ImageIO.read(IOFile(if (IOFile(pathToFull).exists()) pathToFull else pathToStubFull))
+            }
+            return field
+        }
+    var previewFull: ImageView? = null
+        get() {
+            if (field == null) {
+                field = ImageView(ConvertToFxImage.convertToFxImage(biFull))
+            }
+            return field
+        }
+    var labelFull: Label? = null
+        get() {
+            if (field == null) {
+                field = Label()
+                field!!.setPrefSize(Main.FULL_FRAME_W, Main.FULL_FRAME_H)
+                field!!.graphic = previewFull
+                field!!.alignment = Pos.CENTER
+            }
+            return field
+        }
+
+    fun facesExt() : MutableList<FaceExt> {
+        val listFacesInCurrentFrame = Main.faceRepo.getListFacesInFrame(fileExt.file.id, frame.frameNumber).toMutableList()
+        val listFacesExt: MutableList<FaceExt> = mutableListOf()
+        var personId: Long = 0L
+        listFacesInCurrentFrame.forEach { face ->
+
+            face.file = fileExt.file
+
+            val sqlFaces = "select * from tbl_faces as tf where tf.id = ?"
+            val stFaces = Main.connection.prepareStatement(sqlFaces)
+            stFaces.setLong(1, face.id)
+            val rsFaces = stFaces.executeQuery()
+            while (rsFaces.next()) {
+                personId = rsFaces.getLong("person_id")
+                break
+            }
+
+            if (personId != 0L) {
+
+                val person = Main.personRepo.findById(personId).orElse(null)
+                if (person != null) {
+                    val currentPersonExt = PersonExt(person, fileExt.projectExt)
+                    val currentFaceExt = FaceExt(face,fileExt, currentPersonExt)
+                    listFacesExt.add(currentFaceExt)
+                }
+            }
+        }
+        return listFacesExt
+    }
 }

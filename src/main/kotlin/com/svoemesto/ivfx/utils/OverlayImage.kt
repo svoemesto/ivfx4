@@ -169,7 +169,7 @@ class OverlayImage {
             // percentOfLowerSize: 0-1 в частях от наиболее короткой стороны
             val imageW = sourceImage.width
             val imageH = sourceImage.height
-            val imageType = BufferedImage.TYPE_INT_ARGB
+            val imageType = BufferedImage.TYPE_INT_RGB
             val triangleSide =
                 if (imageW > imageH) (imageH * percentOfLowerSize).toInt() else (imageW * percentOfLowerSize).toInt()
             val resultImage = BufferedImage(imageW, imageH, imageType)

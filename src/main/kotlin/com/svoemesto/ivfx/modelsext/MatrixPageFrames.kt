@@ -44,7 +44,7 @@ class MatrixPageFrames {
 
                     omegaMatrixFrame = MatrixFrame()
                     omegaMatrixFrame.frameExt = currFrameExt
-                    if (currFrameExt.frame.isFinalFind == true) {
+                    if (currFrameExt.frame.isFinalFind) {
                         currentColumn = listMatrixPageFrames.last().matrixFrames.last().column
                         currentRow = listMatrixPageFrames.last().matrixFrames.last().row + 1
                     } else {

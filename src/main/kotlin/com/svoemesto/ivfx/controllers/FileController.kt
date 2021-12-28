@@ -74,6 +74,16 @@ class FileController() {
             return if (value == "") fileExt.projectExt.folderFramesFull + IOFile.separator + fileExt.file.shortName else value
         }
 
+        fun getFolderFacesFull(fileExt: FileExt): String{
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.FACES_FULL.propertyCdfKey)
+            return if (value == "") fileExt.projectExt.folderFacesFull + IOFile.separator + fileExt.file.shortName else value
+        }
+
+        fun getFolderFacesPreview(fileExt: FileExt): String{
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.FACES_PREVIEW.propertyCdfKey)
+            return if (value == "") fileExt.projectExt.folderFacesPreview + IOFile.separator + fileExt.file.shortName else value
+        }
+
         fun getFFmpegProbeResult(file: File): FFmpegProbeResult {
             return FFprobe(IvfxFFmpegUtils.FFPROBE_PATH).probe(file.path)
         }
@@ -136,8 +146,8 @@ class FileController() {
         }
 
         fun hasDetectedFaces(fileExt: FileExt): Boolean {
-            if (fileExt.folderFramesFull != "") {
-                val fld = fileExt.folderFramesFull + ".faces"
+            if (fileExt.folderFacesFull != "") {
+                val fld = fileExt.folderFacesFull
                 if (IOFile(fld).exists()) {
                     val fileNameRegexp = fileExt.file.shortName.replace(".", "\\.").replace("-", "\\-")
                     val faceFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}_face_\\d{2}\\.jpg\$")
@@ -157,8 +167,8 @@ class FileController() {
         }
 
         fun hasCreatedFacesPreview(fileExt: FileExt): Boolean {
-            if (fileExt.folderFramesFull != "") {
-                val fld = fileExt.folderFramesFull + ".faces.preview"
+            if (fileExt.folderFacesPreview != "") {
+                val fld = fileExt.folderFacesPreview
                 if (IOFile(fld).exists()) {
                     val fileNameRegexp = fileExt.file.shortName.replace(".", "\\.").replace("-", "\\-")
                     val faceFilenameRegex = Regex("^${fileNameRegexp}_frame_\\d{6}_face_\\d{2}\\.jpg\$")
@@ -335,6 +345,18 @@ class FileController() {
         fun getFileExt(fileId: Long, project: Project): FileExt {
             val file = getFile(fileId, project)
             return FileExt(file, ProjectController.getProjectExt(file.project.id))
+        }
+
+        fun getFramesWithFaces(file: File): MutableSet<Int> {
+            val result: MutableSet<Int> = mutableSetOf()
+            val sqlFaces = "select distinct tf.frame_number from tbl_faces as tf where tf.file_id = ?"
+            val stFaces = Main.connection.prepareStatement(sqlFaces)
+            stFaces.setLong(1, file.id)
+            val rsFaces = stFaces.executeQuery()
+            while (rsFaces.next()) {
+                result.add(rsFaces.getInt("frame_number"))
+            }
+            return result
         }
 
     }

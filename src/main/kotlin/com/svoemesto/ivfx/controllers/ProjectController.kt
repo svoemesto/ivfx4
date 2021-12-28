@@ -90,6 +90,15 @@ class ProjectController() {
             return if (value == "") project.folder + IOFile.separator + Folders.FRAMES_FULL.folderName else value
         }
 
+        fun getFolderFacesFull(project: Project): String{
+            val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.FACES_FULL.propertyCdfKey)
+            return if (value == "") project.folder + IOFile.separator + Folders.FACES_FULL.folderName else value
+        }
+
+        fun getFolderFacesPreview(project: Project): String{
+            val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.FACES_PREVIEW.propertyCdfKey)
+            return if (value == "") project.folder + IOFile.separator + Folders.FACES_PREVIEW.folderName else value
+        }
         fun getProperties(project: Project) : List<Property> {
             return Main.propertyRepo.findByParentClassAndParentId(project::class.simpleName!!, project.id).toList()
         }
