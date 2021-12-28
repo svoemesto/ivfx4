@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.threads.projectactions
 import com.google.gson.GsonBuilder
 import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.controllers.FrameController
+import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -41,6 +42,8 @@ class CreateFaces(var fileExt: FileExt,
         try {
             FileReader(pathToJsonFaces).use { fileReader ->
                 val facesExtJsonArray: Array<FaceExtJson> = gson.fromJson(fileReader, Array<FaceExtJson>::class.java)
+                val nonPerson = PersonController.getNonpersonExt(fileExt.projectExt)
+                val undefindedPerson = PersonController.getUndefindedExt(fileExt.projectExt)
                 for ((i, faceExtJson) in facesExtJsonArray.withIndex()) {
 
                     val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
@@ -54,7 +57,7 @@ class CreateFaces(var fileExt: FileExt,
                         pb2.progress = percentage2
                     }
 
-                    FaceController.createOrUpdate(faceExtJson, fileExt)
+                    FaceController.createOrUpdate(faceExtJson, fileExt, undefindedPerson, nonPerson)
 
                 }
 

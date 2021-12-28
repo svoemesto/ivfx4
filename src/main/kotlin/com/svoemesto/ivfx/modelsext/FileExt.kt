@@ -54,6 +54,16 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
             if (field == null) field = FileController.getFolderFramesFull(this)
             return field
         }
+    var folderFacesFull: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderFacesFull(this)
+            return field
+        }
+    var folderFacesPreview: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderFacesPreview(this)
+            return field
+        }
     var pathToLosslessFile: String? = null
         get() {
             if (field == null) field = FileController.getLossless(this)
@@ -138,6 +148,9 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
     var scenesExt: ObservableList<SceneExt> = FXCollections.observableArrayList()
     @Transient
     var facesExt: ObservableList<FaceExt> = FXCollections.observableArrayList()
+    @Transient
+    var framesWithFaces: MutableSet<Int> = FileController.getFramesWithFaces(file)
+
 
     fun resetFieldsLinkedShortName() {
         folderPreview = null
