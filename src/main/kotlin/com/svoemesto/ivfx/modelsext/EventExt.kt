@@ -1,61 +1,30 @@
 package com.svoemesto.ivfx.modelsext
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.SceneController
+import com.svoemesto.ivfx.models.Event
 import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.convertDurationToString
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.getDurationByFrameNumber
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayUnderlineText
-import javafx.event.EventHandler
-import javafx.scene.control.Alert
-import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.Button
-import javafx.scene.control.ButtonType
 import javafx.scene.control.ContentDisplay
-import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
-import javafx.scene.control.MenuItem
-import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
 import java.awt.image.BufferedImage
-import java.util.*
 import javax.imageio.ImageIO
 import java.io.File as IOFile
 
-
-data class SceneExt(
-    val scene: Scene,
+data class EventExt(
+    val event: Event,
     val fileExt: FileExt,
     var firstFrameExt: FrameExt,
     var lastFrameExt: FrameExt
-): Comparable<SceneExt> {
-    val start: String get() = convertDurationToString(getDurationByFrameNumber(scene.firstFrameNumber - 1, fileExt.fps))
-    val end: String get() = convertDurationToString(getDurationByFrameNumber(scene.lastFrameNumber, fileExt.fps))
-    val duration: Int get() = getDurationByFrameNumber(scene.lastFrameNumber - scene.firstFrameNumber + 1, fileExt.fps)
-    val sceneName: String get() = scene.name
-    val sceneNameLabel: Label
-        get() {
-            val label = Label(sceneName)
-            val contextMenu = ContextMenu()
-            val menuItemRename = MenuItem("Rename scene")
-            menuItemRename.onAction = EventHandler {
-                val dialog = TextInputDialog(sceneName)
-                dialog.title = "Rename scene"
-                dialog.headerText = "Enter new scene name:"
-                dialog.contentText = "Name:"
-                val result: Optional<String> = dialog.showAndWait()
-                result.ifPresent { name ->
-                    label.text = name
-                    scene.name = name
-                    SceneController.save(scene)
-                }
-            }
-            contextMenu.items.add(menuItemRename)
-
-            label.contextMenu = contextMenu
-            return label
-        }
+): Comparable<EventExt> {
+    val start: String get() = convertDurationToString(getDurationByFrameNumber(event.firstFrameNumber - 1, fileExt.fps))
+    val end: String get() = convertDurationToString(getDurationByFrameNumber(event.lastFrameNumber, fileExt.fps))
+    val duration: Int get() = getDurationByFrameNumber(event.lastFrameNumber - event.firstFrameNumber + 1, fileExt.fps)
+    val eventName: String get() = event.name
     var previewsFirst: Array<ImageView?>? = null
         get() {
             if (field == null) {
@@ -119,7 +88,7 @@ data class SceneExt(
     val labelLast3: Label? get() = labelsLast?.get(2)
     var buttonGetType: Button = Button()
 
-    override fun compareTo(other: SceneExt): Int {
-        return this.scene.firstFrameNumber - other.scene.firstFrameNumber
+    override fun compareTo(other: EventExt): Int {
+        return this.event.firstFrameNumber - other.event.firstFrameNumber
     }
 }

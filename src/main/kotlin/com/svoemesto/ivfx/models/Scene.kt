@@ -24,7 +24,11 @@ import javax.validation.constraints.NotNull
 @Entity
 @Table(name = "tbl_scenes")
 @Transactional
-class Scene {
+class Scene: Comparable<Scene> {
+
+    override fun compareTo(other: Scene): Int {
+        return this.firstFrameNumber - other.firstFrameNumber
+    }
 
     @NotNull(message = "ID Scene не может быть NULL")
     @Id
