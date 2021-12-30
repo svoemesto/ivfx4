@@ -1,6 +1,8 @@
 package com.svoemesto.ivfx.modelsext
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.models.Event
+import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.convertDurationToString
@@ -30,6 +32,10 @@ data class ShotExt(
     val start: String get() = convertDurationToString(getDurationByFrameNumber(shot.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(shot.lastFrameNumber, fileExt.fps))
     val duration: Int get() = getDurationByFrameNumber(shot.lastFrameNumber - shot.firstFrameNumber + 1, fileExt.fps)
+//    val scene: Scene? get() = Main.sceneRepo.getSceneForShot(shot.id).firstOrNull()
+//    val event: Event? get() = Main.eventRepo.getEventForShot(shot.id).firstOrNull()
+    val sceneExt: SceneExt? get() = fileExt.scenesExt.firstOrNull { shot.firstFrameNumber >= it.scene.firstFrameNumber && shot.lastFrameNumber <= it.scene.lastFrameNumber }
+    val eventExt: EventExt? get() = fileExt.eventsExt.firstOrNull { shot.firstFrameNumber >= it.event.firstFrameNumber && shot.lastFrameNumber <= it.event.lastFrameNumber }
     var previewsFirst: Array<ImageView?>? = null
         get() {
             if (field == null) {
@@ -37,9 +43,11 @@ data class ShotExt(
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(firstFrameExt.pathToSmall).exists()) firstFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, start)
-//                    if (shot.isBodyScene) bi = setOverlayIsBodyScene(bi)
-//                    if (shot.isStartScene) bi = setOverlayIsStartScene(bi)
-//                    if (shot.isEndScene) bi = setOverlayIsEndScene(bi)
+                    if (sceneExt != null) {
+                        if (shot.firstFrameNumber >= sceneExt!!.scene.firstFrameNumber && shot.lastFrameNumber <= sceneExt!!.scene.lastFrameNumber) bi = setOverlayIsBodyScene(bi)
+                        if (shot.firstFrameNumber == sceneExt!!.scene.firstFrameNumber) bi = setOverlayIsStartScene(bi)
+                        if (shot.lastFrameNumber == sceneExt!!.scene.lastFrameNumber) bi = setOverlayIsEndScene(bi)
+                    }
                     field!![i] = ImageView(ConvertToFxImage.convertToFxImage(bi))
                 }
             }
@@ -52,9 +60,11 @@ data class ShotExt(
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(lastFrameExt.pathToSmall).exists()) lastFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, end)
-//                    if (shot.isBodyEvent) bi = setOverlayIsBodyEvent(bi)
-//                    if (shot.isStartEvent) bi = setOverlayIsStartEvent(bi)
-//                    if (shot.isEndEvent) bi = setOverlayIsEndEvent(bi)
+                    if (eventExt != null) {
+                        if (shot.firstFrameNumber >= eventExt!!.event.firstFrameNumber && shot.lastFrameNumber <= eventExt!!.event.lastFrameNumber) bi = setOverlayIsBodyEvent(bi)
+                        if (shot.firstFrameNumber == eventExt!!.event.firstFrameNumber) bi = setOverlayIsStartEvent(bi)
+                        if (shot.lastFrameNumber == eventExt!!.event.lastFrameNumber) bi = setOverlayIsEndEvent(bi)
+                    }
                     field!![i] = ImageView(ConvertToFxImage.convertToFxImage(bi))
                 }
             }

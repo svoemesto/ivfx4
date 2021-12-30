@@ -1,18 +1,28 @@
 package com.svoemesto.ivfx.modelsext
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.SceneController
 import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.convertDurationToString
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.getDurationByFrameNumber
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayUnderlineText
+import javafx.event.EventHandler
+import javafx.scene.control.Alert
+import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.Button
+import javafx.scene.control.ButtonType
 import javafx.scene.control.ContentDisplay
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
+import javafx.scene.control.MenuItem
+import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
 import java.awt.image.BufferedImage
+import java.util.*
 import javax.imageio.ImageIO
 import java.io.File as IOFile
+
 
 data class SceneExt(
     val scene: Scene,
@@ -23,6 +33,29 @@ data class SceneExt(
     val start: String get() = convertDurationToString(getDurationByFrameNumber(scene.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(scene.lastFrameNumber, fileExt.fps))
     val duration: Int get() = getDurationByFrameNumber(scene.lastFrameNumber - scene.firstFrameNumber + 1, fileExt.fps)
+    val sceneName: String get() = scene.name
+    val sceneNameLabel: Label
+        get() {
+            val label = Label(sceneName)
+            val contextMenu = ContextMenu()
+            val menuItemRename = MenuItem("Rename scene")
+            menuItemRename.onAction = EventHandler {
+                val dialog = TextInputDialog(sceneName)
+                dialog.title = "Rename scene"
+                dialog.headerText = "Enter new scene name:"
+                dialog.contentText = "Name:"
+                val result: Optional<String> = dialog.showAndWait()
+                result.ifPresent { name ->
+                    label.text = name
+                    scene.name = name
+                    SceneController.save(scene)
+                }
+            }
+            contextMenu.items.add(menuItemRename)
+
+            label.contextMenu = contextMenu
+            return label
+        }
     var previewsFirst: Array<ImageView?>? = null
         get() {
             if (field == null) {
@@ -30,9 +63,6 @@ data class SceneExt(
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(firstFrameExt.pathToSmall).exists()) firstFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, start)
-//                    if (shot.isBodyScene) bi = setOverlayIsBodyScene(bi)
-//                    if (shot.isStartScene) bi = setOverlayIsStartScene(bi)
-//                    if (shot.isEndScene) bi = setOverlayIsEndScene(bi)
                     field!![i] = ImageView(ConvertToFxImage.convertToFxImage(bi))
                 }
             }
@@ -45,9 +75,6 @@ data class SceneExt(
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(lastFrameExt.pathToSmall).exists()) lastFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, end)
-//                    if (shot.isBodyEvent) bi = setOverlayIsBodyEvent(bi)
-//                    if (shot.isStartEvent) bi = setOverlayIsStartEvent(bi)
-//                    if (shot.isEndEvent) bi = setOverlayIsEndEvent(bi)
                     field!![i] = ImageView(ConvertToFxImage.convertToFxImage(bi))
                 }
             }

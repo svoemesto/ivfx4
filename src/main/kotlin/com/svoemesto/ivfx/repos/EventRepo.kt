@@ -14,6 +14,14 @@ import org.springframework.transaction.annotation.Transactional
 interface EventRepo : CrudRepository<Event, Long> {
     fun findByFileId(fileId: Long): Iterable<Event>
 
+    fun findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(fileId: Long, firstFrameNumber: Int): Iterable<Event>
+
+    fun findByFileIdAndFirstFrameNumberAndLastFrameNumber(
+        fileId: Long,
+        firstFrameNumber: Int,
+        lastFrameNumber: Int
+    ): Iterable<Event>
+
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_events WHERE file_id = ?", nativeQuery = true)
@@ -23,5 +31,10 @@ interface EventRepo : CrudRepository<Event, Long> {
     @Modifying
     @Query(value = "DELETE FROM tbl_events WHERE id = ?", nativeQuery = true)
     fun delete(sceneId:Long)
+
+    @Query(value = "select tev.* from tbl_events as tev " +
+            "inner join tbl_shots as tsh on (tsh.file_id = tev.file_id and tsh.first_frame_number >= tev.first_frame_number and tsh.last_frame_number <= tev.last_frame_number) " +
+            "where tsh.id = ?", nativeQuery = true)
+    fun getEventForShot(shotId: Long): Iterable<Event>
 
 }
