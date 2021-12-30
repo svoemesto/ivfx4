@@ -37,9 +37,9 @@ data class ShotExt(
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(firstFrameExt.pathToSmall).exists()) firstFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, start)
-                    if (shot.isBodyScene) bi = setOverlayIsBodyScene(bi)
-                    if (shot.isStartScene) bi = setOverlayIsStartScene(bi)
-                    if (shot.isEndScene) bi = setOverlayIsEndScene(bi)
+//                    if (shot.isBodyScene) bi = setOverlayIsBodyScene(bi)
+//                    if (shot.isStartScene) bi = setOverlayIsStartScene(bi)
+//                    if (shot.isEndScene) bi = setOverlayIsEndScene(bi)
                     field!![i] = ImageView(ConvertToFxImage.convertToFxImage(bi))
                 }
             }
@@ -52,9 +52,9 @@ data class ShotExt(
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(lastFrameExt.pathToSmall).exists()) lastFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, end)
-                    if (shot.isBodyEvent) bi = setOverlayIsBodyEvent(bi)
-                    if (shot.isStartEvent) bi = setOverlayIsStartEvent(bi)
-                    if (shot.isEndEvent) bi = setOverlayIsEndEvent(bi)
+//                    if (shot.isBodyEvent) bi = setOverlayIsBodyEvent(bi)
+//                    if (shot.isStartEvent) bi = setOverlayIsStartEvent(bi)
+//                    if (shot.isEndEvent) bi = setOverlayIsEndEvent(bi)
                     field!![i] = ImageView(ConvertToFxImage.convertToFxImage(bi))
                 }
             }
