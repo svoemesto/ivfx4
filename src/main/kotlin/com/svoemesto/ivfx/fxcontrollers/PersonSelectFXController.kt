@@ -61,6 +61,7 @@ class PersonSelectFXController {
         private var currentPersonExt: PersonExt? = null
         private var currentProjectExt: ProjectExt? = null
         private var mainStage: Stage? = null
+        private var listLastSelectedPersons: MutableList<PersonExt> = mutableListOf()
     }
 
     private var listPersonsExtAll: ObservableList<PersonExt> = FXCollections.observableArrayList()
@@ -108,6 +109,14 @@ class PersonSelectFXController {
 
         runListThreadsPersonFlagIsDone.addListener { observable, oldValue, newValue ->
             if (newValue == true) {
+                val tmpList: ObservableList<PersonExt> = FXCollections.observableArrayList()
+                listLastSelectedPersons.forEach { lastPerson ->
+                    tmpList.add(listPersonsExtAll.first { lastPerson.person.id == it.person.id })
+                }
+                listPersonsExtAll.forEach {
+                    if (!tmpList.contains(it)) tmpList.add(it)
+                }
+                listPersonsExtAll = tmpList
                 tblPersons!!.items = listPersonsExtAll
                 if (currentPersonExt != null) {
                     tblPersons!!.selectionModel.select(currentPersonExt)
@@ -129,7 +138,7 @@ class PersonSelectFXController {
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
                     if (currentPersonExt != null) {
-                        mainStage?.close()
+                        doOk(null)
                     }
 
                 }
@@ -199,12 +208,14 @@ class PersonSelectFXController {
 
     @FXML
     fun doOk(event: ActionEvent?) {
+        if (listLastSelectedPersons.firstOrNull { it.person.id == currentPersonExt!!.person.id } == null) listLastSelectedPersons.add(0, currentPersonExt!!)
+        if (listLastSelectedPersons.size > 10) listLastSelectedPersons.removeAt(9)
         mainStage?.close()
     }
 
     @FXML
     fun doPersonAdd(event: ActionEvent?) {
-        PersonController.create(currentProjectExt!!.project)
+        PersonEditFXController().editPerson(PersonExt(PersonController.create(currentProjectExt!!.project), currentProjectExt!!))
         initialize()
     }
 

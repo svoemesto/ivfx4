@@ -30,14 +30,14 @@ interface ShotRepo : CrudRepository<Shot, Long> {
         lastFrameNumber: Int
     ): Iterable<Shot>
 
-    @Query(value = "SELECT * FROM tbl_shots " +
-            "INNER JOIN tbl_scenes_shots ON tbl_shots.id = tbl_scenes_shots.shot_id " +
-            "WHERE tbl_scenes_shots.scene_id = ?", nativeQuery = true)
+    @Query(value = "select tsh.* from tbl_shots as tsh " +
+            "inner join tbl_scenes as tsc on (tsh.file_id = tsc.file_id and tsh.first_frame_number >= tsc.first_frame_number and tsh.last_frame_number <= tsc.last_frame_number) " +
+            "where tsc.id = ?", nativeQuery = true)
     fun getShotsForScenes(sceneId:Long) : Iterable<Shot>
 
-    @Query(value = "SELECT * FROM tbl_shots " +
-            "INNER JOIN tbl_events_shots ON tbl_shots.id = tbl_events_shots.shot_id " +
-            "WHERE tbl_events_shots.event_id = ?", nativeQuery = true)
+    @Query(value = "select tsh.* from tbl_shots as tsh " +
+            "inner join tbl_events as tev on (tsh.file_id = tev.file_id and tsh.first_frame_number >= tev.first_frame_number and tsh.last_frame_number <= tev.last_frame_number) " +
+            "where tev.id = ?", nativeQuery = true)
     fun getShotsForEvents(eventId:Long) : Iterable<Shot>
 
 }

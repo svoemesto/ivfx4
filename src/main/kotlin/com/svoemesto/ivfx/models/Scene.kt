@@ -36,11 +36,17 @@ class Scene {
     @JoinColumn(name = "file_id")
     lateinit var file: File
 
+    @Column(name = "parent_id", nullable = false, columnDefinition = "bigint default 0")
+    var parentId: Long = 0
+
     @Column(name = "name", columnDefinition = "varchar(255) default ''")
     var name: String = ""
 
-    @OneToMany(mappedBy = "scene", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
-    @Fetch(value = FetchMode.SUBSELECT)
-    var scenesShots: MutableSet<SceneShot> = mutableSetOf()
+    @Column(name = "first_frame_number", columnDefinition = "int default 0")
+    var firstFrameNumber: Int = 0
+
+    @Column(name = "last_frame_number", columnDefinition = "int default 0")
+    var lastFrameNumber: Int = 0
+
 
 }

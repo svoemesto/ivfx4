@@ -24,9 +24,4 @@ interface EventRepo : CrudRepository<Event, Long> {
     @Query(value = "DELETE FROM tbl_events WHERE id = ?", nativeQuery = true)
     fun delete(sceneId:Long)
 
-    @Query(value = "SELECT * FROM tbl_events " +
-            "INNER JOIN tbl_events_shots ON tbl_events.id = tbl_events_shots.event_id " +
-            "WHERE tbl_events_shots.shot_id = ?", nativeQuery = true)
-    fun getEventsForShot(shotId:Long) : Iterable<Event>
-
 }

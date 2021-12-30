@@ -17,26 +17,14 @@ class ShotController() {
             return Main.propertyRepo.findByParentClassAndParentId(shot::class.simpleName!!, shot.id).toList()
         }
 
-//        fun getListShots(file: File): MutableList<Shot> {
-//            val result = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(file.id,0).toMutableList()
-//            val fileScenesShots = Main.sceneShotRepo.getScenesShotsForFile(file.id)
-//            val fileEventsShots = Main.eventShotRepo.getEventsShotsForFile(file.id)
-//            result.forEach { shot ->
-//                shot.file = file
-//                shot.scenesShots = fileScenesShots.filter { it.shot.id == shot.id }.toMutableSet()
-//                shot.eventsShots = fileEventsShots.filter { it.shot.id == shot.id }.toMutableSet()
-//            }
-//            return result
-//        }
-
         fun getSetShots(file: File): MutableSet<Shot> {
             val result = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(file.id,0).toMutableSet()
-            val fileScenesShots = Main.sceneShotRepo.getScenesShotsForFile(file.id)
-            val fileEventsShots = Main.eventShotRepo.getEventsShotsForFile(file.id)
+//            val fileScenesShots = Main.sceneShotRepo.getScenesShotsForFile(file.id)
+//            val fileEventsShots = Main.eventShotRepo.getEventsShotsForFile(file.id)
             result.forEach { shot ->
                 shot.file = file
-                shot.scenesShots = fileScenesShots.filter { it.shot.id == shot.id }.toMutableSet()
-                shot.eventsShots = fileEventsShots.filter { it.shot.id == shot.id }.toMutableSet()
+//                shot.scenesShots = fileScenesShots.filter { it.shot.id == shot.id }.toMutableSet()
+//                shot.eventsShots = fileEventsShots.filter { it.shot.id == shot.id }.toMutableSet()
             }
             return result
         }
@@ -79,16 +67,16 @@ class ShotController() {
             if (entity == null) {
                 entity = Shot()
                 entity.file = file
-                entity.scenesShots = mutableSetOf()
-                entity.eventsShots = mutableSetOf()
+//                entity.scenesShots = mutableSetOf()
+//                entity.eventsShots = mutableSetOf()
                 entity.firstFrameNumber = firstFrameNumber
                 entity.lastFrameNumber = lastFrameNumber
                 entity.nearestIFrame = nearestIFrame
                 save(entity)
             } else {
                 entity.file = file
-                entity.scenesShots = Main.sceneShotRepo.getScenesShotsForShot(entity.id).toMutableSet()
-                entity.eventsShots = Main.eventShotRepo.getEventsShotsForShot(entity.id).toMutableSet()
+//                entity.scenesShots = Main.sceneShotRepo.getScenesShotsForShot(entity.id).toMutableSet()
+//                entity.eventsShots = Main.eventShotRepo.getEventsShotsForShot(entity.id).toMutableSet()
             }
             return entity
         }

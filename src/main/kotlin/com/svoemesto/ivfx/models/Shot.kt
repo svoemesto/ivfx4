@@ -55,72 +55,68 @@ class Shot: Comparable<Shot> {
     @Column(name = "nearest_i_frame", columnDefinition = "int default 0")
     var nearestIFrame: Int = 0
 
-    @OneToMany(mappedBy = "scene", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
-    @Fetch(value = FetchMode.SUBSELECT)
-    var scenesShots: MutableSet<SceneShot> = mutableSetOf()
+//    @OneToMany(mappedBy = "event", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+//    @Fetch(value = FetchMode.SUBSELECT)
+//    var eventsShots: MutableSet<EventShot> = mutableSetOf()
 
-    @OneToMany(mappedBy = "event", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
-    @Fetch(value = FetchMode.SUBSELECT)
-    var eventsShots: MutableSet<EventShot> = mutableSetOf()
-
-    val isBodyScene: Boolean
-        get() {
-            scenesShots.forEach { sceneShotForShot->
-                val list = sceneShotForShot.scene.scenesShots.map {it.shot}.toMutableList()
-                list.sort()
-                if (list.contains(this) && this != list.firstOrNull() && this != list.lastOrNull()) return true
-            }
-            return false
-        }
-
-    val isStartScene: Boolean
-        get() {
-            scenesShots.forEach { sceneShotForShot->
-                val list = sceneShotForShot.scene.scenesShots.map {it.shot}.toMutableList()
-                list.sort()
-                if (this == list.firstOrNull()) return true
-            }
-            return false
-        }
-
-    val isEndScene: Boolean
-        get() {
-            scenesShots.forEach { sceneShotForShot->
-                val list = sceneShotForShot.scene.scenesShots.map {it.shot}.toMutableList()
-                list.sort()
-                if (this == list.lastOrNull()) return true
-            }
-            return false
-        }
-
-    val isBodyEvent: Boolean
-        get() {
-            eventsShots.forEach { sceneShotForShot->
-                val list = sceneShotForShot.event.eventsShots.map {it.shot}.toMutableList()
-                list.sort()
-                if (list.contains(this) && this != list.firstOrNull() && this != list.lastOrNull()) return true
-            }
-            return false
-        }
-
-    val isStartEvent: Boolean
-        get() {
-            eventsShots.forEach { sceneShotForShot->
-                val list = sceneShotForShot.event.eventsShots.map {it.shot}.toMutableList()
-                list.sort()
-                if (this == list.firstOrNull()) return true
-            }
-            return false
-        }
-
-    val isEndEvent: Boolean
-        get() {
-            eventsShots.forEach { sceneShotForShot->
-                val list = sceneShotForShot.event.eventsShots.map {it.shot}.toMutableList()
-                list.sort()
-                if (this == list.lastOrNull()) return true
-            }
-            return false
-        }
+//    val isBodyScene: Boolean
+//        get() {
+//            scenesShots.forEach { sceneShotForShot->
+//                val list = sceneShotForShot.scene.scenesShots.map {it.shot}.toMutableList()
+//                list.sort()
+//                if (list.contains(this) && this != list.firstOrNull() && this != list.lastOrNull()) return true
+//            }
+//            return false
+//        }
+//
+//    val isStartScene: Boolean
+//        get() {
+//            scenesShots.forEach { sceneShotForShot->
+//                val list = sceneShotForShot.scene.scenesShots.map {it.shot}.toMutableList()
+//                list.sort()
+//                if (this == list.firstOrNull()) return true
+//            }
+//            return false
+//        }
+//
+//    val isEndScene: Boolean
+//        get() {
+//            scenesShots.forEach { sceneShotForShot->
+//                val list = sceneShotForShot.scene.scenesShots.map {it.shot}.toMutableList()
+//                list.sort()
+//                if (this == list.lastOrNull()) return true
+//            }
+//            return false
+//        }
+//
+//    val isBodyEvent: Boolean
+//        get() {
+//            eventsShots.forEach { sceneShotForShot->
+//                val list = sceneShotForShot.event.eventsShots.map {it.shot}.toMutableList()
+//                list.sort()
+//                if (list.contains(this) && this != list.firstOrNull() && this != list.lastOrNull()) return true
+//            }
+//            return false
+//        }
+//
+//    val isStartEvent: Boolean
+//        get() {
+//            eventsShots.forEach { sceneShotForShot->
+//                val list = sceneShotForShot.event.eventsShots.map {it.shot}.toMutableList()
+//                list.sort()
+//                if (this == list.firstOrNull()) return true
+//            }
+//            return false
+//        }
+//
+//    val isEndEvent: Boolean
+//        get() {
+//            eventsShots.forEach { sceneShotForShot->
+//                val list = sceneShotForShot.event.eventsShots.map {it.shot}.toMutableList()
+//                list.sort()
+//                if (this == list.lastOrNull()) return true
+//            }
+//            return false
+//        }
 
 }

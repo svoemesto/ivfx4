@@ -85,8 +85,14 @@ class PersonExt(val person: Person, val projectExt: ProjectExt) : Comparable<Per
                                 ImageIO.write(bi, "jpg", outputfile)
                             }
                         } else {
-                            bi = ImageIO.read(IOFile(PersonExt::class.java.getResource("blank_person_medium.jpg")!!.file.substring(1)))
+                            val fileName = PersonExt::class.java.getResource("blank_person_medium.jpg")!!.file.substring(1)
+                            println(fileName)
+                            bi = ImageIO.read(IOFile(fileName))
                         }
+                    } else {
+                        val fileName = PersonExt::class.java.getResource("blank_person_medium.jpg")!!.file.substring(1)
+                        println(fileName)
+                        bi = ImageIO.read(IOFile(fileName))
                     }
                 }
 
