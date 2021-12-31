@@ -1770,6 +1770,29 @@ class ShotsEditFXController {
                         it.labelsFirst
                         it.labelsLast
                     }
+                    val prevIndex = currentFileExt!!.shotsExt.indexOf(selectedShots.first())-1
+
+                    if (prevIndex >= 0) {
+                        val shotExt = currentFileExt!!.shotsExt[prevIndex]
+                        shotExt.previewsFirst = null
+                        shotExt.previewsLast = null
+                        shotExt.labelsFirst = null
+                        shotExt.labelsLast = null
+                        shotExt.labelsFirst
+                        shotExt.labelsLast
+                    }
+
+                    val nextIndex = currentFileExt!!.shotsExt.indexOf(selectedShots.last())+1
+                    if (nextIndex < currentFileExt!!.shotsExt.size) {
+                        val shotExt = currentFileExt!!.shotsExt[nextIndex]
+                        shotExt.previewsFirst = null
+                        shotExt.previewsLast = null
+                        shotExt.labelsFirst = null
+                        shotExt.labelsLast = null
+                        shotExt.labelsFirst
+                        shotExt.labelsLast
+                    }
+
                     tblShots!!.refresh()
 //                    tblShots!!.items = currentFileExt!!.shotsExt
                 }

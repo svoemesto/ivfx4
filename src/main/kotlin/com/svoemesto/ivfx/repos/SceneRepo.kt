@@ -36,5 +36,12 @@ interface SceneRepo : CrudRepository<Scene, Long> {
             "where tsh.id = ?", nativeQuery = true)
     fun getSceneForShot(shotId: Long): Iterable<Scene>
 
+    @Query(value = "select tsc.* from tbl_scenes as tsc " +
+            "where tsc.file_id = ?1 and ((tsc.first_frame_number <= ?2 and tsc.last_frame_number >= ?2) or " +
+            "(tsc.first_frame_number <= ?3 and tsc.last_frame_number >= ?3) or " +
+            "(tsc.first_frame_number >= ?2 and tsc.last_frame_number <= ?3) or " +
+            "(tsc.first_frame_number < ?2 and tsc.last_frame_number > ?3))", nativeQuery = true)
+    fun getCrossingScenes(fileId: Long, firstFrameNumber: Int, lastFrameNumber: Int): Iterable<Scene>
+
 
 }

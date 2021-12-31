@@ -63,12 +63,39 @@ class SceneController() {
         fun getOrCreate(file: File, firstFrameNumber: Int, lastFrameNumber: Int): Scene {
             var entity = Main.sceneRepo.findByFileIdAndFirstFrameNumberAndLastFrameNumber(file.id, firstFrameNumber, lastFrameNumber).firstOrNull()
             if (entity == null) {
+
+                val crossingScenes: MutableList<Scene> = Main.sceneRepo.getCrossingScenes(file.id, firstFrameNumber, lastFrameNumber).toMutableList()
+                if (crossingScenes.isNotEmpty()) {
+                    crossingScenes.sort()
+                    crossingScenes.forEach { currentScene ->
+                        if (currentScene.firstFrameNumber < firstFrameNumber && currentScene.lastFrameNumber > lastFrameNumber) {
+                            val scene = Scene()
+                            scene.file = file
+                            scene.firstFrameNumber = lastFrameNumber + 1
+                            scene.lastFrameNumber = currentScene.lastFrameNumber
+                            scene.name = "Scene ${scene.firstFrameNumber}-${scene.lastFrameNumber}"
+                            save(scene)
+                            currentScene.lastFrameNumber = firstFrameNumber - 1
+                            save(currentScene)
+                        } else if (currentScene.firstFrameNumber < firstFrameNumber && currentScene.lastFrameNumber >= firstFrameNumber) {
+                            currentScene.lastFrameNumber = firstFrameNumber - 1
+                            save(currentScene)
+                        } else if (currentScene.firstFrameNumber <= lastFrameNumber && currentScene.lastFrameNumber > lastFrameNumber) {
+                            currentScene.firstFrameNumber = lastFrameNumber + 1
+                            save(currentScene)
+                        } else {
+                            delete(currentScene)
+                        }
+                    }
+                }
+
                 entity = Scene()
                 entity.file = file
                 entity.firstFrameNumber = firstFrameNumber
                 entity.lastFrameNumber = lastFrameNumber
                 entity.name = "Scene $firstFrameNumber-$lastFrameNumber"
                 save(entity)
+
             } else {
                 entity.file = file
             }
