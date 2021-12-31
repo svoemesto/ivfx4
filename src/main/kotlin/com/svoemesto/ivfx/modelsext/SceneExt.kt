@@ -30,6 +30,26 @@ data class SceneExt(
     var firstFrameExt: FrameExt,
     var lastFrameExt: FrameExt
 ): Comparable<SceneExt> {
+
+    override fun compareTo(other: SceneExt): Int {
+        return this.scene.firstFrameNumber - other.scene.firstFrameNumber
+    }
+
+    val shotsExt: MutableList<ShotExt>
+        get() = fileExt.shotsExt.filter {it.shot.firstFrameNumber >= scene.firstFrameNumber && it.shot.lastFrameNumber <=scene.lastFrameNumber}.toMutableList()
+
+    val personsExt: MutableList<PersonExt>
+        get() {
+            var list: MutableList<PersonExt> = mutableListOf()
+            var map: MutableMap<Long, PersonExt> = mutableMapOf()
+            shotsExt.forEach { currentShotExt ->
+                map.putAll(currentShotExt.personsExt.map { Pair(it.person.id, it) })
+            }
+            list = map.values.toMutableList()
+            list.sort()
+            return list
+        }
+
     val start: String get() = convertDurationToString(getDurationByFrameNumber(scene.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(scene.lastFrameNumber, fileExt.fps))
     val duration: Int get() = getDurationByFrameNumber(scene.lastFrameNumber - scene.firstFrameNumber + 1, fileExt.fps)
@@ -119,7 +139,4 @@ data class SceneExt(
     val labelLast3: Label? get() = labelsLast?.get(2)
     var buttonGetType: Button = Button()
 
-    override fun compareTo(other: SceneExt): Int {
-        return this.scene.firstFrameNumber - other.scene.firstFrameNumber
-    }
 }

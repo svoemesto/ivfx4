@@ -36,7 +36,7 @@
                         <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Properties" />
                         <HBox prefHeight="100.0" prefWidth="200.0">
                            <children>
-                              <TableView fx:id="tblProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0">
+                              <TableView fx:id="tblProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                  <columns>
                                     <TableColumn fx:id="colPropertyKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
                                     <TableColumn fx:id="colPropertyValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
@@ -121,7 +121,7 @@
                         <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Tags" />
                         <HBox prefHeight="100.0" prefWidth="200.0">
                            <children>
-                              <TableView fx:id="tblTags" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="400.0" minWidth="250.0" prefWidth="10000.0">
+                              <TableView fx:id="tblTags" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="400.0" minWidth="250.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                  <columns>
                                     <TableColumn fx:id="colTagName" maxWidth="235.0" minWidth="235.0" prefWidth="235.0" text="TAG" />
                                  </columns>

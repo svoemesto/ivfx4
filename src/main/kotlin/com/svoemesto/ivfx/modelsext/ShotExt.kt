@@ -29,13 +29,29 @@ data class ShotExt(
     var firstFrameExt: FrameExt,
     var lastFrameExt: FrameExt
 ): Comparable<ShotExt> {
+
+    override fun compareTo(other: ShotExt): Int {
+        return this.shot.firstFrameNumber - other.shot.firstFrameNumber
+    }
+
     val start: String get() = convertDurationToString(getDurationByFrameNumber(shot.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(shot.lastFrameNumber, fileExt.fps))
     val duration: Int get() = getDurationByFrameNumber(shot.lastFrameNumber - shot.firstFrameNumber + 1, fileExt.fps)
-//    val scene: Scene? get() = Main.sceneRepo.getSceneForShot(shot.id).firstOrNull()
-//    val event: Event? get() = Main.eventRepo.getEventForShot(shot.id).firstOrNull()
     val sceneExt: SceneExt? get() = fileExt.scenesExt.firstOrNull { shot.firstFrameNumber >= it.scene.firstFrameNumber && shot.lastFrameNumber <= it.scene.lastFrameNumber }
     val eventExt: EventExt? get() = fileExt.eventsExt.firstOrNull { shot.firstFrameNumber >= it.event.firstFrameNumber && shot.lastFrameNumber <= it.event.lastFrameNumber }
+
+    val personsExt: MutableList<PersonExt>
+        get() {
+            val list: MutableList<PersonExt> = mutableListOf()
+            val sourceIterable = Main.personRepo.findByShotId(shot.id)
+            for (person in sourceIterable) {
+                person.project = fileExt.projectExt.project
+                list.add(PersonExt(person, fileExt.projectExt))
+            }
+            list.sort()
+            return list
+        }
+
     var previewsFirst: Array<ImageView?>? = null
         get() {
             if (field == null) {
@@ -126,7 +142,4 @@ data class ShotExt(
     val labelLast3: Label? get() = labelsLast?.get(2)
     var buttonGetType: Button = Button()
 
-    override fun compareTo(other: ShotExt): Int {
-        return this.shot.firstFrameNumber - other.shot.firstFrameNumber
-    }
 }

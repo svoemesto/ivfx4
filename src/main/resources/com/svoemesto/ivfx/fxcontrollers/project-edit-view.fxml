@@ -204,7 +204,7 @@
                                                 <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Properties" />
                                                 <HBox prefHeight="100.0" prefWidth="200.0">
                                                    <children>
-                                                      <TableView fx:id="tblProjectProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0">
+                                                      <TableView fx:id="tblProjectProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                                          <columns>
                                                             <TableColumn fx:id="colProjectPropertyKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
                                                             <TableColumn fx:id="colProjectPropertyValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
@@ -288,7 +288,7 @@
                                                 <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Computer-Depened-Properties" />
                                                 <HBox prefHeight="100.0" prefWidth="200.0">
                                                    <children>
-                                                      <TableView fx:id="tblProjectPropertiesCdf" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0">
+                                                      <TableView fx:id="tblProjectPropertiesCdf" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                                          <columns>
                                                             <TableColumn fx:id="colProjectPropertyCdfKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
                                                             <TableColumn fx:id="colProjectPropertyCdfValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
@@ -398,7 +398,7 @@
                                                 <Insets />
                                              </HBox.margin>
                                              <children>
-                                                <TableView fx:id="tblFiles" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="250.0" prefHeight="10000.0" prefWidth="10000.0">
+                                                <TableView fx:id="tblFiles" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="250.0" prefHeight="10000.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                                   <columns>
                                                     <TableColumn fx:id="colFileOrder" maxWidth="40.0" prefWidth="40.0" text="#" />
                                                     <TableColumn fx:id="colFileName" maxWidth="190.0" prefWidth="190.0" text="Файл" />
@@ -551,7 +551,7 @@
                                           <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Properties" />
                                           <HBox prefHeight="100.0" prefWidth="200.0">
                                              <children>
-                                                <TableView fx:id="tblFileProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0">
+                                                <TableView fx:id="tblFileProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                                   <columns>
                                                     <TableColumn fx:id="colFilePropertyKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
                                                     <TableColumn fx:id="colFilePropertyValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
@@ -633,7 +633,7 @@
                                                 <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Computer-Depened-Properties" />
                                                 <HBox prefHeight="100.0" prefWidth="200.0">
                                                    <children>
-                                                      <TableView fx:id="tblFilePropertiesCdf" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0">
+                                                      <TableView fx:id="tblFilePropertiesCdf" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                                          <columns>
                                                             <TableColumn fx:id="colFilePropertyCdfKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
                                                             <TableColumn fx:id="colFilePropertyCdfValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
@@ -740,14 +740,14 @@
                                        <children>
                                           <Button fx:id="btnGetFileTracksFromMediaInfo" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doGetFileTracksFromMediaInfo" text="Get tracks from MediaInfo" />
                                           <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Tracks" />
-                                          <TableView fx:id="tblTracks" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" prefWidth="10000.0">
+                                          <TableView fx:id="tblTracks" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                              <columns>
                                                 <TableColumn fx:id="colTrackUse" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Use" />
                                                 <TableColumn fx:id="colTrackType" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Type" />
                                              </columns>
                                           </TableView>
                                           <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Track properties" />
-                                          <TableView fx:id="tblTrackProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" prefWidth="10000.0">
+                                          <TableView fx:id="tblTrackProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                              <columns>
                                                 <TableColumn fx:id="colTrackPropertyKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
                                                 <TableColumn fx:id="colTrackPropertyValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
