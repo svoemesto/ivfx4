@@ -28,7 +28,7 @@
             </Label>
             <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
-                  <TableView fx:id="tblProjects" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="350.0">
+                  <TableView fx:id="tblProjects" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="350.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                     <columns>
                         <TableColumn fx:id="colOrder" maxWidth="40.0" prefWidth="40.0" text="#" />
                       <TableColumn fx:id="colName" maxWidth="-Infinity" minWidth="282.0" prefWidth="-1.0" text="Проект" />

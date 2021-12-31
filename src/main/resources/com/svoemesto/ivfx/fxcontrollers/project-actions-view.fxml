@@ -18,7 +18,7 @@
                <children>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="10000.0" prefWidth="10000.0">
                      <children>
-                        <TableView fx:id="tblFilesExt" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="600.0">
+                        <TableView fx:id="tblFilesExt" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="600.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                           <columns>
                             <TableColumn fx:id="colFileExtOrder" minWidth="30.0" prefWidth="30.0" text="#" />
                             <TableColumn fx:id="colFileExtName" prefWidth="200.0" text="Файл" />

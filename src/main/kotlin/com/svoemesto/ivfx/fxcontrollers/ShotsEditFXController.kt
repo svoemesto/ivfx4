@@ -85,20 +85,9 @@ import java.io.File as IOFile
 
 @Transactional
 class ShotsEditFXController {
-    @FXML
-    private var tblPagesFrames: TableView<MatrixPageFrames>? = null
 
-    @FXML
-    private var colDurationStart: TableColumn<MatrixPageFrames, String>? = null
+   // SHOTS
 
-    @FXML
-    private var colDurationEnd: TableColumn<MatrixPageFrames, String>? = null
-
-    @FXML
-    private var colFrameStart: TableColumn<MatrixPageFrames, String>? = null
-
-    @FXML
-    private var colFrameEnd: TableColumn<MatrixPageFrames, String>? = null
 
     @FXML
     private var tblShots: TableView<ShotExt>? = null
@@ -114,6 +103,8 @@ class ShotsEditFXController {
 
     @FXML
     private var colButtonGetType: TableColumn<ShotExt, String>? = null
+
+
 
     @FXML
     private var rbPersonAll: RadioButton? = null
@@ -153,22 +144,11 @@ class ShotsEditFXController {
 
 
     @FXML
-    private var tblPersonsAllForFile: TableView<PersonExt>? = null
-
-    @FXML
     private var tblPersonsAllForShot: TableView<PersonExt>? = null
-
-    @FXML
-    private var colTblPersonsAllForFileName: TableColumn<PersonExt, String>? = null
 
     @FXML
     private var colTblPersonsAllForShotName: TableColumn<PersonExt, String>? = null
 
-    @FXML
-    private var tblPagesFaces: TableView<MatrixPageFaces>? = null
-
-    @FXML
-    private var colTblPagesFacesNumber: TableColumn<MatrixPageFaces, String>? = null
 
     @FXML
     private var lblFrameFull: Label? = null
@@ -179,17 +159,49 @@ class ShotsEditFXController {
     @FXML
     private var btnOK: Button? = null
 
+
+    // FRAMES
+
     @FXML
     private var paneFrames: Pane? = null
 
     @FXML
+    private var tblPagesFrames: TableView<MatrixPageFrames>? = null
+
+    @FXML
+    private var colDurationStart: TableColumn<MatrixPageFrames, String>? = null
+
+    @FXML
+    private var colDurationEnd: TableColumn<MatrixPageFrames, String>? = null
+
+    @FXML
+    private var colFrameStart: TableColumn<MatrixPageFrames, String>? = null
+
+    @FXML
+    private var colFrameEnd: TableColumn<MatrixPageFrames, String>? = null
+
+
+    // PERSONS / FACES
+
+
+    @FXML
+    private var tblPersonsAllForFile: TableView<PersonExt>? = null
+
+    @FXML
+    private var colTblPersonsAllForFileName: TableColumn<PersonExt, String>? = null
+
+    @FXML
+    private var tblPagesFaces: TableView<MatrixPageFaces>? = null
+
+    @FXML
+    private var colTblPagesFacesNumber: TableColumn<MatrixPageFaces, String>? = null
+
+
+    @FXML
     private var paneFaces: Pane? = null
 
-    @FXML
-    private var pb: ProgressBar? = null
 
-    @FXML
-    private var lblPb: Label? = null
+    // SCENES
 
     @FXML
     private var tblScenes: TableView<SceneExt>? = null
@@ -205,6 +217,33 @@ class ShotsEditFXController {
 
     @FXML
     private var btnCreateNewSceneBySelectedShots: Button? = null
+
+    @FXML
+    private var btnDeleteSelectedScenes: Button? = null
+
+    @FXML
+    private var tblShotsForScenes: TableView<ShotExt>? = null
+
+    @FXML
+    private var colShotForSceneFrom: TableColumn<ShotExt, String>? = null
+
+    @FXML
+    private var colShotForSceneTo: TableColumn<ShotExt, String>? = null
+
+    @FXML
+    private var tblPersonsAllForScenes: TableView<PersonExt>? = null
+
+    @FXML
+    private var colTblPersonsAllForSceneName: TableColumn<PersonExt, String>? = null
+
+    // FOOTER
+
+    @FXML
+    private var pb: ProgressBar? = null
+
+    @FXML
+    private var lblPb: Label? = null
+
 
     companion object {
         private var currentFileExt: FileExt? = null
@@ -249,13 +288,14 @@ class ShotsEditFXController {
     private val sbpCurrentShotExtWasChanged = SimpleBooleanProperty(false)
     private val sbpNeedCreatePagesWasChanged = SimpleBooleanProperty(false)
 
-
-
-
     private var listMatrixPageFrames: ObservableList<MatrixPageFrames> = FXCollections.observableArrayList()
     private var listMatrixPageFaces: ObservableList<MatrixPageFaces> = FXCollections.observableArrayList()
     private var listPersonsExtForFile: ObservableList<PersonExt> = FXCollections.observableArrayList()
     private var listPersonsExtForShot: ObservableList<PersonExt> = FXCollections.observableArrayList()
+    private var listPersonsExtForScene: ObservableList<PersonExt> = FXCollections.observableArrayList()
+    private var listPersonsExtForEvent: ObservableList<PersonExt> = FXCollections.observableArrayList()
+    private var listShotsExtForScenes: ObservableList<ShotExt> = FXCollections.observableArrayList()
+    private var listShotsExtForEvents: ObservableList<ShotExt> = FXCollections.observableArrayList()
     private var listFacesExt: ObservableList<FaceExt> = FXCollections.observableArrayList()
 
     private var countColumnsInPageFrames = 0
@@ -268,6 +308,8 @@ class ShotsEditFXController {
     private var currentMatrixFrame: MatrixFrame? = null
     private var currentMatrixFace: MatrixFace? = null
     private var currentShotExt: ShotExt? = null
+    private var currentSelectedScenesExt: MutableList<SceneExt> = mutableListOf()
+    private var currentShotExtForScene: ShotExt? = null
     private var currentPersonExt: PersonExt? = null
     private var currentNumPage = 0
     private var flowTblPagesFrames: VirtualFlow<*>? = null
@@ -349,9 +391,15 @@ class ShotsEditFXController {
         lastClickedMatrixFace = null
 
         tblShots!!.selectionModel.selectionMode = SelectionMode.MULTIPLE
+        tblScenes!!.selectionModel.selectionMode = SelectionMode.MULTIPLE
 
         tblPagesFrames?.placeholder = ProgressIndicator(-1.0)
         tblShots?.placeholder = ProgressIndicator(-1.0)
+        tblPersonsAllForScenes?.placeholder = ProgressIndicator(-1.0)
+        tblPersonsAllForShot?.placeholder = ProgressIndicator(-1.0)
+        tblPersonsAllForFile?.placeholder = ProgressIndicator(-1.0)
+        tblScenes?.placeholder = ProgressIndicator(-1.0)
+        tblShotsForScenes?.placeholder = ProgressIndicator(-1.0)
 
         mainStage?.title = "Редактор планов. Файл: ${currentFileExt!!.file.name}"
 
@@ -436,6 +484,9 @@ class ShotsEditFXController {
 
         tblShots!!.items = currentFileExt!!.shotsExt
 
+        colShotForSceneFrom?.cellValueFactory = PropertyValueFactory("labelFirst2")
+        colShotForSceneTo?.cellValueFactory = PropertyValueFactory("labelLast2")
+
         colSceneName?.cellValueFactory = PropertyValueFactory("sceneNameLabel")
         colSceneFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
         colSceneTo?.cellValueFactory = PropertyValueFactory("labelLast1")
@@ -447,6 +498,8 @@ class ShotsEditFXController {
 
         colTblPersonsAllForShotName?.cellValueFactory = PropertyValueFactory("labelSmall")
         tblPersonsAllForShot!!.items = listPersonsExtForShot
+
+        colTblPersonsAllForSceneName?.cellValueFactory = PropertyValueFactory("labelSmall")
 
         colTblPagesFacesNumber?.cellValueFactory = PropertyValueFactory("pageNumber")
         tblPagesFaces!!.items = listMatrixPageFaces
@@ -494,16 +547,17 @@ class ShotsEditFXController {
         tblShots!!.selectionModel.selectedItemProperty()
             .addListener { v: ObservableValue<out ShotExt?>?, oldValue: ShotExt?, newValue: ShotExt? ->
                 if (newValue != null) {
-                    currentShotExt = newValue
-                    LoadListPersonsExtForShot(listPersonsExtForShot, currentShotExt!!, pb, lblPb).run()
-                    tblPersonsAllForShot!!.items = listPersonsExtForShot
-                    if (wasClickTableShots) {
-                        wasClickTableShots = false
-                        goToFrame(getMatrixFrameByFrameExt(newValue.firstFrameExt))
-                    } else {
-                        tblShotsSmartScroll(newValue)
-                    }
-
+                    Thread {
+                        currentShotExt = newValue
+                        listPersonsExtForShot = FXCollections.observableList(currentShotExt!!.personsExt)
+                        tblPersonsAllForShot!!.items = listPersonsExtForShot
+                        if (wasClickTableShots) {
+                            wasClickTableShots = false
+                            goToFrame(getMatrixFrameByFrameExt(newValue.firstFrameExt))
+                        } else {
+                            tblShotsSmartScroll(newValue)
+                        }
+                    }.start()
                 }
             }
 
@@ -516,25 +570,37 @@ class ShotsEditFXController {
             wasClickTableShots = false
         }
 
+        tblScenes!!.selectionModel.selectedItemProperty()
+            .addListener { v: ObservableValue<out SceneExt?>?, oldValue: SceneExt?, newValue: SceneExt? ->
+                Thread {
+                    currentSelectedScenesExt = tblScenes!!.selectionModel.selectedItems
+                    listShotsExtForScenes.clear()
+                    listPersonsExtForScene.clear()
+                    if (currentSelectedScenesExt.isNotEmpty()) {
+                        val mapShotsExt: MutableMap<Long, ShotExt> = mutableMapOf()
+                        val mapPersonsExt: MutableMap<Long, PersonExt> = mutableMapOf()
+                        currentSelectedScenesExt.forEach { currentSceneExt->
+                            mapShotsExt.putAll(currentSceneExt.shotsExt.map { Pair(it.shot.id, it) })
+                            mapPersonsExt.putAll(currentSceneExt.personsExt.map { Pair(it.person.id, it) })
+                        }
+                        val tmpListShotsExt = mapShotsExt.values.toMutableList()
+                        val tmpListPersonsExt = mapPersonsExt.values.toMutableList()
+                        tmpListShotsExt.sort()
+                        tmpListPersonsExt.sort()
+                        listShotsExtForScenes.addAll(FXCollections.observableList(tmpListShotsExt))
+                        listPersonsExtForScene.addAll(FXCollections.observableList(tmpListPersonsExt))
+                    }
+                    tblShotsForScenes!!.items = listShotsExtForScenes
+                    tblPersonsAllForScenes!!.items = listPersonsExtForScene
+                }.start()
+            }
+
         tblPersonsAllForFile!!.selectionModel.selectedItemProperty()
             .addListener { v: ObservableValue<out PersonExt?>?, oldValue: PersonExt?, newValue: PersonExt? ->
                 if (newValue != null) {
 
                     currentPersonExt = newValue
                     doSelectFacesCb(null)
-//
-//                    runListThreadsFacesFlagIsDone.value = false
-//                    val listThreadsFaces: MutableList<Thread> = mutableListOf()
-//                    if (rbFaceFile!!.isSelected) {
-//                        listThreadsFaces.add(LoadListPersonFacesExtForFile(listFacesExt, currentFileExt!!, currentPersonExt!!, pb, lblPb, cbFacesNotExample!!.isSelected, cbFacesExample!!.isSelected, cbFacesNotManual!!.isSelected, cbFacesManual!!.isSelected))
-//                    } else if (rbFaceAll!!.isSelected) {
-//                        listThreadsFaces.add(LoadListPersonFacesExtForAll(listFacesExt, currentFileExt!!.projectExt, currentPersonExt!!, pb, lblPb, cbFacesNotExample!!.isSelected, cbFacesExample!!.isSelected, cbFacesNotManual!!.isSelected, cbFacesManual!!.isSelected))
-//                    } else if (rbFaceShot!!.isSelected) {
-//                        listThreadsFaces.add(LoadListPersonFacesExtForShot(listFacesExt, currentShotExt!!, currentPersonExt!!, pb, lblPb, cbFacesNotExample!!.isSelected, cbFacesExample!!.isSelected, cbFacesNotManual!!.isSelected, cbFacesManual!!.isSelected))
-//                    }
-//
-//                    val runListThreadsFaces = RunListThreads(listThreadsFaces, runListThreadsFacesFlagIsDone)
-//                    runListThreadsFaces.start()
 
                 }
             }
@@ -748,7 +814,7 @@ class ShotsEditFXController {
         tblPersonsAllForFile!!.onDragDropped = EventHandler { mouseEvent ->
             var success = false
             if (mouseEvent.dragboard.string == "labelFace") {
-                isNeedToAddDraggedFacesToPerson = true;
+                isNeedToAddDraggedFacesToPerson = true
                 success = true
             }
             mouseEvent.isDropCompleted = success
@@ -1794,11 +1860,15 @@ class ShotsEditFXController {
                     }
 
                     tblShots!!.refresh()
-//                    tblShots!!.items = currentFileExt!!.shotsExt
                 }
             }
 
         }
+
+    }
+
+    @FXML
+    fun doDeleteSelectedScenes(event: ActionEvent?) {
 
     }
 }
