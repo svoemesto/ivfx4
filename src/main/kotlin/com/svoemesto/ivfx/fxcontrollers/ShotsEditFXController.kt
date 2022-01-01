@@ -315,11 +315,16 @@ class ShotsEditFXController {
     private var flowTblPagesFrames: VirtualFlow<*>? = null
     private var flowTblPagesFaces: VirtualFlow<*>? = null
     private var flowTblShots: VirtualFlow<*>? = null
+    private var flowTblShotsForScenes: VirtualFlow<*>? = null
+    private var flowTblScenes: VirtualFlow<*>? = null
     private var flowTblPersonsAll: VirtualFlow<*>? = null
 
     private var wasClickTablePagesFrames = false
     private var wasClickTablePagesFaces = false
     private var wasClickTableShots = false
+    private var wasClickTableShotsForScenes = false
+    private var wasClickTableScenes = false
+    private var wasClickTablePersonsAllForScenes = false
     private var wasClickTablePersonsAllForFile = false
     private var wasClickFrameLabel = false
 
@@ -328,6 +333,8 @@ class ShotsEditFXController {
     private var currentPersonExtHovered: PersonExt? = null
     private var isNeedToAddDraggedFacesToPerson: Boolean = false
     private var currentMatrixPageFacesPageNumber: Int = 1
+
+    var threadOnSelectScene: Thread? = null
 
     fun editShots(fileExt: FileExt, hostServices: HostServices? = null) {
         currentFileExt = fileExt
@@ -395,11 +402,12 @@ class ShotsEditFXController {
 
         tblPagesFrames?.placeholder = ProgressIndicator(-1.0)
         tblShots?.placeholder = ProgressIndicator(-1.0)
-        tblPersonsAllForScenes?.placeholder = ProgressIndicator(-1.0)
-        tblPersonsAllForShot?.placeholder = ProgressIndicator(-1.0)
-        tblPersonsAllForFile?.placeholder = ProgressIndicator(-1.0)
+
+        tblPersonsAllForShot?.placeholder = Label("Shot not selected or don't have any persons.")
+        tblPersonsAllForFile?.placeholder = Label("File don't have any persons.")
         tblScenes?.placeholder = ProgressIndicator(-1.0)
-        tblShotsForScenes?.placeholder = ProgressIndicator(-1.0)
+        tblShotsForScenes?.placeholder = Label("Scene not selected or don't have any shots.")
+        tblPersonsAllForScenes?.placeholder = Label("Scene not selected or don't have any persons.")
 
         mainStage?.title = "Редактор планов. Файл: ${currentFileExt!!.file.name}"
 
@@ -416,7 +424,6 @@ class ShotsEditFXController {
         contextMenuFrameFull.items.add(menuItemEditFrameFaces)
         lblFrameFull!!.contextMenu = contextMenuFrameFull
 
-
         var listThreads: MutableList<Thread> = mutableListOf()
         listThreads.add(LoadListPersonsExtForFile(listPersonsExtForFile, currentFileExt!!, pb, lblPb))
         listThreads.add(LoadListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb))
@@ -430,11 +437,12 @@ class ShotsEditFXController {
             if (newValue == true) {
 
                 currentFileExt!!.shotsExt.forEach { shotExt ->
+
                     shotExt.buttonGetType.setOnAction { onActionButtonGetShotType(shotExt) }
                 }
                 tblPersonsAllForFile!!.items = listPersonsExtForFile
 
-                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
+                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.width, paneFrames!!.height, Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                 tblPagesFaces!!.items = listMatrixPageFaces
 
                 listThreads = mutableListOf()
@@ -470,41 +478,21 @@ class ShotsEditFXController {
 
         isWorking = true
 
-        // устанавливаем соответствия для столбцов и таблицы
+
+        /**
+         * tblPagesFrames events
+         */
+
+        // PropertyValueFactory
         colDurationStart?.cellValueFactory = PropertyValueFactory("start")
         colDurationEnd?.cellValueFactory = PropertyValueFactory("end")
         colFrameStart?.cellValueFactory = PropertyValueFactory("firstFrameNumber")
         colFrameEnd?.cellValueFactory = PropertyValueFactory("lastFrameNumber")
+
+        // items
         tblPagesFrames!!.items = listMatrixPageFrames
 
-        colShotFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
-        colShotTo?.cellValueFactory = PropertyValueFactory("labelLast1")
-        colShotType?.cellValueFactory = PropertyValueFactory("labelType")
-        colButtonGetType?.cellValueFactory = PropertyValueFactory("buttonGetType")
-
-        tblShots!!.items = currentFileExt!!.shotsExt
-
-        colShotForSceneFrom?.cellValueFactory = PropertyValueFactory("labelFirst2")
-        colShotForSceneTo?.cellValueFactory = PropertyValueFactory("labelLast2")
-
-        colSceneName?.cellValueFactory = PropertyValueFactory("sceneNameLabel")
-        colSceneFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
-        colSceneTo?.cellValueFactory = PropertyValueFactory("labelLast1")
-
-        tblScenes!!.items = currentFileExt!!.scenesExt
-
-        colTblPersonsAllForFileName?.cellValueFactory = PropertyValueFactory("labelSmall")
-        tblPersonsAllForFile!!.items = listPersonsExtForFile
-
-        colTblPersonsAllForShotName?.cellValueFactory = PropertyValueFactory("labelSmall")
-        tblPersonsAllForShot!!.items = listPersonsExtForShot
-
-        colTblPersonsAllForSceneName?.cellValueFactory = PropertyValueFactory("labelSmall")
-
-        colTblPagesFacesNumber?.cellValueFactory = PropertyValueFactory("pageNumber")
-        tblPagesFaces!!.items = listMatrixPageFaces
-
-        // выбор записи в таблице tblPages
+        // selectedItemProperty
         tblPagesFrames!!.selectionModel.selectedItemProperty()
             .addListener { v: ObservableValue<out MatrixPageFrames?>?, oldValue: MatrixPageFrames?, newValue: MatrixPageFrames? ->
                 if (newValue != null) {
@@ -517,6 +505,41 @@ class ShotsEditFXController {
                 }
             }
 
+        // onMouseEntered / onMouseExited
+        tblPagesFrames!!.onMouseEntered = EventHandler { wasClickTablePagesFrames = true }
+        tblPagesFrames!!.onMouseExited = EventHandler { wasClickTablePagesFrames = false }
+
+        // flow
+        tblPagesFrames!!.skinProperty().addListener(ChangeListener label@{ _: ObservableValue<out Skin<*>?>?, _: Skin<*>?, t1: Skin<*>? ->
+            if (t1 == null) return@label
+            val tvs = t1 as TableViewSkin<*>
+            val kids = tvs.children
+            if (kids == null || kids.isEmpty()) return@label
+            flowTblPagesFrames = kids[1] as VirtualFlow<*>
+        })
+
+        // Click
+        tblPagesFrames!!.onMouseClicked = EventHandler { mouseEvent ->
+            if (mouseEvent.button == MouseButton.PRIMARY) {
+                if (mouseEvent.clickCount == 1) {
+                    wasClickTablePagesFrames = true
+                    wasClickFrameLabel = false
+                    wasClickTableShots = false
+                }
+            }
+        }
+
+        /**
+         * tblPagesFaces events
+         */
+
+        // PropertyValueFactory
+        colTblPagesFacesNumber?.cellValueFactory = PropertyValueFactory("pageNumber")
+
+        // items
+        tblPagesFaces!!.items = listMatrixPageFaces
+
+        // selectedItemProperty
         tblPagesFaces!!.selectionModel.selectedItemProperty()
             .addListener { v: ObservableValue<out MatrixPageFaces?>?, oldValue: MatrixPageFaces?, newValue: MatrixPageFaces? ->
                 if (newValue != null) {
@@ -529,31 +552,64 @@ class ShotsEditFXController {
                 }
             }
 
+        // onMouseEntered / onMouseExited
+        tblPagesFaces!!.onMouseEntered = EventHandler { wasClickTablePagesFaces = true }
+        tblPagesFaces!!.onMouseExited = EventHandler { wasClickTablePagesFaces = false }
 
-        tblPagesFrames!!.onMouseEntered = EventHandler {
-            wasClickTablePagesFrames = true
-        }
-        tblPagesFrames!!.onMouseExited = EventHandler {
-            wasClickTablePagesFrames = false
-        }
+        // flow
+        tblPagesFaces!!.skinProperty().addListener(ChangeListener label@{ _: ObservableValue<out Skin<*>?>?, _: Skin<*>?, t1: Skin<*>? ->
+            if (t1 == null) return@label
+            val tvs = t1 as TableViewSkin<*>
+            val kids = tvs.children
+            if (kids == null || kids.isEmpty()) return@label
+            flowTblPagesFaces = kids[1] as VirtualFlow<*>
+        })
 
-        tblPagesFaces!!.onMouseEntered = EventHandler {
-            wasClickTablePagesFaces = true
-        }
-        tblPagesFaces!!.onMouseExited = EventHandler {
-            wasClickTablePagesFaces = false
-        }
 
+        /**
+         * tblShots events
+         */
+
+        // PropertyValueFactory
+        colShotFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
+        colShotTo?.cellValueFactory = PropertyValueFactory("labelLast1")
+        colShotType?.cellValueFactory = PropertyValueFactory("labelType")
+        colButtonGetType?.cellValueFactory = PropertyValueFactory("buttonGetType")
+
+        // items
+        tblShots!!.items = currentFileExt!!.shotsExt
+
+        // selectedItemProperty
         tblShots!!.selectionModel.selectedItemProperty()
             .addListener { v: ObservableValue<out ShotExt?>?, oldValue: ShotExt?, newValue: ShotExt? ->
                 if (newValue != null) {
                     Thread {
+                        tblPersonsAllForShot?.placeholder = ProgressIndicator(-1.0)
                         currentShotExt = newValue
                         listPersonsExtForShot = FXCollections.observableList(currentShotExt!!.personsExt)
                         tblPersonsAllForShot!!.items = listPersonsExtForShot
+                        tblPersonsAllForShot?.placeholder = Label("Shot not selected or don't have any persons.")
                         if (wasClickTableShots) {
                             wasClickTableShots = false
                             goToFrame(getMatrixFrameByFrameExt(newValue.firstFrameExt))
+                            if (!currentSelectedScenesExt.map{it.scene.id}.contains(currentShotExt!!.sceneExt!!.scene.id)) {
+                                tblScenes!!.selectionModel.clearSelection()
+                                val sceneToGo = currentFileExt!!.scenesExt.firstOrNull { it.scene.id == currentShotExt!!.sceneExt!!.scene.id }
+                                if (sceneToGo != null) {
+                                    tblScenes!!.selectionModel.select(sceneToGo)
+                                    tblScenesSmartScroll(sceneToGo)
+                                }
+                            } else {
+                                if (listShotsExtForScenes.map{it.shot.id}.contains(currentShotExt!!.shot.id)) {
+                                    tblShotsForScenes!!.selectionModel.clearSelection()
+                                    val shotForSceneToGo = listShotsExtForScenes.firstOrNull { it.shot.id == currentShotExt!!.shot.id }
+                                    if (shotForSceneToGo != null) {
+                                        tblShotsForScenes!!.selectionModel.select(shotForSceneToGo)
+                                        tblShotsForScenesSmartScroll(shotForSceneToGo)
+                                    }
+                                }
+                            }
+
                         } else {
                             tblShotsSmartScroll(newValue)
                         }
@@ -561,219 +617,20 @@ class ShotsEditFXController {
                 }
             }
 
-        tblShots!!.onMouseEntered = EventHandler {
-            wasClickTableShots = true
-        }
+        // onMouseEntered / onMouseExited
+        tblShots!!.onMouseEntered = EventHandler { wasClickTableShots = true }
+        tblShots!!.onMouseExited = EventHandler { wasClickTableShots = false }
 
-        //событие "уход мыши"
-        tblShots!!.onMouseExited = EventHandler {
-            wasClickTableShots = false
-        }
+        // flow
+        tblShots!!.skinProperty().addListener(ChangeListener label@{ _: ObservableValue<out Skin<*>?>?, _: Skin<*>?, t1: Skin<*>? ->
+            if (t1 == null) return@label
+            val tvs = t1 as TableViewSkin<*>
+            val kids = tvs.children
+            if (kids == null || kids.isEmpty()) return@label
+            flowTblShots = kids[1] as VirtualFlow<*>
+        })
 
-        tblScenes!!.selectionModel.selectedItemProperty()
-            .addListener { v: ObservableValue<out SceneExt?>?, oldValue: SceneExt?, newValue: SceneExt? ->
-                Thread {
-                    currentSelectedScenesExt = tblScenes!!.selectionModel.selectedItems
-                    listShotsExtForScenes.clear()
-                    listPersonsExtForScene.clear()
-                    if (currentSelectedScenesExt.isNotEmpty()) {
-                        val mapShotsExt: MutableMap<Long, ShotExt> = mutableMapOf()
-                        val mapPersonsExt: MutableMap<Long, PersonExt> = mutableMapOf()
-                        currentSelectedScenesExt.forEach { currentSceneExt->
-                            mapShotsExt.putAll(currentSceneExt.shotsExt.map { Pair(it.shot.id, it) })
-                            mapPersonsExt.putAll(currentSceneExt.personsExt.map { Pair(it.person.id, it) })
-                        }
-                        val tmpListShotsExt = mapShotsExt.values.toMutableList()
-                        val tmpListPersonsExt = mapPersonsExt.values.toMutableList()
-                        tmpListShotsExt.sort()
-                        tmpListPersonsExt.sort()
-                        listShotsExtForScenes.addAll(FXCollections.observableList(tmpListShotsExt))
-                        listPersonsExtForScene.addAll(FXCollections.observableList(tmpListPersonsExt))
-                    }
-                    tblShotsForScenes!!.items = listShotsExtForScenes
-                    tblPersonsAllForScenes!!.items = listPersonsExtForScene
-                }.start()
-            }
-
-        tblPersonsAllForFile!!.selectionModel.selectedItemProperty()
-            .addListener { v: ObservableValue<out PersonExt?>?, oldValue: PersonExt?, newValue: PersonExt? ->
-                if (newValue != null) {
-
-                    currentPersonExt = newValue
-                    doSelectFacesCb(null)
-
-                }
-            }
-
-        tblPersonsAllForFile!!.onMouseEntered = EventHandler {
-            wasClickTablePersonsAllForFile = true
-        }
-        tblPersonsAllForFile!!.onMouseExited = EventHandler {
-            wasClickTablePersonsAllForFile = false
-        }
-
-
-        // событие отслеживани видимости на экране текущего персонажа в таблице tblPages
-        tblPagesFrames!!.skinProperty()
-            .addListener(ChangeListener label@{ ov: ObservableValue<out Skin<*>?>?, t: Skin<*>?, t1: Skin<*>? ->
-                if (t1 == null) {
-                    return@label
-                }
-                val tvs =
-                    t1 as TableViewSkin<*>
-                val kids = tvs.children //    getChildrenUnmodifiable();
-                if (kids == null || kids.isEmpty()) {
-                    return@label
-                }
-                flowTblPagesFrames = kids[1] as VirtualFlow<*>
-            })
-
-        tblPagesFaces!!.skinProperty()
-            .addListener(ChangeListener label@{ ov: ObservableValue<out Skin<*>?>?, t: Skin<*>?, t1: Skin<*>? ->
-                if (t1 == null) {
-                    return@label
-                }
-                val tvs =
-                    t1 as TableViewSkin<*>
-                val kids = tvs.children //    getChildrenUnmodifiable();
-                if (kids == null || kids.isEmpty()) {
-                    return@label
-                }
-                flowTblPagesFaces = kids[1] as VirtualFlow<*>
-            })
-
-
-        tblShots!!.skinProperty()
-            .addListener(ChangeListener label@{ ov: ObservableValue<out Skin<*>?>?, t: Skin<*>?, t1: Skin<*>? ->
-                if (t1 == null) {
-                    return@label
-                }
-                val tvs =
-                    t1 as TableViewSkin<*>
-                val kids = tvs.children //    getChildrenUnmodifiable();
-                if (kids == null || kids.isEmpty()) {
-                    return@label
-                }
-                flowTblShots = kids[1] as VirtualFlow<*>
-            })
-
-        paneFrames!!.widthProperty().addListener { _, _, _ -> listenToChangePaneSize() }
-        paneFrames!!.heightProperty().addListener { _, _, _ -> listenToChangePaneSize() }
-
-        // прокрутка колеса мыши над CenterPane
-        paneFrames!!.setOnScroll { e: ScrollEvent ->
-            wasClickFrameLabel = false
-            wasClickTablePagesFrames = false
-            wasClickTableShots = false
-            val delta = if (e.deltaY > 0) -1 else 1
-            if (isPressedControl) {
-                if (currentShotExt != null) {
-                    if (delta > 0) {
-                        goToFrame(currentShotExt!!.lastFrameExt.frame.frameNumber + 1)
-                    } else {
-                        goToFrame(currentShotExt!!.firstFrameExt.frame.frameNumber - 1)
-                    }
-                }
-            } else {
-                if (currentMatrixPageFrames == null) {
-                    goToFrame(listMatrixPageFrames.first().matrixFrames.first())
-                } else {
-                    val frameToGo = if (delta < 0) getPrevMatrixFrame(currentMatrixPageFrames!!.matrixFrames.first()) else getNextMatrixFrame(currentMatrixPageFrames!!.matrixFrames.last())
-                    goToFrame(frameToGo)
-                }
-            }
-        }
-
-        lblFrameFull!!.setOnScroll { e: ScrollEvent ->
-            val delta = if (e.deltaY > 0) -1 else 1
-            if (isPressedControl) {
-                if (currentShotExt != null) {
-                    if (delta > 0) {
-                        goToFrame(currentShotExt!!.lastFrameExt.frame.frameNumber + 1)
-                    } else {
-                        goToFrame(currentShotExt!!.firstFrameExt.frame.frameNumber - 1)
-                    }
-                }
-            } else {
-                if (currentMatrixFrame != null) {
-                    if (delta > 0) {
-                        goToFrame(currentMatrixFrame?.frameNumber!!+1)
-                    } else {
-                        goToFrame(currentMatrixFrame?.frameNumber!!-1)
-                    }
-                }
-            }
-        }
-
-        paneFaces!!.setOnScroll { e: ScrollEvent ->
-            if (listMatrixPageFaces.isNotEmpty()) {
-                val delta = if (e.deltaY > 0) -1 else 1
-                if (currentMatrixPageFaces == null) {
-                    goToFace(listMatrixPageFaces.first().matrixFaces.first())
-                } else {
-                    if (currentMatrixPageFaces!!.matrixFaces.isNotEmpty()) {
-
-                    }
-                    val faceToGo = if (delta < 0)
-                        if (currentMatrixPageFaces!!.matrixFaces.isNotEmpty()) {
-                            getPrevMatrixFace(currentMatrixPageFaces!!.matrixFaces.first())
-                        } else {
-                            null
-                        }
-                    else
-                        if (currentMatrixPageFaces!!.matrixFaces.isNotEmpty()) {
-                            getNextMatrixFace(currentMatrixPageFaces!!.matrixFaces.last())
-                        } else {
-                            null
-                        }
-
-                    goToFace(faceToGo)
-                }
-            }
-        }
-        
-        sbpNeedCreatePagesWasChanged.addListener { observable, oldValue, newValue ->
-            if (newValue == true) {
-                sbpNeedCreatePagesWasChanged.value = false
-                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.width, paneFrames!!.height, Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
-                tblPagesFrames!!.items = listMatrixPageFrames
-            }
-        }
-
-        sbpCurrentMatrixPageWasChanged.addListener { observable, oldValue, newValue ->
-            if (newValue == true) {
-                sbpCurrentMatrixPageWasChanged.value = false
-                if (currentMatrixPageFrames != null) {
-                    showMatrixPageFrames(currentMatrixPageFrames!!)
-                    tblPagesFrames!!.selectionModel.select(currentMatrixPageFrames!!)
-                }
-            }
-        }
-
-        sbpCurrentMatrixFrameWasChanged.addListener { observable, oldValue, newValue ->
-            if (newValue == true) {
-                sbpCurrentMatrixFrameWasChanged.value = false
-                goToFrame(currentMatrixFrame)
-            }
-        }
-
-        sbpCurrentShotExtWasChanged.addListener { observable, oldValue, newValue ->
-            if (newValue == true) {
-                sbpCurrentShotExtWasChanged.value = false
-                tblShots!!.selectionModel.select(currentShotExt!!)
-            }
-        }
-
-        tblPagesFrames!!.onMouseClicked = EventHandler { mouseEvent ->
-            if (mouseEvent.button == MouseButton.PRIMARY) {
-                if (mouseEvent.clickCount == 1) {
-                    wasClickTablePagesFrames = true
-                    wasClickFrameLabel = false
-                    wasClickTableShots = false
-                }
-            }
-        }
-
+        // Click
         tblShots!!.onMouseClicked = EventHandler { mouseEvent ->
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 1) {
@@ -784,6 +641,138 @@ class ShotsEditFXController {
             }
         }
 
+        /**
+         * tblScenes events
+         */
+
+        // PropertyValueFactory
+        colSceneName?.cellValueFactory = PropertyValueFactory("sceneNameLabel")
+        colSceneFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
+        colSceneTo?.cellValueFactory = PropertyValueFactory("labelLast1")
+
+        // items
+        tblScenes!!.items = currentFileExt!!.scenesExt
+
+        // selectedItemProperty
+        tblScenes!!.selectionModel.selectedItemProperty()
+            .addListener { v: ObservableValue<out SceneExt?>?, oldValue: SceneExt?, newValue: SceneExt? ->
+
+                if (threadOnSelectScene!=null && threadOnSelectScene!!.isAlive) {
+                    threadOnSelectScene!!.interrupt()
+                    while (threadOnSelectScene!!.isAlive){
+                        Thread.sleep(100)
+                    }
+                }
+                threadOnSelectScene =
+                Thread {
+                    tblShotsForScenes?.placeholder = ProgressIndicator(-1.0)
+                    tblPersonsAllForScenes?.placeholder = ProgressIndicator(-1.0)
+                    currentSelectedScenesExt = tblScenes!!.selectionModel.selectedItems
+                    listShotsExtForScenes.clear()
+                    listPersonsExtForScene.clear()
+                    if (currentSelectedScenesExt.isNotEmpty()) {
+                        val mapShotsExt: MutableMap<Long, ShotExt> = mutableMapOf()
+                        val mapPersonsExt: MutableMap<Long, PersonExt> = mutableMapOf()
+                        currentSelectedScenesExt.forEach { currentSceneExt->
+                            if (Thread.currentThread().isInterrupted) return@Thread
+                            mapShotsExt.putAll(currentSceneExt.shotsExt.map { Pair(it.shot.id, it) })
+                            mapPersonsExt.putAll(currentSceneExt.personsExt.map { Pair(it.person.id, it) })
+                        }
+                        val tmpListShotsExt = mapShotsExt.values.toMutableList()
+                        val tmpListPersonsExt = mapPersonsExt.values.toMutableList()
+                        tmpListShotsExt.sort()
+                        tmpListPersonsExt.sort()
+                        listShotsExtForScenes.addAll(FXCollections.observableList(tmpListShotsExt))
+                        listPersonsExtForScene.addAll(FXCollections.observableList(tmpListPersonsExt))
+
+                    }
+                    tblShotsForScenes!!.items = listShotsExtForScenes
+                    if (listShotsExtForScenes.map{it.shot.id}.contains(currentShotExt!!.shot.id)) {
+                        tblShotsForScenes!!.selectionModel.clearSelection()
+                        val shotForSceneToGo = listShotsExtForScenes.firstOrNull { it.shot.id == currentShotExt!!.shot.id }
+                        if (shotForSceneToGo != null) {
+                            tblShotsForScenes!!.selectionModel.select(shotForSceneToGo)
+                            tblShotsForScenesSmartScroll(shotForSceneToGo)
+                        }
+                    }
+                    tblPersonsAllForScenes!!.items = listPersonsExtForScene
+
+                    tblShotsForScenes?.placeholder = Label("Scene not selected or don't have any shots.")
+                    tblPersonsAllForScenes?.placeholder = Label("Scene not selected or don't have any persons.")
+                }
+                threadOnSelectScene!!.start()
+            }
+
+        // onMouseEntered / onMouseExited
+        tblScenes!!.onMouseEntered = EventHandler { wasClickTableScenes = true }
+        tblScenes!!.onMouseExited = EventHandler { wasClickTableScenes = false }
+
+        // flow
+        tblScenes!!.skinProperty().addListener(ChangeListener label@{ _: ObservableValue<out Skin<*>?>?, _: Skin<*>?, t1: Skin<*>? ->
+            if (t1 == null) return@label
+            val tvs = t1 as TableViewSkin<*>
+            val kids = tvs.children
+            if (kids == null || kids.isEmpty()) return@label
+            flowTblScenes = kids[1] as VirtualFlow<*>
+        })
+
+        /**
+         * tblShotsForScenes events
+         */
+
+        // PropertyValueFactory
+        colShotForSceneFrom?.cellValueFactory = PropertyValueFactory("labelFirst2")
+        colShotForSceneTo?.cellValueFactory = PropertyValueFactory("labelLast2")
+
+        // selectedItemProperty
+        tblShotsForScenes!!.selectionModel.selectedItemProperty()
+            .addListener { v: ObservableValue<out ShotExt?>?, oldValue: ShotExt?, newValue: ShotExt? ->
+                if (newValue != null) {
+                    if (wasClickTableShotsForScenes) {
+                        tblShots!!.selectionModel.clearSelection()
+                        val shotToGo = currentFileExt!!.shotsExt.firstOrNull { it.shot.id == newValue.shot.id }
+                        if (shotToGo != null) {
+                            tblShots!!.selectionModel.select(shotToGo)
+                            tblShotsSmartScroll(shotToGo)
+                        }
+                    }
+                }
+            }
+
+        // onMouseEntered / onMouseExited
+        tblShotsForScenes!!.onMouseEntered = EventHandler { wasClickTableShotsForScenes = true }
+        tblShotsForScenes!!.onMouseExited = EventHandler { wasClickTableShotsForScenes = false }
+
+        // flow
+        tblShotsForScenes!!.skinProperty().addListener(ChangeListener label@{ _: ObservableValue<out Skin<*>?>?, _: Skin<*>?, t1: Skin<*>? ->
+            if (t1 == null) return@label
+            val tvs = t1 as TableViewSkin<*>
+            val kids = tvs.children
+            if (kids == null || kids.isEmpty()) return@label
+            flowTblShotsForScenes = kids[1] as VirtualFlow<*>
+        })
+
+
+        /**
+         * tblPersonsAllForFile events
+         */
+
+        // PropertyValueFactory
+        colTblPersonsAllForFileName?.cellValueFactory = PropertyValueFactory("labelSmall")
+
+        // items
+        tblPersonsAllForFile!!.items = listPersonsExtForFile
+
+        // selectedItemProperty
+        tblPersonsAllForFile!!.selectionModel.selectedItemProperty()
+            .addListener { v: ObservableValue<out PersonExt?>?, oldValue: PersonExt?, newValue: PersonExt? ->
+                if (newValue != null) {
+                    currentPersonExt = newValue
+                    doSelectFacesCb(null)
+                }
+            }
+
+        // Click
         tblPersonsAllForFile!!.onMouseClicked = EventHandler { mouseEvent ->
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
@@ -794,16 +783,11 @@ class ShotsEditFXController {
             }
         }
 
-        tblPersonsAllForShot!!.onMouseClicked = EventHandler { mouseEvent ->
-            if (mouseEvent.button == MouseButton.PRIMARY) {
-                if (mouseEvent.clickCount == 2) {
-                    if (tblPersonsAllForShot!!.selectionModel.selectedItem != null) {
-                        PersonEditFXController().editPerson(tblPersonsAllForShot!!.selectionModel.selectedItem, hostServices)
-                    }
-                }
-            }
-        }
+        // onMouseEntered / onMouseExited
+        tblPersonsAllForFile!!.onMouseEntered = EventHandler { wasClickTablePersonsAllForFile = true }
+        tblPersonsAllForFile!!.onMouseExited = EventHandler { wasClickTablePersonsAllForFile = false }
 
+        // onDragOver
         tblPersonsAllForFile!!.onDragOver = EventHandler { mouseEvent ->
             if (mouseEvent.dragboard.string == "labelFace") {
                 mouseEvent.acceptTransferModes(*TransferMode.COPY_OR_MOVE)
@@ -811,6 +795,7 @@ class ShotsEditFXController {
             mouseEvent.consume()
         }
 
+        // onDragDropped
         tblPersonsAllForFile!!.onDragDropped = EventHandler { mouseEvent ->
             var success = false
             if (mouseEvent.dragboard.string == "labelFace") {
@@ -821,6 +806,7 @@ class ShotsEditFXController {
             mouseEvent.consume()
         }
 
+        // setRowFactory
         tblPersonsAllForFile!!.setRowFactory {
             val row: TableRow<PersonExt> = TableRow()
             row.hoverProperty().addListener { observable ->
@@ -859,9 +845,160 @@ class ShotsEditFXController {
             return@setRowFactory row
         }
 
+        /**
+         * tblPersonsAllForScenes events
+         */
 
+        // PropertyValueFactory
+        colTblPersonsAllForSceneName?.cellValueFactory = PropertyValueFactory("labelSmall")
 
+        // onMouseEntered / onMouseExited
+        tblPersonsAllForScenes!!.onMouseEntered = EventHandler { wasClickTablePersonsAllForScenes = true }
+        tblPersonsAllForScenes!!.onMouseExited = EventHandler { wasClickTablePersonsAllForScenes = false }
 
+        /**
+         * tblPersonsAllForShot events
+         */
+
+        // PropertyValueFactory
+        colTblPersonsAllForShotName?.cellValueFactory = PropertyValueFactory("labelSmall")
+
+        // items
+        tblPersonsAllForShot!!.items = listPersonsExtForShot
+
+        // Click
+        tblPersonsAllForShot!!.onMouseClicked = EventHandler { mouseEvent ->
+            if (mouseEvent.button == MouseButton.PRIMARY) {
+                if (mouseEvent.clickCount == 2) {
+                    if (tblPersonsAllForShot!!.selectionModel.selectedItem != null) {
+                        PersonEditFXController().editPerson(tblPersonsAllForShot!!.selectionModel.selectedItem, hostServices)
+                    }
+                }
+            }
+        }
+
+        /**
+         * paneFrames events
+         */
+
+        paneFrames!!.widthProperty().addListener { _, _, _ -> listenToChangePaneSize() }
+        paneFrames!!.heightProperty().addListener { _, _, _ -> listenToChangePaneSize() }
+
+        // прокрутка колеса мыши над CenterPane
+        paneFrames!!.setOnScroll { e: ScrollEvent ->
+            wasClickFrameLabel = false
+            wasClickTablePagesFrames = false
+            wasClickTableShots = false
+            val delta = if (e.deltaY > 0) -1 else 1
+            if (isPressedControl) {
+                if (currentShotExt != null) {
+                    if (delta > 0) {
+                        goToFrame(currentShotExt!!.lastFrameExt.frame.frameNumber + 1)
+                    } else {
+                        goToFrame(currentShotExt!!.firstFrameExt.frame.frameNumber - 1)
+                    }
+                }
+            } else {
+                if (currentMatrixPageFrames == null) {
+                    goToFrame(listMatrixPageFrames.first().matrixFrames.first())
+                } else {
+                    val frameToGo = if (delta < 0) getPrevMatrixFrame(currentMatrixPageFrames!!.matrixFrames.first()) else getNextMatrixFrame(currentMatrixPageFrames!!.matrixFrames.last())
+                    goToFrame(frameToGo)
+                }
+            }
+        }
+
+        /**
+         * lblFrameFull events
+         */
+
+        lblFrameFull!!.setOnScroll { e: ScrollEvent ->
+            val delta = if (e.deltaY > 0) -1 else 1
+            if (isPressedControl) {
+                if (currentShotExt != null) {
+                    if (delta > 0) {
+                        goToFrame(currentShotExt!!.lastFrameExt.frame.frameNumber + 1)
+                    } else {
+                        goToFrame(currentShotExt!!.firstFrameExt.frame.frameNumber - 1)
+                    }
+                }
+            } else {
+                if (currentMatrixFrame != null) {
+                    if (delta > 0) {
+                        goToFrame(currentMatrixFrame?.frameNumber!!+1)
+                    } else {
+                        goToFrame(currentMatrixFrame?.frameNumber!!-1)
+                    }
+                }
+            }
+        }
+
+        /**
+         * paneFaces events
+         */
+
+        paneFaces!!.setOnScroll { e: ScrollEvent ->
+            if (listMatrixPageFaces.isNotEmpty()) {
+                val delta = if (e.deltaY > 0) -1 else 1
+                if (currentMatrixPageFaces == null) {
+                    goToFace(listMatrixPageFaces.first().matrixFaces.first())
+                } else {
+                    if (currentMatrixPageFaces!!.matrixFaces.isNotEmpty()) {
+
+                    }
+                    val faceToGo = if (delta < 0)
+                        if (currentMatrixPageFaces!!.matrixFaces.isNotEmpty()) {
+                            getPrevMatrixFace(currentMatrixPageFaces!!.matrixFaces.first())
+                        } else {
+                            null
+                        }
+                    else
+                        if (currentMatrixPageFaces!!.matrixFaces.isNotEmpty()) {
+                            getNextMatrixFace(currentMatrixPageFaces!!.matrixFaces.last())
+                        } else {
+                            null
+                        }
+
+                    goToFace(faceToGo)
+                }
+            }
+        }
+
+        /**
+         * SBP events
+         */
+
+        sbpNeedCreatePagesWasChanged.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                sbpNeedCreatePagesWasChanged.value = false
+                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.width, paneFrames!!.height, Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
+                tblPagesFrames!!.items = listMatrixPageFrames
+            }
+        }
+
+        sbpCurrentMatrixPageWasChanged.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                sbpCurrentMatrixPageWasChanged.value = false
+                if (currentMatrixPageFrames != null) {
+                    showMatrixPageFrames(currentMatrixPageFrames!!)
+                    tblPagesFrames!!.selectionModel.select(currentMatrixPageFrames!!)
+                }
+            }
+        }
+
+        sbpCurrentMatrixFrameWasChanged.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                sbpCurrentMatrixFrameWasChanged.value = false
+                goToFrame(currentMatrixFrame)
+            }
+        }
+
+        sbpCurrentShotExtWasChanged.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                sbpCurrentShotExtWasChanged.value = false
+                tblShots!!.selectionModel.select(currentShotExt!!)
+            }
+        }
 
     }
 
@@ -1084,6 +1221,28 @@ class ShotsEditFXController {
             val selected = tblShots!!.selectionModel.selectedIndex
             if (selected < first || selected > last) {
                 tblShots?.scrollTo(shotExt)
+            }
+        }
+    }
+
+    fun tblScenesSmartScroll(sceneExt: SceneExt?) {
+        if (flowTblScenes != null && flowTblScenes!!.cellCount > 0) {
+            val first: Int = flowTblScenes!!.firstVisibleCell.index
+            val last: Int = flowTblScenes!!.lastVisibleCell.index
+            val selected = tblScenes!!.selectionModel.selectedIndex
+            if (selected < first || selected > last) {
+                tblScenes?.scrollTo(sceneExt)
+            }
+        }
+    }
+
+    fun tblShotsForScenesSmartScroll(shotExt: ShotExt?) {
+        if (flowTblShotsForScenes != null && flowTblShotsForScenes!!.cellCount > 0) {
+            val first: Int = flowTblShotsForScenes!!.firstVisibleCell.index
+            val last: Int = flowTblShotsForScenes!!.lastVisibleCell.index
+            val selected = tblShotsForScenes!!.selectionModel.selectedIndex
+            if (selected < first || selected > last) {
+                tblShotsForScenes?.scrollTo(shotExt)
             }
         }
     }
@@ -1755,6 +1914,7 @@ class ShotsEditFXController {
             }
             contextMenuShotType.items.add(contextMenuShotTypeItem)
         }
+//        shotExt.labelType!!.contextMenu = contextMenuShotType
         shotExt.buttonGetType.contextMenu = contextMenuShotType
         val screenBounds: Bounds = shotExt.buttonGetType.localToScreen(shotExt.buttonGetType.boundsInLocal)
         contextMenuShotType.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)

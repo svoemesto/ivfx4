@@ -25,12 +25,17 @@ class LoadListProjectsExt(private var list: ObservableList<ProjectExt>,
             if (lbl != null) lbl!!.isVisible = true
         }
         for ((i, project) in sourceIterable.withIndex()) {
-            Platform.runLater {
-                if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", i.toDouble()/sourceIterable.count())} Loading: ${project.name} ($i/${sourceIterable.count()})"
+            if (!currentThread().isInterrupted) {
+                Platform.runLater {
+                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
+                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", i.toDouble()/sourceIterable.count())} Loading: ${project.name} ($i/${sourceIterable.count()})"
+                }
+                val projectExt = ProjectExt(project)
+                list.add(projectExt)
+            } else {
+                return
             }
-            val projectExt = ProjectExt(project)
-            list.add(projectExt)
+
         }
         Platform.runLater {
             if (pb!=null) pb!!.isVisible = false

@@ -382,9 +382,9 @@ class ProjectEditFXController {
     companion object {
         private var currentProjectExt: ProjectExt? = null
         private var hostServices: HostServices? = null
+        private var mainStage: Stage? = null
     }
 
-    private var mainStage: Stage? = null
     private var currentFileExt: FileExt? = null
     private var listFilesExt: ObservableList<FileExt> = FXCollections.observableArrayList()
     private var currentFileProperty: Property? = null
@@ -406,6 +406,8 @@ class ProjectEditFXController {
     private var listVideoContainers: ObservableList<String> = FXCollections.observableArrayList()
     private var listLosslessContainers: ObservableList<String> = FXCollections.observableArrayList()
 
+    private var runListThreadsFiles: Thread? = null
+
     fun editProject(project: Project? = null, incomingHostServices: HostServices? = null): ProjectExt? {
         if (project == null) {
             val firstProject = ProjectController.getListProjects().firstOrNull()
@@ -414,9 +416,11 @@ class ProjectEditFXController {
             currentProjectExt = ProjectExt(project)
         }
         mainStage = Stage()
+
         try {
             val root = FXMLLoader.load<Parent>(ProjectEditFXController::class.java.getResource("project-edit-view.fxml"))
             mainStage?.scene = Scene(root)
+
             hostServices = incomingHostServices
             mainStage?.initModality(Modality.WINDOW_MODAL)
             mainStage?.showAndWait()
@@ -438,6 +442,9 @@ class ProjectEditFXController {
             saveCurrentFilePropertyCdf()
             saveCurrentFile()
             saveCurrentProject()
+            if (runListThreadsFiles != null && runListThreadsFiles!!.isAlive) {
+                runListThreadsFiles!!.interrupt()
+            }
         }
 
         println("Инициализация ProjectEditFXController.")
@@ -542,40 +549,15 @@ class ProjectEditFXController {
 
         var listThreads: MutableList<Thread> = mutableListOf()
         listThreads.add(LoadListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles))
-        listThreads.add(UpdateListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles))
+        val updateList = UpdateListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles)
+        updateList.isDaemon = false
+        listThreads.add(updateList)
+//        listThreads.add(UpdateListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles))
         val runListThreadsFilesFlagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)
         val runListThreadsFramesFlagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)
-        val runListThreadsFiles = RunListThreads(listThreads, runListThreadsFilesFlagIsDone)
-        runListThreadsFiles.start()
-
-//        runListThreadsFilesFlagIsDone.addListener { observable, oldValue, newValue ->
-//            if (newValue == true) {
-//                println("runListThreadsFlagIsDone is TRUE")
-//                listThreads = mutableListOf()
-//                listFilesExt.forEach { fileExt->
-//                    if (fileExt.framesExt.size == 0) listThreads.add(LoadListFramesExt(fileExt.framesExt, fileExt, pbFiles, lblPbFiles))
-//                }
-//                val runListThreadsFrames = RunListThreads(listThreads, runListThreadsFramesFlagIsDone)
-//                runListThreadsFrames.start()
-//                runListThreadsFilesFlagIsDone.set(false)
-//            }
-//        }
-//
-//        runListThreadsFramesFlagIsDone.addListener { observable, oldValue, newValue ->
-//            if (newValue == true) {
-//                println("runListThreadsFramesFlagIsDone is TRUE")
-//                listThreads = mutableListOf()
-//                listFilesExt.forEach { fileExt->
-//                    if (fileExt.framesExt.size != 0) listThreads.add(UpdateListFramesExt(fileExt.framesExt, fileExt, pbFiles, lblPbFiles))
-//                }
-//                val runListThreadsFramesUpdate = RunListThreads(listThreads)
-//                runListThreadsFramesUpdate.start()
-//                runListThreadsFramesFlagIsDone.set(false)
-//            }
-//        }
-
-//        listFilesExt = FXCollections.observableArrayList(FileController.getListFiles(currentProjectExt!!))
-//        listFiles = FXCollections.observableArrayList(Main.fileController.getListFiles(currentProject!!))
+        runListThreadsFiles = RunListThreads(listThreads, runListThreadsFilesFlagIsDone)
+        runListThreadsFiles!!.isDaemon = false
+        runListThreadsFiles!!.start()
 
         colFileOrder?.setCellValueFactory(PropertyValueFactory("fileOrder"))
         colFileName?.setCellValueFactory(PropertyValueFactory("fileName"))

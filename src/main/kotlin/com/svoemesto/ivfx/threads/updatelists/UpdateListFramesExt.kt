@@ -25,15 +25,19 @@ class UpdateListFramesExt(
         }
 
         for ((i, frameExt) in list.withIndex()) {
-            Platform.runLater {
-                if (pb!=null) pb!!.progress = i.toDouble()/list.count()
-                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/list.count().toDouble())}, updating frame ($i/${list.count()}) ${fileExt.file.name}"
-            }
+            if (!currentThread().isInterrupted) {
+                Platform.runLater {
+                    if (pb!=null) pb!!.progress = i.toDouble()/list.count()
+                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/list.count().toDouble())}, updating frame ($i/${list.count()}) ${fileExt.file.name}"
+                }
 
-            try {
-                frameExt.labelSmall
-            } catch (e: IllegalStateException) {
-                break
+                try {
+                    frameExt.labelSmall
+                } catch (e: IllegalStateException) {
+                    break
+                }
+            } else {
+                return
             }
 
         }

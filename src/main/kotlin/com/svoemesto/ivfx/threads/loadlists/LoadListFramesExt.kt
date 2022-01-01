@@ -36,15 +36,20 @@ class LoadListFramesExt(
         list.clear()
 
         for ((i, frame) in sourceIterable.withIndex()) {
-            Platform.runLater {
-                if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, frame ($i/${sourceIterable.count()})"
+            if (!currentThread().isInterrupted) {
+                Platform.runLater {
+                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
+                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, frame ($i/${sourceIterable.count()})"
+                }
+
+                frame.file = fileExt.file
+
+                val frameExt = FrameExt(frame, fileExt)
+                list.add(frameExt)
+            } else {
+                return
             }
 
-            frame.file = fileExt.file
-
-            val frameExt = FrameExt(frame, fileExt)
-            list.add(frameExt)
         }
         Platform.runLater {
             if (pb!=null) pb!!.isVisible = false

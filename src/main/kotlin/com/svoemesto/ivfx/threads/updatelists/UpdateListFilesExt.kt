@@ -26,33 +26,37 @@ class UpdateListFilesExt(
         }
 
         for ((i, fileExt) in list.withIndex()) {
-            Platform.runLater {
-                if (pb!=null) pb!!.progress = i.toDouble()/list.count()
-                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/list.count().toDouble())} Updating: ${fileExt.file.name} ($i/${list.count()})"
-            }
+            if (!currentThread().isInterrupted) {
+                Platform.runLater {
+                    if (pb!=null) pb!!.progress = i.toDouble()/list.count()
+                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/list.count().toDouble())} Updating: ${fileExt.file.name} ($i/${list.count()})"
+                }
 
-            fileExt.fps
-            fileExt.framesCount
-            fileExt.folderPreview
-            fileExt.folderLossless
-            fileExt.folderFavorites
-            fileExt.folderShots
-            fileExt.folderFramesSmall
-            fileExt.folderFramesMedium
-            fileExt.folderFramesFull
-            fileExt.pathToLosslessFile
-            fileExt.pathToPreviewFile
-            fileExt.hasPreview
-            fileExt.hasLossless
-            fileExt.hasFramesSmall
-            fileExt.hasFramesMedium
-            fileExt.hasFramesFull
-            fileExt.hasAnalyzedFrames
-            fileExt.hasCreatedShots
-            fileExt.hasDetectedFaces
-            fileExt.hasCreatedFaces
-            fileExt.hasCreatedFacesPreview
-            fileExt.hasRecognizedFaces
+                fileExt.fps
+                fileExt.framesCount
+                fileExt.folderPreview
+                fileExt.folderLossless
+                fileExt.folderFavorites
+                fileExt.folderShots
+                fileExt.folderFramesSmall
+                fileExt.folderFramesMedium
+                fileExt.folderFramesFull
+                fileExt.pathToLosslessFile
+                fileExt.pathToPreviewFile
+                fileExt.hasPreview
+                fileExt.hasLossless
+                fileExt.hasFramesSmall
+                fileExt.hasFramesMedium
+                fileExt.hasFramesFull
+                fileExt.hasAnalyzedFrames
+                fileExt.hasCreatedShots
+                fileExt.hasDetectedFaces
+                fileExt.hasCreatedFaces
+                fileExt.hasCreatedFacesPreview
+                fileExt.hasRecognizedFaces
+            } else {
+                return
+            }
 
         }
         Platform.runLater {
