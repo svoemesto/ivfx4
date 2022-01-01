@@ -6,28 +6,40 @@ class RunListThreads(private val listThreads: List<Thread>, private val flagIsDo
     override fun run() {
         var runningThread: Thread? = null
         var countStartedThreads = 0
-        while (countStartedThreads != listThreads.size) {
+        while (countStartedThreads != listThreads.size && !currentThread().isInterrupted) {
             if (runningThread == null) {
                 runningThread = listThreads[countStartedThreads]
                 countStartedThreads++
+                runningThread.isDaemon = false
                 runningThread.start()
             } else {
                 while (runningThread.isAlive) {
-                    sleep(100)
+                    try {
+                        sleep(100)
+                    } catch (e: InterruptedException) {
+                        runningThread.interrupt()
+                        return
+                    }
                 }
                 runningThread = listThreads[countStartedThreads]
                 countStartedThreads++
+                runningThread.isDaemon = false
                 runningThread.start()
             }
         }
         if (runningThread != null) {
             while (runningThread.isAlive) {
-                sleep(100)
+                try {
+                    sleep(100)
+                } catch (e: InterruptedException) {
+                    runningThread.interrupt()
+                    return
+                }
             }
         }
 
         println("RunListThreads DONE")
         flagIsDone.set(true)
-
     }
+
 }

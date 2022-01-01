@@ -51,12 +51,17 @@ class LoadListPersonFacesExtForAll(
         list.clear()
 
         for ((i, faceExt) in sourceIterable.withIndex()) {
-            Platform.runLater {
-                if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${personExt.person.name}, face ($i/${sourceIterable.count()})"
+            if (!currentThread().isInterrupted) {
+                Platform.runLater {
+                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
+                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${personExt.person.name}, face ($i/${sourceIterable.count()})"
+                }
+
+                list.add(faceExt)
+            } else {
+                return
             }
 
-            list.add(faceExt)
         }
         Platform.runLater {
             if (pb!=null) pb!!.isVisible = false

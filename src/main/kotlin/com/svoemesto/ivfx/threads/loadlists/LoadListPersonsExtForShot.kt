@@ -37,15 +37,20 @@ class LoadListPersonsExtForShot(
         list.clear()
 
         for ((i, person) in sourceIterable.withIndex()) {
-            Platform.runLater {
-                if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${shotExt.fileExt.file.name}, person ($i/${sourceIterable.count()})"
-            }
-            person.project = shotExt.fileExt.projectExt.project
+            if (!currentThread().isInterrupted) {
+                Platform.runLater {
+                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
+                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${shotExt.fileExt.file.name}, person ($i/${sourceIterable.count()})"
+                }
+                person.project = shotExt.fileExt.projectExt.project
 
-            val personExt = PersonExt(person, shotExt.fileExt.projectExt)
-            list.add(personExt)
-            println(personExt)
+                val personExt = PersonExt(person, shotExt.fileExt.projectExt)
+                list.add(personExt)
+                println(personExt)
+            } else {
+                return
+            }
+
         }
 
         list.sort()

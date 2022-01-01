@@ -32,19 +32,24 @@ class LoadListFilesExt(
         }
 
         for ((i, file) in sourceIterable.withIndex()) {
-            Platform.runLater {
-                if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${file.name} ($i/${sourceIterable.count()})"
+            if (!currentThread().isInterrupted) {
+                Platform.runLater {
+                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
+                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${file.name} ($i/${sourceIterable.count()})"
+                }
+
+                file.project = projectExt.project
+                val cdf = FileCdfController.getFileCdf(file)
+                file.cdfs = mutableSetOf()
+                file.cdfs.add(cdf)
+                file.tracks = TrackController.getSetTracks(file)
+
+                val fileExt = FileExt(file, projectExt)
+                list.add(fileExt)
+            } else {
+                return
             }
 
-            file.project = projectExt.project
-            val cdf = FileCdfController.getFileCdf(file)
-            file.cdfs = mutableSetOf()
-            file.cdfs.add(cdf)
-            file.tracks = TrackController.getSetTracks(file)
-
-            val fileExt = FileExt(file, projectExt)
-            list.add(fileExt)
         }
         Platform.runLater {
             if (pb!=null) pb!!.isVisible = false

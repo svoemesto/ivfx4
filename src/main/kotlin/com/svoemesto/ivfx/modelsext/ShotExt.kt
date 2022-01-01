@@ -1,6 +1,8 @@
 package com.svoemesto.ivfx.modelsext
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.ShotController
+import com.svoemesto.ivfx.enums.ShotTypePerson
 import com.svoemesto.ivfx.models.Event
 import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.models.Shot
@@ -14,10 +16,14 @@ import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsEndScene
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsStartEvent
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsStartScene
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayUnderlineText
+import javafx.event.ActionEvent
+import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import javafx.scene.control.ContentDisplay
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
+import javafx.scene.control.MenuItem
 import javafx.scene.image.ImageView
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -130,6 +136,22 @@ data class ShotExt(
                 field!!.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                 field!!.graphic = previewType
                 field!!.alignment = Pos.CENTER
+
+//                val contextMenuShotType = ContextMenu()
+//                ShotTypePerson.values().forEach { shotTypePerson ->
+//                    val imageView = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(shotTypePerson.pathToPicture))))
+//                    val contextMenuShotTypeItem = MenuItem(null, imageView)
+//                    contextMenuShotTypeItem.onAction = EventHandler { e: ActionEvent? ->
+//                        this.shot.typePerson = shotTypePerson
+//                        ShotController.save(shot)
+//                        this.previewType = null
+//                        this.labelType = null
+//                        this.labelType
+//                    }
+//                    contextMenuShotType.items.add(contextMenuShotTypeItem)
+//                }
+//                field!!.contextMenu = contextMenuShotType
+
             }
             return field
         }

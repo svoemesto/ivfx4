@@ -39,18 +39,23 @@ class LoadListEventsExt(
         list.clear()
 
         for ((i, shot) in sourceIterable.withIndex()) {
-            Platform.runLater {
-                if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, event ($i/${sourceIterable.count()})"
+            if (!currentThread().isInterrupted) {
+                Platform.runLater {
+                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
+                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, event ($i/${sourceIterable.count()})"
+                }
+
+                val eventExt = EventExt(shot, fileExt,
+                    fileExt.framesExt.first { it.frame.frameNumber == shot.firstFrameNumber },
+                    fileExt.framesExt.first { it.frame.frameNumber == shot.lastFrameNumber })
+                eventExt.previewsFirst
+                eventExt.previewsLast
+
+                list.add(eventExt)
+            } else {
+                return
             }
 
-            val eventExt = EventExt(shot, fileExt,
-                fileExt.framesExt.first { it.frame.frameNumber == shot.firstFrameNumber },
-                fileExt.framesExt.first { it.frame.frameNumber == shot.lastFrameNumber })
-            eventExt.previewsFirst
-            eventExt.previewsLast
-
-            list.add(eventExt)
         }
         Platform.runLater {
             if (pb!=null) pb!!.isVisible = false

@@ -35,14 +35,19 @@ class LoadListPersonsExtForProject(
         list.clear()
 
         for ((i, person) in sourceIterable.withIndex()) {
-            Platform.runLater {
-                if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${projectExt.project.name}, person ($i/${sourceIterable.count()})"
+            if (!currentThread().isInterrupted) {
+                Platform.runLater {
+                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
+                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${projectExt.project.name}, person ($i/${sourceIterable.count()})"
+                }
+                person.project = projectExt.project
+                val personExt = PersonExt(person, projectExt)
+                list.add(personExt)
+                println(personExt)
+            } else {
+                return
             }
-            person.project = projectExt.project
-            val personExt = PersonExt(person, projectExt)
-            list.add(personExt)
-            println(personExt)
+
         }
 
         list.sort()
