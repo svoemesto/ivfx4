@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.threads.updatelists
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
 import javafx.application.Platform
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
@@ -11,11 +12,13 @@ class UpdateListFramesExt(
     private var list: ObservableList<FrameExt>,
     private var fileExt: FileExt,
     private var pb: ProgressBar?,
-    private var lbl: Label?
+    private var lbl: Label?,
+    private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)
     ) : Thread(), Runnable {
 
     override fun run() {
         updateList()
+        flagIsDone.set(true)
     }
 
     private fun updateList() {

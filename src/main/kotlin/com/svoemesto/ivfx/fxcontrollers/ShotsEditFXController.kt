@@ -25,7 +25,6 @@ import com.svoemesto.ivfx.threads.loadlists.LoadListEventsExt
 import com.svoemesto.ivfx.threads.loadlists.LoadListFramesExt
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonFacesExtForAll
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonFacesExtForFile
-import com.svoemesto.ivfx.threads.loadlists.LoadListPersonFacesExtForShot
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForFile
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForShot
 import com.svoemesto.ivfx.threads.loadlists.LoadListScenesExt
@@ -104,6 +103,8 @@ class ShotsEditFXController {
     @FXML
     private var colButtonGetType: TableColumn<ShotExt, String>? = null
 
+    @FXML
+    private var pbShots: ProgressBar? = null
 
 
     @FXML
@@ -116,9 +117,6 @@ class ShotsEditFXController {
     private var rbPersonFile: RadioButton? = null
 
     @FXML
-    private var rbPersonShot: RadioButton? = null
-
-    @FXML
     private var rbFaceAll: RadioButton? = null
 
     @FXML
@@ -126,9 +124,6 @@ class ShotsEditFXController {
 
     @FXML
     private var rbFaceFile: RadioButton? = null
-
-    @FXML
-    private var rbFaceShot: RadioButton? = null
 
     @FXML
     private var cbFacesNotExample: CheckBox? = null
@@ -148,6 +143,9 @@ class ShotsEditFXController {
 
     @FXML
     private var colTblPersonsAllForShotName: TableColumn<PersonExt, String>? = null
+
+    @FXML
+    private var pbPersonsForShot: ProgressBar? = null
 
 
     @FXML
@@ -180,6 +178,8 @@ class ShotsEditFXController {
     @FXML
     private var colFrameEnd: TableColumn<MatrixPageFrames, String>? = null
 
+    @FXML
+    private var pbPagesFrames: ProgressBar? = null
 
     // PERSONS / FACES
 
@@ -196,10 +196,14 @@ class ShotsEditFXController {
     @FXML
     private var colTblPagesFacesNumber: TableColumn<MatrixPageFaces, String>? = null
 
+    @FXML
+    private var pbPersonsForFile: ProgressBar? = null
 
     @FXML
     private var paneFaces: Pane? = null
 
+    @FXML
+    private var pbFaces: ProgressBar? = null
 
     // SCENES
 
@@ -214,6 +218,9 @@ class ShotsEditFXController {
 
     @FXML
     private var colSceneTo: TableColumn<SceneExt, String>? = null
+
+    @FXML
+    private var pbScenes: ProgressBar? = null
 
     @FXML
     private var btnCreateNewSceneBySelectedShots: Button? = null
@@ -231,10 +238,16 @@ class ShotsEditFXController {
     private var colShotForSceneTo: TableColumn<ShotExt, String>? = null
 
     @FXML
+    private var pbShotsForScenes: ProgressBar? = null
+
+    @FXML
     private var tblPersonsAllForScenes: TableView<PersonExt>? = null
 
     @FXML
     private var colTblPersonsAllForSceneName: TableColumn<PersonExt, String>? = null
+
+    @FXML
+    private var pbPersonsForScenes: ProgressBar? = null
 
     // FOOTER
 
@@ -287,6 +300,20 @@ class ShotsEditFXController {
     private val sbpCurrentMatrixFrameWasChanged = SimpleBooleanProperty(false)
     private val sbpCurrentShotExtWasChanged = SimpleBooleanProperty(false)
     private val sbpNeedCreatePagesWasChanged = SimpleBooleanProperty(false)
+
+    private val isDoneLoadListEventsExt = SimpleBooleanProperty(false)
+    private val isDoneLoadListFileFacesExt = SimpleBooleanProperty(false)
+    private val isDoneLoadListFilesExt = SimpleBooleanProperty(false)
+    private val isDoneLoadListFramesExt = SimpleBooleanProperty(false)
+    private val isDoneLoadListPersonFacesExt = SimpleBooleanProperty(false)
+    private val isDoneLoadListPersonsExtForFile = SimpleBooleanProperty(false)
+    private val isDoneLoadListPersonsExtForProject = SimpleBooleanProperty(false)
+    private val isDoneLoadListPersonsExtForShot = SimpleBooleanProperty(false)
+    private val isDoneLoadListProjectsExt = SimpleBooleanProperty(false)
+    private val isDoneLoadListScenesExt = SimpleBooleanProperty(false)
+    private val isDoneLoadListShotsExt = SimpleBooleanProperty(false)
+    private val isDoneUpdateListFilesExt = SimpleBooleanProperty(false)
+    private val isDoneUpdateListFramesExt = SimpleBooleanProperty(false)
 
     private var listMatrixPageFrames: ObservableList<MatrixPageFrames> = FXCollections.observableArrayList()
     private var listMatrixPageFaces: ObservableList<MatrixPageFaces> = FXCollections.observableArrayList()
@@ -397,66 +424,87 @@ class ShotsEditFXController {
         sbpNeedCreatePagesWasChanged.value = false
         lastClickedMatrixFace = null
 
-        tblShots!!.selectionModel.selectionMode = SelectionMode.MULTIPLE
-        tblScenes!!.selectionModel.selectionMode = SelectionMode.MULTIPLE
-
-        tblPagesFrames?.placeholder = ProgressIndicator(-1.0)
-        tblShots?.placeholder = ProgressIndicator(-1.0)
-
-        tblPersonsAllForShot?.placeholder = Label("Shot not selected or don't have any persons.")
-        tblPersonsAllForFile?.placeholder = Label("File don't have any persons.")
-        tblScenes?.placeholder = ProgressIndicator(-1.0)
-        tblShotsForScenes?.placeholder = Label("Scene not selected or don't have any shots.")
-        tblPersonsAllForScenes?.placeholder = Label("Scene not selected or don't have any persons.")
-
         mainStage?.title = "Редактор планов. Файл: ${currentFileExt!!.file.name}"
+        isWorking = true
 
-        val contextMenuFrameFull = ContextMenu()
-        val menuItemEditFrameFaces = MenuItem("Edit frame faces")
-        menuItemEditFrameFaces.setOnAction {
-            FrameFacesEditFXController.editFrame(currentMatrixFrame?.frameExt!!)
-            if (currentShotExt != null) {
-                LoadListPersonsExtForShot(listPersonsExtForShot, currentShotExt!!, pb, lblPb).run()
-                tblPersonsAllForShot!!.items = listPersonsExtForShot
-                loadPictureToFullFrameLabelForFrame(currentMatrixFrame)
+//        var listThreads: MutableList<Thread> = mutableListOf()
+//        listThreads.add(LoadListPersonsExtForFile(listPersonsExtForFile, currentFileExt!!, pb, lblPb))
+//        listThreads.add(LoadListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb))
+//        listThreads.add(LoadListScenesExt(currentFileExt!!.scenesExt, currentFileExt!!, pb, lblPb))
+//        listThreads.add(LoadListEventsExt(currentFileExt!!.eventsExt, currentFileExt!!, pb, lblPb))
+//        listThreads.add(LoadListShotsExt(currentFileExt!!.shotsExt, currentFileExt!!, pb, lblPb))
+//        var runListThreadsFrames = RunListThreads(listThreads, runListThreadsFramesFlagIsDone)
+//        runListThreadsFrames.start()
+
+        /**
+         * LoadListPersonsExtForFile
+         */
+        LoadListPersonsExtForFile(listPersonsExtForFile, currentFileExt!!, pbPersonsForFile, null, isDoneLoadListPersonsExtForFile).start()
+        isDoneLoadListPersonsExtForFile.addListener { _, _, newValue ->
+            if (newValue == true) {
+                isDoneLoadListPersonsExtForFile.set(false)
             }
         }
-        contextMenuFrameFull.items.add(menuItemEditFrameFaces)
-        lblFrameFull!!.contextMenu = contextMenuFrameFull
 
-        var listThreads: MutableList<Thread> = mutableListOf()
-        listThreads.add(LoadListPersonsExtForFile(listPersonsExtForFile, currentFileExt!!, pb, lblPb))
-        listThreads.add(LoadListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb))
-        listThreads.add(LoadListScenesExt(currentFileExt!!.scenesExt, currentFileExt!!, pb, lblPb))
-        listThreads.add(LoadListEventsExt(currentFileExt!!.eventsExt, currentFileExt!!, pb, lblPb))
-        listThreads.add(LoadListShotsExt(currentFileExt!!.shotsExt, currentFileExt!!, pb, lblPb))
-        var runListThreadsFrames = RunListThreads(listThreads, runListThreadsFramesFlagIsDone)
-        runListThreadsFrames.start()
-
-        runListThreadsFramesFlagIsDone.addListener { observable, oldValue, newValue ->
+        /**
+         * LoadListFramesExt
+         */
+        LoadListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb, isDoneLoadListFramesExt).start()
+        isDoneLoadListFramesExt.addListener { _, _, newValue ->
             if (newValue == true) {
+                isDoneLoadListFramesExt.set(false)
+                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.width, paneFrames!!.height, Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
+                tblPagesFrames!!.items = listMatrixPageFrames
+                UpdateListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb, isDoneUpdateListFramesExt).start()
 
+                LoadListShotsExt(currentFileExt!!.shotsExt, currentFileExt!!, pbShots, null, isDoneLoadListShotsExt).start()
+                LoadListScenesExt(currentFileExt!!.scenesExt, currentFileExt!!, pbScenes, null, isDoneLoadListScenesExt).start()
+                LoadListEventsExt(currentFileExt!!.eventsExt, currentFileExt!!, null, null, isDoneLoadListEventsExt).start()
+
+            }
+        }
+
+        /**
+         * LoadListScenesExt
+         */
+        isDoneLoadListScenesExt.addListener { _, _, newValue ->
+            if (newValue == true) {
+                isDoneLoadListScenesExt.set(false)
+                tblScenes!!.items = currentFileExt!!.scenesExt
+            }
+        }
+
+        /**
+         * LoadListEventsExt
+         */
+        isDoneLoadListEventsExt.addListener { _, _, newValue ->
+            if (newValue == true) {
+                isDoneLoadListEventsExt.set(false)
+            }
+        }
+
+        /**
+         * LoadListShotsExt
+         */
+        isDoneLoadListShotsExt.addListener { _, _, newValue ->
+            if (newValue == true) {
+                isDoneLoadListShotsExt.set(false)
                 currentFileExt!!.shotsExt.forEach { shotExt ->
-
                     shotExt.buttonGetType.setOnAction { onActionButtonGetShotType(shotExt) }
                 }
-                tblPersonsAllForFile!!.items = listPersonsExtForFile
-
-                listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.width, paneFrames!!.height, Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
-                tblPagesFaces!!.items = listMatrixPageFaces
-
-                listThreads = mutableListOf()
-                listThreads.add(UpdateListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb))
-                runListThreadsFrames = RunListThreads(listThreads)
-                runListThreadsFrames.start()
+                tblShots!!.items = currentFileExt!!.shotsExt
             }
         }
 
-        runListThreadsFacesFlagIsDone.addListener { observable, oldValue, newValue ->
+        /**
+         * isDoneLoadListPersonFacesExt
+         */
+        isDoneLoadListPersonFacesExt.addListener { _, _, newValue ->
             if (newValue == true) {
+                isDoneLoadListPersonFacesExt.set(false)
 
                 listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.width, paneFaces!!.height, Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
-                tblPagesFrames!!.items = listMatrixPageFrames
+                tblPagesFaces!!.items = listMatrixPageFaces
 
                 currentMatrixFace = listMatrixPageFaces.first().matrixFaces.first()
                 if (currentMatrixPageFacesPageNumber > listMatrixPageFaces.size) currentMatrixPageFacesPageNumber = 1
@@ -471,17 +519,17 @@ class ShotsEditFXController {
 
                 }
 
-                runListThreadsFacesFlagIsDone.set(false)
-
             }
         }
 
-        isWorking = true
 
 
         /**
          * tblPagesFrames events
          */
+
+        // placeholder
+        tblPagesFrames?.placeholder = ProgressIndicator(-1.0)
 
         // PropertyValueFactory
         colDurationStart?.cellValueFactory = PropertyValueFactory("start")
@@ -570,6 +618,12 @@ class ShotsEditFXController {
          * tblShots events
          */
 
+        // placeholder
+        tblShots?.placeholder = ProgressIndicator(-1.0)
+
+        // SelectionMode
+        tblShots!!.selectionModel.selectionMode = SelectionMode.MULTIPLE
+
         // PropertyValueFactory
         colShotFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
         colShotTo?.cellValueFactory = PropertyValueFactory("labelLast1")
@@ -584,11 +638,11 @@ class ShotsEditFXController {
             .addListener { v: ObservableValue<out ShotExt?>?, oldValue: ShotExt?, newValue: ShotExt? ->
                 if (newValue != null) {
                     Thread {
-                        tblPersonsAllForShot?.placeholder = ProgressIndicator(-1.0)
+                        Platform.runLater{ tblPersonsAllForShot?.placeholder = ProgressIndicator(-1.0) }
                         currentShotExt = newValue
                         listPersonsExtForShot = FXCollections.observableList(currentShotExt!!.personsExt)
                         tblPersonsAllForShot!!.items = listPersonsExtForShot
-                        tblPersonsAllForShot?.placeholder = Label("Shot not selected or don't have any persons.")
+                        Platform.runLater{tblPersonsAllForShot?.placeholder = Label("Shot not selected or don't have any persons.") }
                         if (wasClickTableShots) {
                             wasClickTableShots = false
                             goToFrame(getMatrixFrameByFrameExt(newValue.firstFrameExt))
@@ -609,7 +663,6 @@ class ShotsEditFXController {
                                     }
                                 }
                             }
-
                         } else {
                             tblShotsSmartScroll(newValue)
                         }
@@ -645,6 +698,12 @@ class ShotsEditFXController {
          * tblScenes events
          */
 
+        // placeholder
+        tblScenes?.placeholder = ProgressIndicator(-1.0)
+
+        // SelectionMode
+        tblScenes!!.selectionModel.selectionMode = SelectionMode.MULTIPLE
+
         // PropertyValueFactory
         colSceneName?.cellValueFactory = PropertyValueFactory("sceneNameLabel")
         colSceneFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
@@ -655,7 +714,7 @@ class ShotsEditFXController {
 
         // selectedItemProperty
         tblScenes!!.selectionModel.selectedItemProperty()
-            .addListener { v: ObservableValue<out SceneExt?>?, oldValue: SceneExt?, newValue: SceneExt? ->
+            .addListener { _, _, _ ->
 
                 if (threadOnSelectScene!=null && threadOnSelectScene!!.isAlive) {
                     threadOnSelectScene!!.interrupt()
@@ -665,8 +724,10 @@ class ShotsEditFXController {
                 }
                 threadOnSelectScene =
                 Thread {
-                    tblShotsForScenes?.placeholder = ProgressIndicator(-1.0)
-                    tblPersonsAllForScenes?.placeholder = ProgressIndicator(-1.0)
+                    Platform.runLater {
+                        tblShotsForScenes?.placeholder = ProgressIndicator(-1.0)
+                        tblPersonsAllForScenes?.placeholder = ProgressIndicator(-1.0)
+                    }
                     currentSelectedScenesExt = tblScenes!!.selectionModel.selectedItems
                     listShotsExtForScenes.clear()
                     listPersonsExtForScene.clear()
@@ -687,18 +748,31 @@ class ShotsEditFXController {
 
                     }
                     tblShotsForScenes!!.items = listShotsExtForScenes
-                    if (listShotsExtForScenes.map{it.shot.id}.contains(currentShotExt!!.shot.id)) {
-                        tblShotsForScenes!!.selectionModel.clearSelection()
-                        val shotForSceneToGo = listShotsExtForScenes.firstOrNull { it.shot.id == currentShotExt!!.shot.id }
+
+                    if (wasClickTableScenes) {
+                        val shotForSceneToGo = listShotsExtForScenes.firstOrNull()
                         if (shotForSceneToGo != null) {
                             tblShotsForScenes!!.selectionModel.select(shotForSceneToGo)
                             tblShotsForScenesSmartScroll(shotForSceneToGo)
                         }
+                    } else {
+                        if (listShotsExtForScenes.map{it.shot.id}.contains(currentShotExt!!.shot.id)) {
+                            tblShotsForScenes!!.selectionModel.clearSelection()
+                            val shotForSceneToGo = listShotsExtForScenes.firstOrNull { it.shot.id == currentShotExt!!.shot.id }
+                            if (shotForSceneToGo != null) {
+                                tblShotsForScenes!!.selectionModel.select(shotForSceneToGo)
+                                tblShotsForScenesSmartScroll(shotForSceneToGo)
+                            }
+                        }
                     }
+
                     tblPersonsAllForScenes!!.items = listPersonsExtForScene
 
-                    tblShotsForScenes?.placeholder = Label("Scene not selected or don't have any shots.")
-                    tblPersonsAllForScenes?.placeholder = Label("Scene not selected or don't have any persons.")
+                    Platform.runLater {
+                        tblShotsForScenes?.placeholder = Label("Scene not selected or don't have any shots.")
+                        tblPersonsAllForScenes?.placeholder = Label("Scene not selected or don't have any persons.")
+                    }
+
                 }
                 threadOnSelectScene!!.start()
             }
@@ -720,6 +794,9 @@ class ShotsEditFXController {
          * tblShotsForScenes events
          */
 
+        // placeholder
+        tblShotsForScenes?.placeholder = Label("Scene not selected or don't have any shots.")
+
         // PropertyValueFactory
         colShotForSceneFrom?.cellValueFactory = PropertyValueFactory("labelFirst2")
         colShotForSceneTo?.cellValueFactory = PropertyValueFactory("labelLast2")
@@ -728,13 +805,15 @@ class ShotsEditFXController {
         tblShotsForScenes!!.selectionModel.selectedItemProperty()
             .addListener { v: ObservableValue<out ShotExt?>?, oldValue: ShotExt?, newValue: ShotExt? ->
                 if (newValue != null) {
-                    if (wasClickTableShotsForScenes) {
+                    if (wasClickTableShotsForScenes || wasClickTableScenes) {
                         tblShots!!.selectionModel.clearSelection()
                         val shotToGo = currentFileExt!!.shotsExt.firstOrNull { it.shot.id == newValue.shot.id }
                         if (shotToGo != null) {
                             tblShots!!.selectionModel.select(shotToGo)
                             tblShotsSmartScroll(shotToGo)
                         }
+                    } else {
+                        tblShotsForScenesSmartScroll(newValue)
                     }
                 }
             }
@@ -756,6 +835,9 @@ class ShotsEditFXController {
         /**
          * tblPersonsAllForFile events
          */
+
+        // placeholder
+        tblPersonsAllForFile?.placeholder = Label("File don't have any persons.")
 
         // PropertyValueFactory
         colTblPersonsAllForFileName?.cellValueFactory = PropertyValueFactory("labelSmall")
@@ -849,6 +931,9 @@ class ShotsEditFXController {
          * tblPersonsAllForScenes events
          */
 
+        // placeholder
+        tblPersonsAllForScenes?.placeholder = Label("Scene not selected or don't have any persons.")
+
         // PropertyValueFactory
         colTblPersonsAllForSceneName?.cellValueFactory = PropertyValueFactory("labelSmall")
 
@@ -859,6 +944,9 @@ class ShotsEditFXController {
         /**
          * tblPersonsAllForShot events
          */
+
+        // placeholder
+        tblPersonsAllForShot?.placeholder = Label("Shot not selected or don't have any persons.")
 
         // PropertyValueFactory
         colTblPersonsAllForShotName?.cellValueFactory = PropertyValueFactory("labelSmall")
@@ -932,6 +1020,19 @@ class ShotsEditFXController {
                 }
             }
         }
+
+        val contextMenuFrameFull = ContextMenu()
+        val menuItemEditFrameFaces = MenuItem("Edit frame faces")
+        menuItemEditFrameFaces.setOnAction {
+            FrameFacesEditFXController.editFrame(currentMatrixFrame?.frameExt!!)
+            if (currentShotExt != null) {
+                LoadListPersonsExtForShot(listPersonsExtForShot, currentShotExt!!, pb, lblPb).run()
+                tblPersonsAllForShot!!.items = listPersonsExtForShot
+                loadPictureToFullFrameLabelForFrame(currentMatrixFrame)
+            }
+        }
+        contextMenuFrameFull.items.add(menuItemEditFrameFaces)
+        lblFrameFull!!.contextMenu = contextMenuFrameFull
 
         /**
          * paneFaces events
@@ -1198,7 +1299,7 @@ class ShotsEditFXController {
             val last: Int = flowTblPagesFrames!!.lastVisibleCell.getIndex()
             val selected = tblPagesFrames!!.selectionModel.selectedIndex
             if (selected < first || selected > last) {
-                tblPagesFrames?.scrollTo(matrixPageFrames)
+                Platform.runLater{tblPagesFrames?.scrollTo(matrixPageFrames)}
             }
         }
     }
@@ -1209,7 +1310,7 @@ class ShotsEditFXController {
             val last: Int = flowTblPagesFaces!!.lastVisibleCell.getIndex()
             val selected = tblPagesFaces!!.selectionModel.selectedIndex
             if (selected < first || selected > last) {
-                tblPagesFaces?.scrollTo(matrixPageFaces)
+                Platform.runLater{tblPagesFaces?.scrollTo(matrixPageFaces)}
             }
         }
     }
@@ -1220,7 +1321,7 @@ class ShotsEditFXController {
             val last: Int = flowTblShots!!.lastVisibleCell.getIndex()
             val selected = tblShots!!.selectionModel.selectedIndex
             if (selected < first || selected > last) {
-                tblShots?.scrollTo(shotExt)
+                Platform.runLater{tblShots?.scrollTo(shotExt)}
             }
         }
     }
@@ -1231,7 +1332,7 @@ class ShotsEditFXController {
             val last: Int = flowTblScenes!!.lastVisibleCell.index
             val selected = tblScenes!!.selectionModel.selectedIndex
             if (selected < first || selected > last) {
-                tblScenes?.scrollTo(sceneExt)
+                Platform.runLater{tblScenes?.scrollTo(sceneExt)}
             }
         }
     }
@@ -1242,7 +1343,7 @@ class ShotsEditFXController {
             val last: Int = flowTblShotsForScenes!!.lastVisibleCell.index
             val selected = tblShotsForScenes!!.selectionModel.selectedIndex
             if (selected < first || selected > last) {
-                tblShotsForScenes?.scrollTo(shotExt)
+                Platform.runLater{tblShotsForScenes?.scrollTo(shotExt)}
             }
         }
     }
@@ -1253,7 +1354,7 @@ class ShotsEditFXController {
             val last: Int = flowTblPersonsAll!!.lastVisibleCell.getIndex()
             val selected = tblPersonsAllForFile!!.selectionModel.selectedIndex
             if (selected < first || selected > last) {
-                tblPersonsAllForFile?.scrollTo(personExt)
+                Platform.runLater{tblPersonsAllForFile?.scrollTo(personExt)}
             }
         }
     }
@@ -1940,18 +2041,16 @@ class ShotsEditFXController {
 
     @FXML
     fun doSelectFacesCb(event: ActionEvent?) {
-        runListThreadsFacesFlagIsDone.value = false
-        val listThreadsFaces: MutableList<Thread> = mutableListOf()
+        isDoneLoadListPersonFacesExt.set(false)
         if (rbFaceFile!!.isSelected) {
-            listThreadsFaces.add(LoadListPersonFacesExtForFile(listFacesExt, currentFileExt!!, currentPersonExt!!, pb, lblPb, cbFacesNotExample!!.isSelected, cbFacesExample!!.isSelected, cbFacesNotManual!!.isSelected, cbFacesManual!!.isSelected))
+            LoadListPersonFacesExtForFile(listFacesExt, currentFileExt!!, currentPersonExt!!, pbFaces, null,
+                cbFacesNotExample!!.isSelected, cbFacesExample!!.isSelected, cbFacesNotManual!!.isSelected, cbFacesManual!!.isSelected,
+                isDoneLoadListPersonFacesExt).start()
         } else if (rbFaceAll!!.isSelected) {
-            listThreadsFaces.add(LoadListPersonFacesExtForAll(listFacesExt, currentFileExt!!.projectExt, currentPersonExt!!, pb, lblPb, cbFacesNotExample!!.isSelected, cbFacesExample!!.isSelected, cbFacesNotManual!!.isSelected, cbFacesManual!!.isSelected))
-        } else if (rbFaceShot!!.isSelected) {
-            listThreadsFaces.add(LoadListPersonFacesExtForShot(listFacesExt, currentShotExt!!, currentPersonExt!!, pb, lblPb, cbFacesNotExample!!.isSelected, cbFacesExample!!.isSelected, cbFacesNotManual!!.isSelected, cbFacesManual!!.isSelected))
+            LoadListPersonFacesExtForAll(listFacesExt, currentFileExt!!.projectExt, currentPersonExt!!, pbFaces, lblPb,
+                cbFacesNotExample!!.isSelected, cbFacesExample!!.isSelected, cbFacesNotManual!!.isSelected, cbFacesManual!!.isSelected,
+                isDoneLoadListPersonFacesExt).start()
         }
-
-        val runListThreadsFaces = RunListThreads(listThreadsFaces, runListThreadsFacesFlagIsDone)
-        runListThreadsFaces.start()
     }
 
     @FXML

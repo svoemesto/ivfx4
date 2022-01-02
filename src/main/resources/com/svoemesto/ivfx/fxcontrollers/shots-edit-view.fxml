@@ -29,19 +29,29 @@
                         <Insets />
                      </VBox.margin>
                      <children>
-                        <TableView fx:id="tblShots" maxHeight="1.7976931348623157E308" maxWidth="440.0" minWidth="440.0" prefHeight="5000.0" prefWidth="440.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                          <columns>
-                            <TableColumn fx:id="colShotFrom" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FROM" />
-                            <TableColumn fx:id="colShotTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
-                              <TableColumn fx:id="colShotType" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TYPE" />
-                              <TableColumn fx:id="colButtonGetType" maxWidth="25.0" minWidth="25.0" prefWidth="25.0" />
-                          </columns>
-                        </TableView>
-                        <TableView fx:id="tblPersonsAllForShot" maxWidth="175.0" minWidth="175.0" prefHeight="10000.0" prefWidth="175.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                           <columns>
-                              <TableColumn fx:id="colTblPersonsAllForShotName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
-                           </columns>
-                        </TableView>
+                        <VBox>
+                           <children>
+                              <TableView fx:id="tblShots" maxHeight="1.7976931348623157E308" maxWidth="440.0" minWidth="440.0" prefHeight="5000.0" prefWidth="440.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                <columns>
+                                  <TableColumn fx:id="colShotFrom" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FROM" />
+                                  <TableColumn fx:id="colShotTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
+                                    <TableColumn fx:id="colShotType" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TYPE" />
+                                    <TableColumn fx:id="colButtonGetType" maxWidth="25.0" minWidth="25.0" prefWidth="25.0" />
+                                </columns>
+                              </TableView>
+                              <ProgressBar fx:id="pbShots" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />
+                           </children>
+                        </VBox>
+                        <VBox>
+                           <children>
+                              <TableView fx:id="tblPersonsAllForShot" maxWidth="175.0" minWidth="175.0" prefHeight="10000.0" prefWidth="175.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                 <columns>
+                                    <TableColumn fx:id="colTblPersonsAllForShotName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
+                                 </columns>
+                              </TableView>
+                              <ProgressBar fx:id="pbPersonsForShot" maxWidth="1.7976931348623157E308" progress="0.0" />
+                           </children>
+                        </VBox>
                         <VBox prefHeight="200.0" prefWidth="100.0">
                            <children>
                               <Label text="Persons:" />
@@ -99,14 +109,19 @@
                                        <children>
                                           <Pane fx:id="paneFrames" prefHeight="10000.0" prefWidth="10000.0" style="-fx-background-color: black;" />
                                           <Separator orientation="VERTICAL" prefHeight="200.0" />
-                                          <TableView fx:id="tblPagesFrames" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="300.0" prefHeight="5000.0" prefWidth="300.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                            <columns>
-                                              <TableColumn fx:id="colDurationStart" prefWidth="75.0" text="Время: с" />
-                                              <TableColumn fx:id="colDurationEnd" prefWidth="75.0" text="Время: по" />
-                                                <TableColumn fx:id="colFrameStart" prefWidth="65.0" text="Кадры: с" />
-                                                <TableColumn fx:id="colFrameEnd" prefWidth="65.0" text="Кадры: по" />
-                                            </columns>
-                                          </TableView>
+                                          <VBox>
+                                             <children>
+                                                <TableView fx:id="tblPagesFrames" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="300.0" prefHeight="5000.0" prefWidth="300.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                                  <columns>
+                                                    <TableColumn fx:id="colDurationStart" prefWidth="75.0" text="Время: с" />
+                                                    <TableColumn fx:id="colDurationEnd" prefWidth="75.0" text="Время: по" />
+                                                      <TableColumn fx:id="colFrameStart" prefWidth="65.0" text="Кадры: с" />
+                                                      <TableColumn fx:id="colFrameEnd" prefWidth="65.0" text="Кадры: по" />
+                                                  </columns>
+                                                </TableView>
+                                                <ProgressBar fx:id="pbPagesFrames" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />
+                                             </children>
+                                          </VBox>
                                        </children>
                                     </HBox>
                                  </children>
@@ -126,9 +141,15 @@
                                                     <TableColumn fx:id="colTblPersonsAllForFileName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
                                                   </columns>
                                                 </TableView>
+                                                <ProgressBar fx:id="pbPersonsForFile" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />
                                              </children>
                                           </VBox>
-                                          <Pane fx:id="paneFaces" prefHeight="10000.0" prefWidth="10000.0" style="-fx-background-color: black;" />
+                                          <VBox>
+                                             <children>
+                                                <Pane fx:id="paneFaces" prefHeight="10000.0" prefWidth="10000.0" style="-fx-background-color: black;" />
+                                                <ProgressBar fx:id="pbFaces" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />
+                                             </children>
+                                          </VBox>
                                           <TableView fx:id="tblPagesFaces" minWidth="60.0" prefHeight="200.0" prefWidth="200.0" style="-fx-selection-bar-non-focused: red; -fx-selection-bar: red;">
                                             <columns>
                                               <TableColumn fx:id="colTblPagesFacesNumber" maxWidth="40.0" minWidth="40.0" prefWidth="40.0" text="#" />
@@ -155,21 +176,32 @@
                                                       <TableColumn fx:id="colSceneTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
                                                   </columns>
                                                 </TableView>
+                                                <ProgressBar fx:id="pbScenes" maxWidth="1.7976931348623157E308" progress="0.0" />
                                                 <Button fx:id="btnCreateNewSceneBySelectedShots" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doCreateNewSceneBySelectedShots" text="Create new scene by selected shots" />
                                                 <Button fx:id="btnDeleteSelectedScenes" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doDeleteSelectedScenes" text="Delete selected scenes" />
                                              </children>
                                           </VBox>
-                                          <TableView fx:id="tblShotsForScenes" maxHeight="1.7976931348623157E308" prefHeight="10000.0" prefWidth="290.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                             <columns>
-                                                <TableColumn fx:id="colShotForSceneFrom" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FROM" />
-                                                <TableColumn fx:id="colShotForSceneTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
-                                             </columns>
-                                          </TableView>
-                                          <TableView fx:id="tblPersonsAllForScenes" prefHeight="10000.0" prefWidth="150.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                             <columns>
-                                                <TableColumn fx:id="colTblPersonsAllForSceneName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
-                                             </columns>
-                                          </TableView>
+                                          <VBox>
+                                             <children>
+                                                <TableView fx:id="tblShotsForScenes" maxHeight="1.7976931348623157E308" prefHeight="10000.0" prefWidth="290.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                                   <columns>
+                                                      <TableColumn fx:id="colShotForSceneFrom" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FROM" />
+                                                      <TableColumn fx:id="colShotForSceneTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
+                                                   </columns>
+                                                </TableView>
+                                                <ProgressBar fx:id="pbShotsForScenes" maxWidth="1.7976931348623157E308" progress="0.0" />
+                                             </children>
+                                          </VBox>
+                                          <VBox>
+                                             <children>
+                                                <TableView fx:id="tblPersonsAllForScenes" prefHeight="10000.0" prefWidth="150.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                                   <columns>
+                                                      <TableColumn fx:id="colTblPersonsAllForSceneName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
+                                                   </columns>
+                                                </TableView>
+                                                <ProgressBar fx:id="pbPersonsForScenes" maxWidth="1.7976931348623157E308" progress="0.0" />
+                                             </children>
+                                          </VBox>
                                        </children>
                                     </HBox>
                                  </children></AnchorPane>
