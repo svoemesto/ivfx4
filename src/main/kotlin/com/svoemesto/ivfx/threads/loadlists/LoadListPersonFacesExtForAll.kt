@@ -6,6 +6,7 @@ import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import javafx.application.Platform
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
@@ -19,11 +20,13 @@ class LoadListPersonFacesExtForAll(
     private var loadNotExample: Boolean = true,
     private var loadExample: Boolean = true,
     private var loadNotManual: Boolean = true,
-    private var loadManual: Boolean = true
+    private var loadManual: Boolean = true,
+    private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)
     ) : Thread(), Runnable {
 
     override fun run() {
         loadList()
+        flagIsDone.set(true)
     }
 
     private fun loadList() {

@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.threads.loadlists
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import javafx.application.Platform
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
@@ -11,11 +12,13 @@ class LoadListPersonsExtForProject(
     private var list: ObservableList<PersonExt>,
     private var projectExt: ProjectExt,
     private var pb: ProgressBar? = null,
-    private var lbl: Label? = null
+    private var lbl: Label? = null,
+    private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)
     ) : Thread(), Runnable {
 
     override fun run() {
         loadList()
+        flagIsDone.set(true)
     }
 
     private fun loadList() {

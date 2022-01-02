@@ -5,6 +5,7 @@ import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ShotExt
 import javafx.application.Platform
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
@@ -13,11 +14,13 @@ class LoadListPersonsExtForShot(
     private var list: ObservableList<PersonExt>,
     private var shotExt: ShotExt,
     private var pb: ProgressBar? = null,
-    private var lbl: Label? = null
+    private var lbl: Label? = null,
+    private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)
     ) : Thread(), Runnable {
 
     override fun run() {
         loadList()
+        flagIsDone.set(true)
     }
 
     private fun loadList() {
