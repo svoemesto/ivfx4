@@ -6,6 +6,7 @@ import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.modelsext.EventExt
+import com.svoemesto.ivfx.modelsext.SceneExt
 import com.svoemesto.ivfx.modelsext.ShotExt
 import org.springframework.stereotype.Controller
 
@@ -63,22 +64,24 @@ class EventController() {
         fun getOrCreate(file: File, firstFrameNumber: Int, lastFrameNumber: Int): Event {
             var entity = Main.eventRepo.findByFileIdAndFirstFrameNumberAndLastFrameNumber(file.id, firstFrameNumber, lastFrameNumber).firstOrNull()
             if (entity == null) {
+
                 entity = Event()
                 entity.file = file
                 entity.firstFrameNumber = firstFrameNumber
                 entity.lastFrameNumber = lastFrameNumber
                 entity.name = "Event $firstFrameNumber-$lastFrameNumber"
                 save(entity)
+
             } else {
                 entity.file = file
             }
             return entity
         }
 
-        fun createSceneExt(listShotsExt: MutableList<ShotExt>): EventExt? {
+        fun createEventExt(listShotsExt: MutableList<ShotExt>): EventExt? {
             if (listShotsExt.isNotEmpty()) {
-                val scene = getOrCreate(listShotsExt.first().fileExt.file, listShotsExt.first().shot.firstFrameNumber, listShotsExt.last().shot.lastFrameNumber)
-                return EventExt(scene,listShotsExt.first().fileExt,listShotsExt.first().firstFrameExt, listShotsExt.last().lastFrameExt)
+                val event = getOrCreate(listShotsExt.first().fileExt.file, listShotsExt.first().shot.firstFrameNumber, listShotsExt.last().shot.lastFrameNumber)
+                return EventExt(event,listShotsExt.first().fileExt,listShotsExt.first().firstFrameExt, listShotsExt.last().lastFrameExt)
             }
             return null
         }

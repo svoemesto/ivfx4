@@ -1,17 +1,24 @@
 package com.svoemesto.ivfx.modelsext
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.EventController
+import com.svoemesto.ivfx.controllers.SceneController
 import com.svoemesto.ivfx.models.Event
 import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.convertDurationToString
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.getDurationByFrameNumber
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayUnderlineText
+import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.ContentDisplay
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
+import javafx.scene.control.MenuItem
+import javafx.scene.control.TextInputDialog
 import javafx.scene.image.ImageView
 import java.awt.image.BufferedImage
+import java.util.*
 import javax.imageio.ImageIO
 import java.io.File as IOFile
 
@@ -21,10 +28,52 @@ data class EventExt(
     var firstFrameExt: FrameExt,
     var lastFrameExt: FrameExt
 ): Comparable<EventExt> {
+
+    override fun compareTo(other: EventExt): Int {
+        return this.event.firstFrameNumber - other.event.firstFrameNumber
+    }
+
+    val shotsExt: MutableList<ShotExt>
+        get() = fileExt.shotsExt.filter {it.shot.firstFrameNumber >= event.firstFrameNumber && it.shot.lastFrameNumber <=event.lastFrameNumber}.toMutableList()
+
+    val personsExt: MutableList<PersonExt>
+        get() {
+            var list: MutableList<PersonExt> = mutableListOf()
+            var map: MutableMap<Long, PersonExt> = mutableMapOf()
+            shotsExt.forEach { currentShotExt ->
+                map.putAll(currentShotExt.personsExt.map { Pair(it.person.id, it) })
+            }
+            list = map.values.toMutableList()
+            list.sort()
+            return list
+        }
+
     val start: String get() = convertDurationToString(getDurationByFrameNumber(event.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(event.lastFrameNumber, fileExt.fps))
     val duration: Int get() = getDurationByFrameNumber(event.lastFrameNumber - event.firstFrameNumber + 1, fileExt.fps)
     val eventName: String get() = event.name
+    val eventNameLabel: Label
+        get() {
+            val label = Label(eventName)
+            val contextMenu = ContextMenu()
+            val menuItemRename = MenuItem("Rename event")
+            menuItemRename.onAction = EventHandler {
+                val dialog = TextInputDialog(eventName)
+                dialog.title = "Rename event"
+                dialog.headerText = "Enter new event name:"
+                dialog.contentText = "Name:"
+                val result: Optional<String> = dialog.showAndWait()
+                result.ifPresent { name ->
+                    label.text = name
+                    event.name = name
+                    EventController.save(event)
+                }
+            }
+            contextMenu.items.add(menuItemRename)
+
+            label.contextMenu = contextMenu
+            return label
+        }
     var previewsFirst: Array<ImageView?>? = null
         get() {
             if (field == null) {
@@ -88,7 +137,4 @@ data class EventExt(
     val labelLast3: Label? get() = labelsLast?.get(2)
     var buttonGetType: Button = Button()
 
-    override fun compareTo(other: EventExt): Int {
-        return this.event.firstFrameNumber - other.event.firstFrameNumber
-    }
 }
