@@ -61,7 +61,6 @@
                                  </toggleGroup>
                               </RadioButton>
                               <RadioButton fx:id="rbPersonFile" mnemonicParsing="false" onAction="#doSelectPersonsRb" selected="true" text="File" toggleGroup="$grpPersons" />
-                              <RadioButton fx:id="rbPersonShot" mnemonicParsing="false" onAction="#doSelectPersonsRb" text="Shot" toggleGroup="$grpPersons" />
                               <Label text="Faces:" />
                               <RadioButton fx:id="rbFaceAll" mnemonicParsing="false" onAction="#doSelectFacesRb" text="All">
                                  <toggleGroup>
@@ -69,7 +68,6 @@
                                  </toggleGroup>
                               </RadioButton>
                               <RadioButton fx:id="rbFaceFile" mnemonicParsing="false" onAction="#doSelectFacesRb" selected="true" text="File" toggleGroup="$grpFaces" />
-                              <RadioButton fx:id="rbFaceShot" mnemonicParsing="false" onAction="#doSelectFacesRb" text="Shot" toggleGroup="$grpFaces" />
                               <CheckBox fx:id="cbFacesNotExample" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Not example" />
                               <CheckBox fx:id="cbFacesExample" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Example" />
                               <CheckBox fx:id="cbFacesNotManual" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Not manual" />
@@ -209,7 +207,49 @@
                         </Tab>
                         <Tab text="Events">
                            <content>
-                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <HBox prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                       <children>
+                                          <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                                             <children>
+                                                <TableView fx:id="tblEvents" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="10000.0" prefWidth="490.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                                   <columns>
+                                                      <TableColumn fx:id="colEventName" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="NAME" />
+                                                      <TableColumn fx:id="colEventFrom" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FROM" />
+                                                      <TableColumn fx:id="colEventTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
+                                                   </columns>
+                                                </TableView>
+                                                <ProgressBar fx:id="pbEvents" maxWidth="1.7976931348623157E308" progress="0.0" />
+                                                <Button fx:id="btnCreateNewEventBySelectedShots" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doCreateNewEventBySelectedShots" text="Create new event by selected shots" />
+                                                <Button fx:id="btnDeleteSelectedEvents" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doDeleteSelectedEvents" text="Delete selected events" />
+                                             </children>
+                                          </VBox>
+                                          <VBox>
+                                             <children>
+                                                <TableView fx:id="tblShotsForEvents" maxHeight="1.7976931348623157E308" prefHeight="10000.0" prefWidth="290.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                                   <columns>
+                                                      <TableColumn fx:id="colShotForEventFrom" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FROM" />
+                                                      <TableColumn fx:id="colShotForEventTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
+                                                   </columns>
+                                                </TableView>
+                                                <ProgressBar fx:id="pbShotsForScenes1" maxWidth="1.7976931348623157E308" progress="0.0" />
+                                             </children>
+                                          </VBox>
+                                          <VBox>
+                                             <children>
+                                                <TableView fx:id="tblPersonsAllForEvents" prefHeight="10000.0" prefWidth="150.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                                   <columns>
+                                                      <TableColumn fx:id="colTblPersonsAllForEventName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
+                                                   </columns>
+                                                </TableView>
+                                                <ProgressBar fx:id="pbPersonsForScenes1" maxWidth="1.7976931348623157E308" progress="0.0" />
+                                             </children>
+                                          </VBox>
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </AnchorPane>
                            </content>
                         </Tab>
                      </tabs>
