@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.threads.loadlists
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.PersonExt
 import javafx.application.Platform
@@ -14,7 +15,8 @@ class LoadListPersonsExtForFile(
     private var fileExt: FileExt,
     private var pb: ProgressBar? = null,
     private var lbl: Label? = null,
-    private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)
+    private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false),
+    private val withoutNonPerson: Boolean = true
     ) : Thread(), Runnable {
 
     override fun run() {
@@ -44,11 +46,11 @@ class LoadListPersonsExtForFile(
                     if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
                     if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, person ($i/${sourceIterable.count()})"
                 }
-                person.project = fileExt.projectExt.project
-
-                val personExt = PersonExt(person, fileExt.projectExt)
-                list.add(personExt)
-                println(personExt)
+                if (!(withoutNonPerson && person.personType == PersonType.NONPERSON)) {
+                    person.project = fileExt.projectExt.project
+                    val personExt = PersonExt(person, fileExt.projectExt)
+                    list.add(personExt)
+                }
             } else {
                 return
             }

@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.threads.loadlists
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ShotExt
@@ -15,7 +16,8 @@ class LoadListPersonsExtForShot(
     private var shotExt: ShotExt,
     private var pb: ProgressBar? = null,
     private var lbl: Label? = null,
-    private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)
+    private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false),
+    private val withoutNonPerson: Boolean = true
     ) : Thread(), Runnable {
 
     override fun run() {
@@ -45,11 +47,11 @@ class LoadListPersonsExtForShot(
                     if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
                     if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${shotExt.fileExt.file.name}, person ($i/${sourceIterable.count()})"
                 }
-                person.project = shotExt.fileExt.projectExt.project
-
-                val personExt = PersonExt(person, shotExt.fileExt.projectExt)
-                list.add(personExt)
-                println(personExt)
+                if (!(withoutNonPerson && person.personType == PersonType.NONPERSON)) {
+                    person.project = shotExt.fileExt.projectExt.project
+                    val personExt = PersonExt(person, shotExt.fileExt.projectExt)
+                    list.add(personExt)
+                }
             } else {
                 return
             }
