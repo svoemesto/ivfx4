@@ -2,15 +2,11 @@ package com.svoemesto.ivfx.fxcontrollers
 
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FaceController
-import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.models.Face
 import com.svoemesto.ivfx.modelsext.FaceExt
-import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
-import com.svoemesto.ivfx.modelsext.MatrixPageFrames
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import com.svoemesto.ivfx.utils.OverlayImage
-import javafx.application.HostServices
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -34,12 +30,11 @@ import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import java.io.File
 import java.io.IOException
 import java.util.*
 import javax.imageio.ImageIO
-import javax.imageio.ImageReader
 import java.io.File as IOFile
+
 
 class FrameFacesEditFXController {
     @FXML
@@ -93,6 +88,8 @@ class FrameFacesEditFXController {
     private var endX: Int = 0
     private var startY: Int = 0
     private var endY: Int = 0
+    private var wasClicked: Boolean = false
+    private var biOverlayed: BufferedImage? = null
 
     @FXML
     fun initialize() {
@@ -123,50 +120,69 @@ class FrameFacesEditFXController {
 
         lblFrame!!.onMousePressed = EventHandler {
             if (it.button == MouseButton.PRIMARY) {
+                biOverlayed = FaceController.getOverlayedFrame(currentFrameExt!!, null, true)
                 startX = it.x.toInt()
                 startY = it.y.toInt()
+                wasClicked = true
             }
         }
 
         lblFrame!!.onMouseReleased = EventHandler {
             if (it.button == MouseButton.PRIMARY) {
-                endX = it.x.toInt()
-                endY = it.y.toInt()
-
-                if (startX > endX) {
-                    val tmp = endX
-                    endX = startX
-                    startX = tmp
-                }
-
-                if (startY > endY) {
-                    val tmp = endY
-                    endY = startY
-                    startY = tmp
-                }
-
-                showFrame()
+                wasClicked = false
                 onCreateNewFace(null)
             }
         }
 
+//        lblFrame!!.onMouseMoved = EventHandler {
+//            if (wasClicked) {
+//                endX = it.x.toInt()
+//                endY = it.y.toInt()
+//                showFrame()
+//            }
+//        }
+//
+        lblFrame!!.onMouseDragged = EventHandler {
+            if (wasClicked) {
+                endX = it.x.toInt()
+                endY = it.y.toInt()
+                showFrame()
+            }
+        }
+    }
+
+    fun deepCopy(bi: BufferedImage): BufferedImage {
+        val cm = bi.colorModel
+        val isAlphaPremultiplied = cm.isAlphaPremultiplied
+        val raster = bi.copyData(null)
+        return BufferedImage(cm, raster, isAlphaPremultiplied, null).getSubimage(0, 0, bi.width, bi.height)
     }
 
     fun showFrame(faceExt: FaceExt? = null) {
 
-        val bi = FaceController.getOverlayedFrame(currentFrameExt!!, faceExt, true)
+        if (biOverlayed == null) biOverlayed = FaceController.getOverlayedFrame(currentFrameExt!!, null, true)
 
         if (startX !=0 && endX != 0 && startY !=0 && endY != 0) {
-            val graphics2D = bi!!.graphics as Graphics2D
-            graphics2D.drawImage(bi, 0, 0, null)
+            var biOverClone = deepCopy(biOverlayed!!)
+            val graphics2D = biOverClone.graphics as Graphics2D
+            graphics2D.drawImage(biOverClone, 0, 0, null)
             val alphaChannel = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0F)
             graphics2D.composite = alphaChannel
             graphics2D.color = Color.BLUE
-            graphics2D.drawRect(startX, startY, endX - startX, endY - startY)
+
+            val x1 = if (startX < endX) startX else endX
+            val x2 = if (startX < endX) endX else startX
+            val y1 = if (startY < endY) startY else endY
+            val y2 = if (startY < endY) endY else startY
+
+            graphics2D.drawRect(x1, y1, x2 - x1, y2 - y1)
             graphics2D.dispose()
+            lblFrame!!.graphic = ImageView(ConvertToFxImage.convertToFxImage(biOverClone))
+        } else {
+            lblFrame!!.graphic = ImageView(ConvertToFxImage.convertToFxImage(biOverlayed))
         }
 
-        lblFrame!!.graphic = ImageView(ConvertToFxImage.convertToFxImage(bi))
+
 
     }
 
@@ -206,6 +222,7 @@ class FrameFacesEditFXController {
             listFacesExt = FXCollections.observableArrayList(currentFrameExt!!.facesExt())
             tblFaces!!.items = listFacesExt
 
+            biOverlayed = FaceController.getOverlayedFrame(currentFrameExt!!, null, true)
             showFrame()
 
         }

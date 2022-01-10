@@ -483,7 +483,7 @@ class ShotsEditFXController {
         /**
          * LoadListPersonsExtForFile
          */
-        LoadListPersonsExtForFile(listPersonsExtForFile, currentFileExt!!, pbPersonsForFile, null, isDoneLoadListPersonsExtForFile).start()
+        LoadListPersonsExtForFile(listPersonsExtForFile, currentFileExt!!, pbPersonsForFile, null, isDoneLoadListPersonsExtForFile, false).start()
         isDoneLoadListPersonsExtForFile.addListener { _, _, newValue ->
             if (newValue == true) {
                 isDoneLoadListPersonsExtForFile.set(false)
@@ -685,7 +685,7 @@ class ShotsEditFXController {
                     Thread {
                         Platform.runLater{ tblPersonsAllForShot?.placeholder = ProgressIndicator(-1.0) }
                         currentShotExt = newValue
-                        listPersonsExtForShot = FXCollections.observableList(currentShotExt!!.personsExt)
+                        listPersonsExtForShot = FXCollections.observableList(currentShotExt!!.personsExt.filter { it.person.personType != PersonType.NONPERSON })
                         tblPersonsAllForShot!!.items = listPersonsExtForShot
                         Platform.runLater{tblPersonsAllForShot?.placeholder = Label("Shot not selected or don't have any persons.") }
                         if (wasClickTableShots) {
@@ -1465,8 +1465,12 @@ class ShotsEditFXController {
                     showMatrixPageFrames(currentMatrixPageFrames!!)
                     tblPagesFrames!!.selectionModel.select(currentMatrixPageFrames)
                 }
+                tblShots!!.selectionModel.clearSelection()
                 currentShotExt = getShotExtByFrameNumber(currentMatrixFrame!!.frameNumber!!)
-                tblShots!!.selectionModel.select(currentShotExt)
+                if (!tblShots!!.selectionModel.selectedItems.contains(currentShotExt)) {
+
+                    tblShots!!.selectionModel.select(currentShotExt)
+                }
 
                 currentMatrixFrame?.frameExt?.labelSmall?.style = fxBorderSelected
                 loadPictureToFullFrameLabelForFrame(currentMatrixFrame)
@@ -1671,6 +1675,7 @@ class ShotsEditFXController {
                         currentMatrixFrame?.frameExt?.labelSmall?.style = fxBorderDefault
                         currentMatrixFrame = matrixFrame
                         currentShotExt = getShotExtByFrameNumber(matrixFrame.frameNumber!!)
+                        tblShots!!.selectionModel.clearSelection()
                         tblShots!!.selectionModel.select(currentShotExt)
                         loadPictureToFullFrameLabelForFrame(currentMatrixFrame)
                     }
