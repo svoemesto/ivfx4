@@ -64,6 +64,21 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
             if (field == null) field = FileController.getFolderFacesPreview(this)
             return field
         }
+    var folderShotsCompressedWithAudio: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderShotsCompressedWithAudio(this)
+            return field
+        }
+    var folderShotsLosslessWithAudio: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderShotsLosslessWithAudio(this)
+            return field
+        }
+    var folderShotsLosslessWithoutAudio: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderShotsLosslessWithoutAudio(this)
+            return field
+        }
     var pathToLosslessFile: String? = null
         get() {
             if (field == null) field = FileController.getLossless(this)
@@ -140,6 +155,25 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
             return field
         }
     val hasRecognizedFacesString: String get() = if (hasRecognizedFaces!!) "✓" else "✗"
+    var hasShotsCompressedWithAudio: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasShotsCompressedWithAudio(this)
+            return field
+        }
+    val hasShotsCompressedWithAudioString: String get() = if (hasShotsCompressedWithAudio!!) "✓" else "✗"
+    var hasShotsLosslessWithAudio: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasShotsLosslessWithAudio(this)
+            return field
+        }
+    val hasShotsLosslessWithAudioString: String get() = if (hasShotsLosslessWithAudio!!) "✓" else "✗"
+    var hasShotsLosslessWithoutAudio: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasShotsLosslessWithoutAudio(this)
+            return field
+        }
+    val hasShotsLosslessWithoutAudioString: String get() = if (hasShotsLosslessWithoutAudio!!) "✓" else "✗"
+
     @Transient
     var framesExt: ObservableList<FrameExt> = FXCollections.observableArrayList()
     @Transient
@@ -173,6 +207,9 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
         hasCreatedShots = null
         hasDetectedFaces = null
         hasCreatedFaces = null
+        hasShotsCompressedWithAudio = null
+        hasShotsLosslessWithAudio = null
+        hasShotsLosslessWithoutAudio = null
     }
 
     fun resetFieldsLinkedPath() {

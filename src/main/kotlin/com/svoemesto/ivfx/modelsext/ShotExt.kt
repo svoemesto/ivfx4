@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.modelsext
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.enums.ShotTypePerson
+import com.svoemesto.ivfx.enums.VideoContainers
 import com.svoemesto.ivfx.models.Event
 import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.models.Shot
@@ -45,6 +46,16 @@ data class ShotExt(
     val duration: Int get() = getDurationByFrameNumber(shot.lastFrameNumber - shot.firstFrameNumber + 1, fileExt.fps)
     val sceneExt: SceneExt? get() = fileExt.scenesExt.firstOrNull { shot.firstFrameNumber >= it.scene.firstFrameNumber && shot.lastFrameNumber <= it.scene.lastFrameNumber }
     val eventExt: EventExt? get() = fileExt.eventsExt.firstOrNull { shot.firstFrameNumber >= it.event.firstFrameNumber && shot.lastFrameNumber <= it.event.lastFrameNumber }
+    val filenameWithoutExt: String get() = "${fileExt.file.shortName}_shot_[${start.replace(":",".")}-${end.replace(":",".")}]-(${shot.firstFrameNumber}-${shot.lastFrameNumber})"
+    val pathToCompressedWithAudio: String get() = "${fileExt.folderShotsCompressedWithAudio}${IOFile.separator}${filenameWithoutExt}" +
+            ".${VideoContainers.valueOf(fileExt.projectExt.project.videoCodec).extention}"
+    val pathToLosslessWithAudio: String get() = "${fileExt.folderShotsLosslessWithAudio}${IOFile.separator}${filenameWithoutExt}" +
+            "_audioON.mxf"
+    val pathToLosslessWithoutAudio: String get() = "${fileExt.folderShotsLosslessWithoutAudio}${IOFile.separator}${filenameWithoutExt}" +
+            "_audioOFF.mxf"
+    val hasCompressedWithAudio: Boolean get() = IOFile(pathToCompressedWithAudio).exists()
+    val hasLosslessWithAudio: Boolean get() = IOFile(pathToLosslessWithAudio).exists()
+    val hasLosslessWithoutAudio: Boolean get() = IOFile(pathToLosslessWithoutAudio).exists()
 
     val personsExt: MutableList<PersonExt>
         get() {

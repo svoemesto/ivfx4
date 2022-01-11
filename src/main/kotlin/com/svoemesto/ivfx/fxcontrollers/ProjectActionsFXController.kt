@@ -3,8 +3,6 @@ package com.svoemesto.ivfx.fxcontrollers
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import com.svoemesto.ivfx.controllers.FaceController
-import com.svoemesto.ivfx.controllers.PersonController
-import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunCmd
@@ -18,6 +16,9 @@ import com.svoemesto.ivfx.threads.projectactions.CreateFramesSmall
 import com.svoemesto.ivfx.threads.projectactions.CreateLossless
 import com.svoemesto.ivfx.threads.projectactions.CreatePreview
 import com.svoemesto.ivfx.threads.projectactions.CreateShots
+import com.svoemesto.ivfx.threads.projectactions.CreateShotsCompressedWithAudio
+import com.svoemesto.ivfx.threads.projectactions.CreateShotsLosslessWithAudio
+import com.svoemesto.ivfx.threads.projectactions.CreateShotsLosslessWithoutAudio
 import com.svoemesto.ivfx.threads.projectactions.DetectFaces
 import com.svoemesto.ivfx.threads.projectactions.RecognizeFaces
 import com.svoemesto.ivfx.utils.FaceDetection
@@ -86,6 +87,14 @@ class ProjectActionsFXController {
     @FXML
     private var colFileExtRF: TableColumn<FileExt, String>? = null
 
+    @FXML
+    private var colFileExtSCA: TableColumn<FileExt, String>? = null
+
+    @FXML
+    private var colFileExtSLA: TableColumn<FileExt, String>? = null
+
+    @FXML
+    private var colFileExtSLN: TableColumn<FileExt, String>? = null
 
     @FXML
     private var checkReCreateIfExists: CheckBox? = null
@@ -125,6 +134,15 @@ class ProjectActionsFXController {
 
     @FXML
     private var checkRecognizeFaces: CheckBox? = null
+
+    @FXML
+    private var checkCreateShotsCompressedWithAudio: CheckBox? = null
+
+    @FXML
+    private var checkCreateShotsLosslessWithAudio: CheckBox? = null
+
+    @FXML
+    private var checkCreateShotsLosslessWithoutAudio: CheckBox? = null
 
     @FXML
     private var btnTrainFaceModel: Button? = null
@@ -198,6 +216,9 @@ class ProjectActionsFXController {
         colFileExtCF?.cellValueFactory = PropertyValueFactory("hasCreatedFacesString")
         colFileExtCFP?.cellValueFactory = PropertyValueFactory("hasCreatedFacesPreviewString")
         colFileExtRF?.cellValueFactory = PropertyValueFactory("hasRecognizedFacesString")
+        colFileExtSCA?.cellValueFactory = PropertyValueFactory("hasShotsCompressedWithAudioString")
+        colFileExtSLA?.cellValueFactory = PropertyValueFactory("hasShotsLosslessWithAudioString")
+        colFileExtSLN?.cellValueFactory = PropertyValueFactory("hasShotsLosslessWithoutAudioString")
         tblFilesExt?.items = listFilesExt
 
         pb1?.isVisible = false
@@ -225,6 +246,9 @@ class ProjectActionsFXController {
             if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateFacesPreview?.isSelected == true && (!fileExt.hasCreatedFacesPreview!! || (fileExt.hasCreatedFacesPreview!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkRecognizeFaces?.isSelected == true && (!fileExt.hasRecognizedFaces!! || (fileExt.hasRecognizedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateShotsCompressedWithAudio?.isSelected == true && (!fileExt.hasShotsCompressedWithAudio!! || (fileExt.hasShotsCompressedWithAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateShotsLosslessWithAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithAudio!! || (fileExt.hasShotsLosslessWithAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateShotsLosslessWithoutAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithoutAudio!! || (fileExt.hasShotsLosslessWithoutAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
         }
         var counterPb1 = 0
 
@@ -327,6 +351,33 @@ class ProjectActionsFXController {
                 listThreads.add(
                     RecognizeFaces(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.file.name}, Action: Recognize Faces, Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateShotsCompressedWithAudio?.isSelected == true && (!fileExt.hasShotsCompressedWithAudio!! || (fileExt.hasShotsCompressedWithAudio!! && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateShotsCompressedWithAudio(fileExt!!, tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Shots video files (compressed, with audio), Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateShotsLosslessWithAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithAudio!! || (fileExt.hasShotsLosslessWithAudio!! && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateShotsLosslessWithAudio(fileExt!!, tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Shots video files (lossless, with audio), Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateShotsLosslessWithoutAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithoutAudio!! || (fileExt.hasShotsLosslessWithoutAudio!! && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateShotsLosslessWithoutAudio(fileExt!!, tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Shots video files (lossless, without audio), Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }

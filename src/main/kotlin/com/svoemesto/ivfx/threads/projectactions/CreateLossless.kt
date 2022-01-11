@@ -41,7 +41,6 @@ class CreateLossless(var fileExt: FileExt,
         val fileInput = fileExt.file.path
         if (!File(fileExt.folderLossless).exists()) File(fileExt.folderLossless).mkdir()
         val fileOutput = fileExt.pathToLosslessFile
-//        val fileOutput = Main.fileController.getLossless(fileExt.file, true)
 
         val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
         val ffprobe = FFprobe(IvfxFFmpegUtils.FFPROBE_PATH)
@@ -135,7 +134,6 @@ class CreateLossless(var fileExt: FileExt,
         job.run()
 
         fileExt.hasLossless = true
-//        fileExt.hasLosslessString = "✓"
         table.refresh()
 
         lbl1.isVisible = false

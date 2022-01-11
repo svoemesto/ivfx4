@@ -84,6 +84,21 @@ class FileController() {
             return if (value == "") fileExt.projectExt.folderFacesPreview + IOFile.separator + fileExt.file.shortName else value
         }
 
+        fun getFolderShotsCompressedWithAudio(fileExt: FileExt): String{
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.SHOTS_COMPRESSED_WITH_AUDIO.propertyCdfKey)
+            return if (value == "") fileExt.projectExt.folderShotsCompressedWithAudio + IOFile.separator + fileExt.file.shortName else value
+        }
+
+        fun getFolderShotsLosslessWithAudio(fileExt: FileExt): String{
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.SHOTS_LOSSLESS_WITH_AUDIO.propertyCdfKey)
+            return if (value == "") fileExt.projectExt.folderShotsLosslessWithAudio + IOFile.separator + fileExt.file.shortName else value
+        }
+
+        fun getFolderShotsLosslessWithoutAudio(fileExt: FileExt): String{
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.SHOTS_LOSSLESS_WITHOUT_AUDIO.propertyCdfKey)
+            return if (value == "") fileExt.projectExt.folderShotsLosslessWithoutAudio + IOFile.separator + fileExt.file.shortName else value
+        }
+
         fun getFFmpegProbeResult(file: File): FFmpegProbeResult {
             return FFprobe(IvfxFFmpegUtils.FFPROBE_PATH).probe(file.path)
         }
@@ -176,6 +191,18 @@ class FileController() {
                 }
             }
             return false
+        }
+
+        fun hasShotsCompressedWithAudio(fileExt: FileExt): Boolean {
+            return false // !fileExt.shotsExt.any { !it.hasCompressedWithAudio }
+        }
+
+        fun hasShotsLosslessWithAudio(fileExt: FileExt): Boolean {
+            return false // !fileExt.shotsExt.any { !it.hasLosslessWithAudio }
+        }
+
+        fun hasShotsLosslessWithoutAudio(fileExt: FileExt): Boolean {
+            return false // !fileExt.shotsExt.any { !it.hasLosslessWithoutAudio }
         }
 
         fun getListFilesExt(project: Project): List<FileExt> {
