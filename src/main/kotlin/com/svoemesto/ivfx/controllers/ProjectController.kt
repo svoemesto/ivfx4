@@ -99,6 +99,22 @@ class ProjectController() {
             val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.FACES_PREVIEW.propertyCdfKey)
             return if (value == "") project.folder + IOFile.separator + Folders.FACES_PREVIEW.folderName else value
         }
+
+        fun getFolderShotsCompressedWithAudio(project: Project): String{
+            val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.SHOTS_COMPRESSED_WITH_AUDIO.propertyCdfKey)
+            return if (value == "") project.folder + IOFile.separator + Folders.SHOTS_COMPRESSED_WITH_AUDIO.folderName else value
+        }
+
+        fun getFolderShotsLosslessWithAudio(project: Project): String{
+            val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.SHOTS_LOSSLESS_WITH_AUDIO.propertyCdfKey)
+            return if (value == "") project.folder + IOFile.separator + Folders.SHOTS_LOSSLESS_WITH_AUDIO.folderName else value
+        }
+
+        fun getFolderShotsLosslessWithoutAudio(project: Project): String{
+            val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.SHOTS_LOSSLESS_WITHOUT_AUDIO.propertyCdfKey)
+            return if (value == "") project.folder + IOFile.separator + Folders.SHOTS_LOSSLESS_WITHOUT_AUDIO.folderName else value
+        }
+
         fun getProperties(project: Project) : List<Property> {
             return Main.propertyRepo.findByParentClassAndParentId(project::class.simpleName!!, project.id).toList()
         }
