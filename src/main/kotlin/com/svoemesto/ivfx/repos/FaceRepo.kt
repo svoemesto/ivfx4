@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional
 interface FaceRepo : CrudRepository<Face, Long> {
     fun findByFileId(fileId: Long): Iterable<Face>
 
+    @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 LIMIT 1", nativeQuery = true)
+    fun getFirstByFileId(fileId: Long): Iterable<Face>
+
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_faces WHERE file_id = ?", nativeQuery = true)
@@ -26,6 +29,9 @@ interface FaceRepo : CrudRepository<Face, Long> {
 
     @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 AND person_id != ?2", nativeQuery = true)
     fun findByFileIdAndPersonIdNotEqual(fileId: Long, personId: Long): Iterable<Face>
+
+    @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 AND person_id != ?2 LIMIT 1", nativeQuery = true)
+    fun findFirstByFileIdAndPersonIdNotEqual(fileId: Long, personId: Long): Iterable<Face>
 
     @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 AND person_id = ?2", nativeQuery = true)
     fun findFacesToRecognize(fileId: Long, idPersonUnrecognized: Long): Iterable<Face>

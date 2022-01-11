@@ -130,7 +130,7 @@ class FileController() {
         }
 
         fun getConcat(fileExt: FileExt): String {
-            return "${fileExt.folderConcat}${IOFile.separator}${fileExt.file.shortName}.${VideoContainers.valueOf(fileExt.projectExt.project.container).extention}"
+            return "${fileExt.folderConcat}${IOFile.separator}${fileExt.file.shortName}_concat.${VideoContainers.valueOf(fileExt.projectExt.project.container).extention}"
         }
 
         fun hasFramesSmall(fileExt: FileExt): Boolean {
@@ -188,11 +188,13 @@ class FileController() {
 
         fun hasRecognizedFaces(file: File): Boolean {
             val personUndefinded = PersonController.getUndefinded(file.project)
-            return Main.faceRepo.findByFileIdAndPersonIdNotEqual(file.id, personUndefinded.id).any()
+            return Main.faceRepo.findFirstByFileIdAndPersonIdNotEqual(file.id, personUndefinded.id).any()
+//            return Main.faceRepo.findByFileIdAndPersonIdNotEqual(file.id, personUndefinded.id).any()
         }
 
         fun hasCreatedFaces(file: File): Boolean {
-            return Main.faceRepo.findByFileId(file.id).any()
+            return Main.faceRepo.getFirstByFileId(file.id).any()
+//            return Main.faceRepo.findByFileId(file.id).any()
         }
 
         fun hasCreatedFacesPreview(fileExt: FileExt): Boolean {
@@ -368,14 +370,13 @@ class FileController() {
 
         fun getFps(file: File): Double {
 
-            return file.tracks.filter{it.type == "General"}.firstOrNull()?.let { TrackController.getPropertyValue(it,"FrameRate").toDouble() } ?: 0.0
-//            return getFFmpegProbeResult(file).streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.r_frame_rate?.toDouble()?:0.0
+//            return file.tracks.filter{it.type == "General"}.firstOrNull()?.let { TrackController.getPropertyValue(it,"FrameRate").toDouble() } ?: 0.0
+            return getFFmpegProbeResult(file).streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.r_frame_rate?.toDouble()?:0.0
         }
 
         fun getFramesCount(file: File): Int {
-            return file.tracks.filter{it.type == "General"}.firstOrNull()?.let { TrackController.getPropertyValue(it,"FrameCount").toInt() } ?: 0
-
-//            return getFFmpegProbeResult(file).streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()?:0
+//            return file.tracks.filter{it.type == "General"}.firstOrNull()?.let { TrackController.getPropertyValue(it,"FrameCount").toInt() } ?: 0
+            return getFFmpegProbeResult(file).streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()?:0
         }
 
         fun getFile(fileId: Long, project: Project): File {
