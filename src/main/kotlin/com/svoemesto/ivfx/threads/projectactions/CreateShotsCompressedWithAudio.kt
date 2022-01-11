@@ -94,12 +94,13 @@ class CreateShotsCompressedWithAudio(var fileExt: FileExt,
                 val builderOutput = FFmpegOutputBuilder()
 
                 val builder = FFmpegBuilder()
-                    .setInput(fileInput)
-                    .overrideOutputFiles(true)
-                    .addOutput(builderOutput)
+                if (firstFrame != 0) builder.addExtraArgs("-ss", start)
+                builder.setInput(fileInput)
+                builder.overrideOutputFiles(true)
+                builder.addOutput(builderOutput)
 
                 builderOutput.setFilename(fileOutput)
-                if (firstFrame != 0) builderOutput.addExtraArgs("-ss", start)
+
                 builderOutput.addExtraArgs("-map", "0:v:0")
 
                 fileExt.file.tracks.filter { it.type == "Audio" && it.use }.forEach { track ->
