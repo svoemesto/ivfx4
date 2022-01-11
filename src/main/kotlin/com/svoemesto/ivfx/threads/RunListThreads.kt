@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleBooleanProperty
 
 class RunListThreads(private val listThreads: List<Thread>, private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)): Thread(), Runnable {
     override fun run() {
+        this.name = "RunListThreads"
         var runningThread: Thread? = null
         var countStartedThreads = 0
         while (countStartedThreads != listThreads.size && !currentThread().isInterrupted) {

@@ -19,6 +19,7 @@ class LoadListScenesExt(
     ) : Thread(), Runnable {
 
     override fun run() {
+        this.name = "LoadListScenesExt"
         loadList()
         flagIsDone.set(true)
     }

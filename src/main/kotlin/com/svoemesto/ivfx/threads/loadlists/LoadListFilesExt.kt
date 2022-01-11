@@ -22,6 +22,7 @@ class LoadListFilesExt(
     ) : Thread(), Runnable {
 
     override fun run() {
+        this.name = "LoadListFilesExt"
         loadList()
         flagIsDone.set(true)
     }

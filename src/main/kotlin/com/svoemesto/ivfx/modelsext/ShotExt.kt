@@ -48,7 +48,7 @@ data class ShotExt(
     val eventExt: EventExt? get() = fileExt.eventsExt.firstOrNull { shot.firstFrameNumber >= it.event.firstFrameNumber && shot.lastFrameNumber <= it.event.lastFrameNumber }
     val filenameWithoutExt: String get() = "${fileExt.file.shortName}_shot_[${start.replace(":",".")}-${end.replace(":",".")}]-(${shot.firstFrameNumber}-${shot.lastFrameNumber})"
     val pathToCompressedWithAudio: String get() = "${fileExt.folderShotsCompressedWithAudio}${IOFile.separator}${filenameWithoutExt}" +
-            ".${VideoContainers.valueOf(fileExt.projectExt.project.videoCodec).extention}"
+            ".${VideoContainers.valueOf(fileExt.projectExt.project.container).extention}"
     val pathToLosslessWithAudio: String get() = "${fileExt.folderShotsLosslessWithAudio}${IOFile.separator}${filenameWithoutExt}" +
             "_audioON.mxf"
     val pathToLosslessWithoutAudio: String get() = "${fileExt.folderShotsLosslessWithoutAudio}${IOFile.separator}${filenameWithoutExt}" +

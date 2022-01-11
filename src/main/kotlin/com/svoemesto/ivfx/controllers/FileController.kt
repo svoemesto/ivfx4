@@ -4,6 +4,7 @@ import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.enums.Folders
 import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.enums.ReorderTypes
+import com.svoemesto.ivfx.enums.VideoContainers
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
@@ -99,6 +100,11 @@ class FileController() {
             return if (value == "") fileExt.projectExt.folderShotsLosslessWithoutAudio + IOFile.separator + fileExt.file.shortName else value
         }
 
+        fun getFolderConcat(fileExt: FileExt): String{
+            val value = PropertyCdfController.getOrCreate(fileExt.file::class.java.simpleName, fileExt.file.id, Folders.CONCAT.propertyCdfKey)
+            return if (value == "") fileExt.projectExt.folderConcat else value
+        }
+
         fun getFFmpegProbeResult(file: File): FFmpegProbeResult {
             return FFprobe(IvfxFFmpegUtils.FFPROBE_PATH).probe(file.path)
         }
@@ -111,12 +117,20 @@ class FileController() {
             return IOFile(getPreview(fileExt)).exists()
         }
 
+        fun hasConcat(fileExt: FileExt): Boolean {
+            return IOFile(getConcat(fileExt)).exists()
+        }
+
         fun getLossless(fileExt: FileExt): String {
-            return fileExt.folderLossless + IOFile.separator + fileExt.file.shortName + "_lossless.mkv"
+            return "${fileExt.folderLossless}${IOFile.separator}${fileExt.file.shortName}_lossless.mkv"
         }
 
         fun getPreview(fileExt: FileExt): String {
-            return fileExt.folderPreview + IOFile.separator + fileExt.file.shortName + "_preview.mp4"
+            return "${fileExt.folderPreview}${IOFile.separator}${fileExt.file.shortName}_preview.mp4"
+        }
+
+        fun getConcat(fileExt: FileExt): String {
+            return "${fileExt.folderConcat}${IOFile.separator}${fileExt.file.shortName}.${VideoContainers.valueOf(fileExt.projectExt.project.container).extention}"
         }
 
         fun hasFramesSmall(fileExt: FileExt): Boolean {
@@ -178,7 +192,7 @@ class FileController() {
         }
 
         fun hasCreatedFaces(file: File): Boolean {
-            return FaceController.getListFaces(file).isNotEmpty()
+            return Main.faceRepo.findByFileId(file.id).any()
         }
 
         fun hasCreatedFacesPreview(fileExt: FileExt): Boolean {
@@ -204,6 +218,7 @@ class FileController() {
         fun hasShotsLosslessWithoutAudio(fileExt: FileExt): Boolean {
             return false // !fileExt.shotsExt.any { !it.hasLosslessWithoutAudio }
         }
+
 
         fun getListFilesExt(project: Project): List<FileExt> {
             val projectExt = ProjectExt(project)
@@ -352,11 +367,15 @@ class FileController() {
         }
 
         fun getFps(file: File): Double {
-            return getFFmpegProbeResult(file).streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.r_frame_rate?.toDouble()?:0.0
+
+            return file.tracks.filter{it.type == "General"}.firstOrNull()?.let { TrackController.getPropertyValue(it,"FrameRate").toDouble() } ?: 0.0
+//            return getFFmpegProbeResult(file).streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.r_frame_rate?.toDouble()?:0.0
         }
 
         fun getFramesCount(file: File): Int {
-            return getFFmpegProbeResult(file).streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()?:0
+            return file.tracks.filter{it.type == "General"}.firstOrNull()?.let { TrackController.getPropertyValue(it,"FrameCount").toInt() } ?: 0
+
+//            return getFFmpegProbeResult(file).streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()?:0
         }
 
         fun getFile(fileId: Long, project: Project): File {

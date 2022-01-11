@@ -18,6 +18,7 @@ class LoadListFramesExt(
     ) : Thread(), Runnable {
 
     override fun run() {
+        this.name = "LoadListFramesExt"
         loadList()
         flagIsDone.set(true)
     }

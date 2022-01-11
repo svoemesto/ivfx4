@@ -20,6 +20,7 @@ class LoadListPersonsExtForFile(
     ) : Thread(), Runnable {
 
     override fun run() {
+        this.name = "LoadListPersonsExtForFile"
         loadList()
         flagIsDone.set(true)
     }

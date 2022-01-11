@@ -35,6 +35,8 @@ class CreateShotsLosslessWithAudio(var fileExt: FileExt,
 
     override fun run() {
 
+        this.name = "CreateShotsLosslessWithAudio"
+
         lbl1.isVisible = true
         lbl2.isVisible = true
         pb1.isVisible = true
@@ -81,40 +83,43 @@ class CreateShotsLosslessWithAudio(var fileExt: FileExt,
                 pb2.progress = percentage2
             }
 
-            val firstFrame: Int = shotExt.shot.firstFrameNumber
-            val lastFrame: Int = shotExt.shot.lastFrameNumber
-            val framesToCode = lastFrame - firstFrame + 1
-            val start = (IvfxFFmpegUtils.getDurationByFrameNumber(firstFrame - 1, frameRate).toDouble() / 1000).toString()
+            if (!File(fileOutput).exists()) {
+                val firstFrame: Int = shotExt.shot.firstFrameNumber
+                val lastFrame: Int = shotExt.shot.lastFrameNumber
+                val framesToCode = lastFrame - firstFrame + 1
+                val start = (IvfxFFmpegUtils.getDurationByFrameNumber(firstFrame - 1, frameRate).toDouble() / 1000).toString()
 
-            val builderOutput = FFmpegOutputBuilder()
+                val builderOutput = FFmpegOutputBuilder()
 
-            val builder = FFmpegBuilder()
-                .setInput(fileInput)
-                .overrideOutputFiles(true)
-                .addOutput(builderOutput)
+                val builder = FFmpegBuilder()
+                    .setInput(fileInput)
+                    .overrideOutputFiles(true)
+                    .addOutput(builderOutput)
 
-            builderOutput.setFilename(fileOutput)
-            if (firstFrame != 0) builderOutput.addExtraArgs("-ss", start)
-            builderOutput.addExtraArgs("-map", "0:v:0")
+                builderOutput.setFilename(fileOutput)
+                if (firstFrame != 0) builderOutput.addExtraArgs("-ss", start)
+                builderOutput.addExtraArgs("-map", "0:v:0")
 
-            fileExt.file.tracks.filter { it.type == "Audio" && it.use }.forEach { track ->
-                var typeOrder = PropertyController.getOrCreate(track::class.java.simpleName, track.id, "@typeorder")
-                if (typeOrder == "") typeOrder = "1"
-                builderOutput.addExtraArgs("-map", "0:a:${(typeOrder.toInt())-1}")
-            }
+                fileExt.file.tracks.filter { it.type == "Audio" && it.use }.forEach { track ->
+                    var typeOrder = PropertyController.getOrCreate(track::class.java.simpleName, track.id, "@typeorder")
+                    if (typeOrder == "") typeOrder = "1"
+                    builderOutput.addExtraArgs("-map", "0:a:${(typeOrder.toInt())-1}")
+                }
 
-            builderOutput.addExtraArgs("-vframes", framesToCode.toString())
-            builderOutput.setVideoResolution(w,h)
-            builderOutput.setVideoCodec(LosslessVideoCodecs.DNX.codec)
-            builderOutput.addExtraArgs("-b:v","36M")
-            builderOutput.setAudioCodec(AudioCodecs.PMC.codec)
-            builderOutput.setAudioSampleRate(48000)
+                builderOutput.addExtraArgs("-vframes", framesToCode.toString())
+                builderOutput.setVideoResolution(w,h)
+                builderOutput.setVideoCodec(LosslessVideoCodecs.DNX.codec)
+                builderOutput.addExtraArgs("-b:v","36M")
+                builderOutput.setAudioCodec(AudioCodecs.PMC.codec)
+                builderOutput.setAudioSampleRate(48000)
 //            builderOutput.setVideoFilter(filter)
 
-            val executor = FFmpegExecutor(ffmpeg, ffprobe)
+                val executor = FFmpegExecutor(ffmpeg)
 
-            val job = executor.createJob(builder)
-            job.run()
+                val job = executor.createJob(builder)
+                job.run()
+            }
+
 
         }
 

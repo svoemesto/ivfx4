@@ -94,8 +94,8 @@ class CreateLossless(var fileExt: FileExt,
                 builderOutput.setVideoCodec(LosslessVideoCodecs.DNX.codec)
                     .addExtraArgs("-b:v","36M")
             }
-            builderOutput.setAudioCodec("aac")
-                .setAudioBitRate(320000)
+            builderOutput.setAudioCodec(AudioCodecs.PMC.codec)
+//                .setAudioBitRate(320000)
                 .setAudioSampleRate(48000)
         }
 

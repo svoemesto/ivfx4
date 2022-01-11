@@ -17,6 +17,7 @@ class LoadListPersonsExtForProject(
     ) : Thread(), Runnable {
 
     override fun run() {
+        this.name = "LoadListPersonsExtForProject"
         loadList()
         flagIsDone.set(true)
     }
