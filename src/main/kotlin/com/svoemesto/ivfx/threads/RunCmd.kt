@@ -10,6 +10,7 @@ import java.io.File as IOFile
 
 class RunCmd(private val cmdText: String): Thread(), Runnable {
     override fun run() {
+        this.name = "RunCmd"
         val cmdFile = IOFile.createTempFile("ivfx", ".cmd")
         val writer = BufferedWriter(FileWriter(cmdFile))
         writer.write(cmdText)

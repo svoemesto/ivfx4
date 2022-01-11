@@ -17,6 +17,7 @@ class UpdateListFramesExt(
     ) : Thread(), Runnable {
 
     override fun run() {
+        this.name = "UpdateListFramesExt"
         updateList()
         flagIsDone.set(true)
     }

@@ -16,6 +16,7 @@ class LoadListProjectsExt(private var list: ObservableList<ProjectExt>,
                         ) : Thread(), Runnable {
 
     override fun run() {
+        this.name = "LoadListProjectsExt"
         loadList()
         flagIsDone.set(true)
     }

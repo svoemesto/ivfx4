@@ -29,6 +29,11 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
             if (field == null) field = FileController.getFolderLossless(this)
             return field
         }
+    var folderConcat: String? = null
+        get() {
+            if (field == null) field = FileController.getFolderConcat(this)
+            return field
+        }
     var folderFavorites: String? = null
         get() {
             if (field == null) field = FileController.getFolderFavorites(this)
@@ -173,7 +178,12 @@ data class FileExt(val file: File, val projectExt: ProjectExt) : Comparable<File
             return field
         }
     val hasShotsLosslessWithoutAudioString: String get() = if (hasShotsLosslessWithoutAudio!!) "✓" else "✗"
-
+    var hasConcat: Boolean? = null
+        get() {
+            if (field == null) field = FileController.hasConcat(this)
+            return field
+        }
+    val hasConcatString: String get() = if (hasConcat!!) "✓" else "✗"
     @Transient
     var framesExt: ObservableList<FrameExt> = FXCollections.observableArrayList()
     @Transient

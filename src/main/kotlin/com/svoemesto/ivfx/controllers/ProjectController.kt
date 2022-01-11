@@ -115,6 +115,11 @@ class ProjectController() {
             return if (value == "") project.folder + IOFile.separator + Folders.SHOTS_LOSSLESS_WITHOUT_AUDIO.folderName else value
         }
 
+        fun getFolderConcat(project: Project): String{
+            val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.CONCAT.propertyCdfKey)
+            return if (value == "") project.folder + IOFile.separator + Folders.CONCAT.folderName else value
+        }
+
         fun getProperties(project: Project) : List<Property> {
             return Main.propertyRepo.findByParentClassAndParentId(project::class.simpleName!!, project.id).toList()
         }

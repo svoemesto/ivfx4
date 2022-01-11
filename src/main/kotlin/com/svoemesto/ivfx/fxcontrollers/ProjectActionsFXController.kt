@@ -8,6 +8,7 @@ import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.threads.RunListThreads
 import com.svoemesto.ivfx.threads.projectactions.AnalyzeFrames
+import com.svoemesto.ivfx.threads.projectactions.CreateConcat
 import com.svoemesto.ivfx.threads.projectactions.CreateFaces
 import com.svoemesto.ivfx.threads.projectactions.CreateFacesPreview
 import com.svoemesto.ivfx.threads.projectactions.CreateFramesFull
@@ -97,6 +98,9 @@ class ProjectActionsFXController {
     private var colFileExtSLN: TableColumn<FileExt, String>? = null
 
     @FXML
+    private var colFileExtCC: TableColumn<FileExt, String>? = null
+
+    @FXML
     private var checkReCreateIfExists: CheckBox? = null
 
     @FXML
@@ -143,6 +147,9 @@ class ProjectActionsFXController {
 
     @FXML
     private var checkCreateShotsLosslessWithoutAudio: CheckBox? = null
+
+    @FXML
+    private var checkCreateConcat: CheckBox? = null
 
     @FXML
     private var btnTrainFaceModel: Button? = null
@@ -219,6 +226,7 @@ class ProjectActionsFXController {
         colFileExtSCA?.cellValueFactory = PropertyValueFactory("hasShotsCompressedWithAudioString")
         colFileExtSLA?.cellValueFactory = PropertyValueFactory("hasShotsLosslessWithAudioString")
         colFileExtSLN?.cellValueFactory = PropertyValueFactory("hasShotsLosslessWithoutAudioString")
+        colFileExtCC?.cellValueFactory = PropertyValueFactory("hasConcatString")
         tblFilesExt?.items = listFilesExt
 
         pb1?.isVisible = false
@@ -249,6 +257,7 @@ class ProjectActionsFXController {
             if (checkCreateShotsCompressedWithAudio?.isSelected == true && (!fileExt.hasShotsCompressedWithAudio!! || (fileExt.hasShotsCompressedWithAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateShotsLosslessWithAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithAudio!! || (fileExt.hasShotsLosslessWithAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateShotsLosslessWithoutAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithoutAudio!! || (fileExt.hasShotsLosslessWithoutAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateConcat?.isSelected == true && (!fileExt.hasConcat!! || (fileExt.hasConcat!! && checkReCreateIfExists?.isSelected!!))) countActions++
         }
         var counterPb1 = 0
 
@@ -378,6 +387,15 @@ class ProjectActionsFXController {
                 listThreads.add(
                     CreateShotsLosslessWithoutAudio(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.file.name}, Action: Create Shots video files (lossless, without audio), Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkCreateConcat?.isSelected == true && (!fileExt.hasConcat!! || (fileExt.hasConcat!! && checkReCreateIfExists?.isSelected!!))) {
+                counterPb1++
+                listThreads.add(
+                    CreateConcat(fileExt!!, tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create concatinated video file, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }

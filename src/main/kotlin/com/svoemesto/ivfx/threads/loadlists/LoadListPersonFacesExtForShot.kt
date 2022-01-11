@@ -26,6 +26,7 @@ class LoadListPersonFacesExtForShot(
     ) : Thread(), Runnable {
 
     override fun run() {
+        this.name = "LoadListPersonFacesExtForShot"
         loadList()
         flagIsDone.set(true)
     }

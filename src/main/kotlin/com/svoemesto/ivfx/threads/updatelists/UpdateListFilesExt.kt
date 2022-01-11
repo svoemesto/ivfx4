@@ -17,6 +17,7 @@ class UpdateListFilesExt(
     ) : Thread(), Runnable {
 
     override fun run() {
+        this.name = "UpdateListFilesExt"
         updateList()
         flagIsDone.set(true)
     }
