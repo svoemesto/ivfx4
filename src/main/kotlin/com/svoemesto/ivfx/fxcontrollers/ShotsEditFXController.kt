@@ -11,6 +11,7 @@ import com.svoemesto.ivfx.controllers.SceneController
 import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.enums.ShotTypePerson
+import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.modelsext.EventExt
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -51,6 +52,7 @@ import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.control.CheckBox
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.Control
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ProgressBar
@@ -58,6 +60,7 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.RadioButton
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.Skin
+import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
@@ -72,6 +75,7 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.ScrollEvent
 import javafx.scene.input.TransferMode
 import javafx.scene.layout.Pane
+import javafx.scene.text.Text
 import javafx.stage.Modality
 import javafx.stage.Stage
 import org.springframework.transaction.annotation.Transactional
@@ -80,6 +84,8 @@ import java.awt.image.BufferedImage
 import java.io.IOException
 import java.util.*
 import javax.imageio.ImageIO
+import kotlin.math.max
+import kotlin.math.min
 import java.io.File as IOFile
 
 
@@ -2416,6 +2422,35 @@ class ShotsEditFXController {
     @FXML
     fun doDeleteSelectedEvents(event: ActionEvent?) {
 
+        val setShotExtToUpdate: MutableSet<ShotExt> = mutableSetOf()
+        tblEvents!!.selectionModel.selectedItems.forEach { eventExt ->
+            val ffm = eventExt.event.firstFrameNumber - 1
+            val lfm = eventExt.event.lastFrameNumber + 1
+            setShotExtToUpdate.addAll(currentFileExt!!.shotsExt
+                .filter { shotExt -> isPairIntersected(Pair(shotExt.shot.firstFrameNumber, shotExt.shot.lastFrameNumber), Pair(ffm, lfm)) }
+            )
+            EventController.delete(eventExt.event)
+        }
+
+        LoadListEventsExt(currentFileExt!!.eventsExt, currentFileExt!!, pb, lblPb).run()
+        tblEvents!!.items = currentFileExt!!.eventsExt
+
+        setShotExtToUpdate.map {
+            it.previewsFirst = null
+            it.previewsLast = null
+            it.labelsFirst = null
+            it.labelsLast = null
+            it.labelsFirst
+            it.labelsLast
+        }
+
+
+        tblShots!!.refresh()
+
+    }
+
+    fun isPairIntersected(firstPair: Pair<Int, Int>, secondPair: Pair<Int, Int>): Boolean {
+        return  (min(firstPair.second, secondPair.second) - max(firstPair.first, secondPair.first)) >= 0
     }
 
     fun clearOnExit() {
