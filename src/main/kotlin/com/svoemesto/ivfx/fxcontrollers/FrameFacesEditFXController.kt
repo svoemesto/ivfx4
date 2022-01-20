@@ -68,7 +68,7 @@ class FrameFacesEditFXController {
             try {
                 val root = FXMLLoader.load<Parent>(FrameFacesEditFXController::class.java.getResource("frame-faces-edit-view.fxml"))
                 mainStage?.scene = Scene(root)
-                mainStage?.initModality(Modality.WINDOW_MODAL)
+                mainStage?.initModality(Modality.APPLICATION_MODAL)
 //            onStart()
                 mainStage?.showAndWait()
 

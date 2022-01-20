@@ -76,7 +76,7 @@ class PersonSelectFXController {
         try {
             val root = FXMLLoader.load<Parent>(PersonSelectFXController::class.java.getResource("person-select-view.fxml"))
             mainStage?.scene = Scene(root)
-            mainStage?.initModality(Modality.WINDOW_MODAL)
+            mainStage?.initModality(Modality.APPLICATION_MODAL)
             mainStage?.showAndWait()
 
         } catch (e: IOException) {
@@ -209,7 +209,7 @@ class PersonSelectFXController {
     @FXML
     fun doOk(event: ActionEvent?) {
         if (listLastSelectedPersons.firstOrNull { it.person.id == currentPersonExt!!.person.id } == null) listLastSelectedPersons.add(0, currentPersonExt!!)
-        if (listLastSelectedPersons.size > 10) listLastSelectedPersons.removeAt(9)
+        if (listLastSelectedPersons.size >= 11) listLastSelectedPersons.removeLast()
         mainStage?.close()
     }
 
