@@ -340,7 +340,7 @@ class ShotsEditFXController {
     private val fxBorderSelected = "-fx-border-color:RED;-fx-border-width:1" // стиль бордюра лейбла выбранного
     private val fxBorderSelectedFocused = "-fx-border-color:ORANGE;-fx-border-width:1" // стиль бордюра лейбла выбранного
 
-    private val runListThreadsFramesFlagIsDone = SimpleBooleanProperty(false)
+//    private val runListThreadsFramesFlagIsDone = SimpleBooleanProperty(false)
     private val runListThreadsFacesFlagIsDone = SimpleBooleanProperty(false)
     private val sbpCurrentMatrixPageWasChanged = SimpleBooleanProperty(false)
     private val sbpCurrentMatrixFrameWasChanged = SimpleBooleanProperty(false)
@@ -441,6 +441,7 @@ class ShotsEditFXController {
     fun initialize() {
 
         mainStage?.setOnCloseRequest {
+            clearOnExit()
             println("Закрытие окна ShotsEditFXController.")
         }
 
@@ -469,7 +470,7 @@ class ShotsEditFXController {
         wasClickTablePagesFrames = false
         wasClickTableShots = false
         wasClickFrameLabel = false
-        runListThreadsFramesFlagIsDone.value = false
+//        runListThreadsFramesFlagIsDone.value = false
         runListThreadsFacesFlagIsDone.value = false
         sbpCurrentMatrixPageWasChanged.value = false
         sbpCurrentMatrixFrameWasChanged.value = false
@@ -2151,7 +2152,7 @@ class ShotsEditFXController {
 
     fun listenToChangePaneSize() {
 
-        if (runListThreadsFramesFlagIsDone.value) {
+//        if (runListThreadsFramesFlagIsDone.value) {
             val paneFramesWidth: Double = paneFrames!!.getWidth() // ширина центрального пэйна
             val paneFramesHeight: Double = paneFrames!!.getHeight() // высота центрального пейна
             val widthFramePadding = (Main.PREVIEW_FRAME_W + 2) * 2 + 20 // по ширине двойной отступ
@@ -2178,9 +2179,9 @@ class ShotsEditFXController {
 
                 }
             }
-        }
+//        }
 
-        if (runListThreadsFramesFlagIsDone.value) {
+//        if (runListThreadsFramesFlagIsDone.value) {
             val paneFacesWidth: Double = paneFaces!!.getWidth() // ширина центрального пэйна
             val paneFacesHeight: Double = paneFaces!!.getHeight() // высота центрального пейна
             val widthFacePadding = (Main.PREVIEW_FACE_W + 2) * 2 + 20 // по ширине двойной отступ
@@ -2210,7 +2211,7 @@ class ShotsEditFXController {
 
                 }
             }
-        }
+//        }
 
 
     }
@@ -2416,5 +2417,13 @@ class ShotsEditFXController {
     fun doDeleteSelectedEvents(event: ActionEvent?) {
 
     }
-    
+
+    fun clearOnExit() {
+        currentFileExt!!.shotsExt.clear()
+        currentFileExt!!.scenesExt.clear()
+        currentFileExt!!.eventsExt.clear()
+        currentFileExt!!.framesExt.clear()
+        System.gc()
+    }
+
 }
