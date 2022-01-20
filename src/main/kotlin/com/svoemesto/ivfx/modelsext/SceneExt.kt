@@ -14,6 +14,7 @@ import javafx.scene.control.Button
 import javafx.scene.control.ButtonType
 import javafx.scene.control.ContentDisplay
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.Control
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
 import javafx.scene.control.TextInputDialog
@@ -57,6 +58,8 @@ data class SceneExt(
     val sceneNameLabel: Label
         get() {
             val label = Label(sceneName)
+            label.prefHeight = Control.USE_COMPUTED_SIZE
+            label.isWrapText = true
             val contextMenu = ContextMenu()
             val menuItemRename = MenuItem("Rename scene")
             menuItemRename.onAction = EventHandler {

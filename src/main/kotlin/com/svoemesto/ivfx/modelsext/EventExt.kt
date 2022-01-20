@@ -13,6 +13,7 @@ import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.ContentDisplay
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.Control
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
 import javafx.scene.control.TextInputDialog
@@ -55,6 +56,8 @@ data class EventExt(
     val eventNameLabel: Label
         get() {
             val label = Label(eventName)
+            label.prefHeight = Control.USE_COMPUTED_SIZE
+            label.isWrapText = true
             val contextMenu = ContextMenu()
             val menuItemRename = MenuItem("Rename event")
             menuItemRename.onAction = EventHandler {
