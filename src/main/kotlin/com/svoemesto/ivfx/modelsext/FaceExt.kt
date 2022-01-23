@@ -104,9 +104,11 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
     var toSerializeVector = vector
 
     @Transient
-    var previewSmall: ImageView? = null
+    private var _previewSmall: ImageView? = null
+
+    val previewSmall: ImageView
         get() {
-            if (field == null) {
+            if (_previewSmall == null) {
                 lateinit var bi: BufferedImage
                 if (IOFile(pathToPreviewFile).exists()) {
                     bi = ImageIO.read(IOFile(pathToPreviewFile))
@@ -119,35 +121,42 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
                     val outputfile = IOFile(pathToPreviewFile)
                     ImageIO.write(bi, "jpg", outputfile)
                 }
-                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
+                _previewSmall = ImageView(ConvertToFxImage.convertToFxImage(bi))
             }
-            return field
+            return _previewSmall!!
         }
 
     @Transient
-    var labelPersonSmall: Label? = null
+    private var _labelPersonSmall: Label? = null
+
+    val labelPersonSmall: Label
         get() {
-            if (field == null) {
-                field = Label()
-                field!!.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
-                field!!.graphic = personExt.previewSmall
-                field!!.alignment = Pos.CENTER
+            if (_labelPersonSmall == null) {
+                _labelPersonSmall = Label()
+                _labelPersonSmall!!.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
+                _labelPersonSmall!!.graphic = personExt.previewSmall
+                _labelPersonSmall!!.alignment = Pos.CENTER
             }
-            return field
+            return _labelPersonSmall!!
         }
 
     val isManualText = if (face.isManual) "✓" else ""
 
     @Transient
-    var labelSmall: Label? = null
+    private var _labelSmall: Label? = null
+
+    val labelSmall: Label
         get() {
-            if (field == null) {
-                field = Label()
-                field!!.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
-                field!!.graphic = previewSmall
-                field!!.alignment = Pos.CENTER
+            if (_labelSmall == null) {
+                _labelSmall = Label()
+                _labelSmall!!.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
+                _labelSmall!!.graphic = previewSmall
+                _labelSmall!!.alignment = Pos.CENTER
             }
-            return field
+            return _labelSmall!!
         }
 
+    fun resetPreviewSmall() {
+        _previewSmall = null
+    }
 }
