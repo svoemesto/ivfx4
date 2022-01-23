@@ -19,9 +19,10 @@ class PersonExt(val person: Person, val projectExt: ProjectExt) : Comparable<Per
     }
     val pathToSmall: String get() = "${projectExt.folderPersons}${IOFile.separator}${person.uuid}.small.jpg"
     val pathToMedium: String get() = "${projectExt.folderPersons}${IOFile.separator}${person.uuid}.medium.jpg"
-    var previewSmall: ImageView? = null
+    private var _previewSmall: ImageView? = null
+    val previewSmall: ImageView
         get() {
-            if (field == null) {
+            if (_previewSmall == null) {
                 lateinit var bi: BufferedImage
                 if (IOFile(pathToSmall).exists()) {
                     bi = ImageIO.read(IOFile(pathToSmall))
@@ -56,14 +57,15 @@ class PersonExt(val person: Person, val projectExt: ProjectExt) : Comparable<Per
                 }
 
                 bi = OverlayImage.setOverlayUnderlineText(bi, person.name)
-                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
+                _previewSmall = ImageView(ConvertToFxImage.convertToFxImage(bi))
             }
-            return field
+            return _previewSmall!!
         }
 
-    var previewMedium: ImageView? = null
+    private var _previewMedium: ImageView? = null
+    val previewMedium: ImageView
         get() {
-            if (field == null) {
+            if (_previewMedium == null) {
                 lateinit var bi: BufferedImage
                 if (IOFile(pathToMedium).exists()) {
                     bi = ImageIO.read(IOFile(pathToMedium))
@@ -96,31 +98,37 @@ class PersonExt(val person: Person, val projectExt: ProjectExt) : Comparable<Per
                     }
                 }
 
-                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
+                _previewMedium = ImageView(ConvertToFxImage.convertToFxImage(bi))
             }
-            return field
+            return _previewMedium!!
         }
 
-    var labelSmall: Label? = null
+    private var _labelSmall: Label? = null
+    val labelSmall: Label
         get() {
-            if (field == null) {
-                field = Label()
-                field!!.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
-                field!!.graphic = previewSmall
-                field!!.alignment = Pos.CENTER
+            if (_labelSmall == null) {
+                _labelSmall = Label()
+                _labelSmall!!.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
+                _labelSmall!!.graphic = previewSmall
+                _labelSmall!!.alignment = Pos.CENTER
             }
-            return field
+            return _labelSmall!!
         }
 
-    var labelMedium: Label? = null
+    private var _labelMedium: Label? = null
+    val labelMedium: Label
         get() {
-            if (field == null) {
-                field = Label()
-                field!!.setPrefSize(Main.MEDIUM_FRAME_W, Main.MEDIUM_FRAME_H)
-                field!!.graphic = previewMedium
-                field!!.alignment = Pos.CENTER
+            if (_labelMedium == null) {
+                _labelMedium = Label()
+                _labelMedium!!.setPrefSize(Main.MEDIUM_FRAME_W, Main.MEDIUM_FRAME_H)
+                _labelMedium!!.graphic = previewMedium
+                _labelMedium!!.alignment = Pos.CENTER
             }
-            return field
+            return _labelMedium!!
         }
 
+    fun resetPreview() {
+        _previewSmall = null
+        _previewMedium = null
+    }
 }

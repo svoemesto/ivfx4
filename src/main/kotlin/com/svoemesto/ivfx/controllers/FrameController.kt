@@ -4,17 +4,9 @@ import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Project
-import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
-import com.svoemesto.ivfx.utils.ConvertToFxImage
-import javafx.scene.control.ContentDisplay
-import javafx.scene.control.Label
-import javafx.scene.image.ImageView
 import org.springframework.stereotype.Controller
-import java.io.IOException
-import javax.imageio.ImageIO
-import java.io.File as IOFile
 
 @Controller
 //@Scope("prototype")
@@ -22,9 +14,9 @@ class FrameController() {
 
     companion object {
 
-        fun getProperties(frame: Frame) : List<Property> {
-            return Main.propertyRepo.findByParentClassAndParentId(frame::class.simpleName!!, frame.id).toList()
-        }
+//        fun getProperties(frame: Frame) : List<Property> {
+//            return Main.propertyRepo.findByParentClassAndParentId(frame::class.simpleName!!, frame.id).toList()
+//        }
 
         fun getOrCreate(file: File, frameNumber: Int): Frame {
             var entity = Main.frameRepo.findByFileIdAndFrameNumber(file.id, frameNumber).firstOrNull()
