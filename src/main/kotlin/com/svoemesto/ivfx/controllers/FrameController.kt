@@ -22,27 +22,6 @@ class FrameController() {
 
     companion object {
 
-        fun loadPreview(frameExt: FrameExt) {
-
-            var fileName: String = frameExt.pathToSmall
-            var file = IOFile(fileName)
-            frameExt.labelSmall = Label(frameExt.frame.frameNumber.toString())
-            frameExt.labelSmall!!.prefWidth = 135.0
-            if (!file.exists()) {
-//            fileName = frame.getFileNamePreviewStub()
-//            file = java.io.File(fileName)
-            } else {
-                try {
-                    val bufferedImage = ImageIO.read(file)
-                    frameExt.previewSmall = ImageView(ConvertToFxImage.convertToFxImage(bufferedImage))
-                    frameExt.labelSmall!!.setGraphic(frameExt.previewSmall)
-                    frameExt.labelSmall!!.setContentDisplay(ContentDisplay.TOP)
-                } catch (e: IOException) {
-                }
-            }
-
-        }
-
         fun getProperties(frame: Frame) : List<Property> {
             return Main.propertyRepo.findByParentClassAndParentId(frame::class.simpleName!!, frame.id).toList()
         }

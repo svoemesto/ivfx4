@@ -69,10 +69,11 @@ data class ShotExt(
             return list
         }
 
-    var previewsFirst: Array<ImageView?>? = null
+    private var _previewsFirst: Array<ImageView>? = null
+    val previewsFirst: Array<ImageView>
         get() {
-            if (field == null) {
-                field = arrayOfNulls(3)
+            if (_previewsFirst == null) {
+                val list = mutableListOf<ImageView>()
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(firstFrameExt.pathToSmall).exists()) firstFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, start)
@@ -81,15 +82,17 @@ data class ShotExt(
                         if (shot.firstFrameNumber == sceneExt!!.scene.firstFrameNumber) bi = setOverlayIsStartScene(bi)
                         if (shot.lastFrameNumber == sceneExt!!.scene.lastFrameNumber) bi = setOverlayIsEndScene(bi)
                     }
-                    field!![i] = ImageView(ConvertToFxImage.convertToFxImage(bi))
+                    list.add(i, ImageView(ConvertToFxImage.convertToFxImage(bi)))
                 }
+                _previewsFirst = list.toTypedArray()
             }
-            return field
+            return  _previewsFirst!!
         }
-    var previewsLast: Array<ImageView?>? = null
+    private var _previewsLast: Array<ImageView>? = null
+    val previewsLast: Array<ImageView>
         get() {
-            if (field == null) {
-                field = arrayOfNulls(3)
+            if (_previewsLast == null) {
+                val list = mutableListOf<ImageView>()
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(lastFrameExt.pathToSmall).exists()) lastFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, end)
@@ -98,81 +101,81 @@ data class ShotExt(
                         if (shot.firstFrameNumber == eventExt!!.event.firstFrameNumber) bi = setOverlayIsStartEvent(bi)
                         if (shot.lastFrameNumber == eventExt!!.event.lastFrameNumber) bi = setOverlayIsEndEvent(bi)
                     }
-                    field!![i] = ImageView(ConvertToFxImage.convertToFxImage(bi))
+                    list.add(i, ImageView(ConvertToFxImage.convertToFxImage(bi)))
                 }
+                _previewsLast = list.toTypedArray()
             }
-            return field
+            return _previewsLast!!
         }
-    var labelsFirst: Array<Label?>? = null
+
+    private var _labelsFirst: Array<Label>? = null
+    val labelsFirst: Array<Label>
         get() {
-            if (field == null) {
-                field = arrayOfNulls(3)
+            if (_labelsFirst == null) {
+                val list = mutableListOf<Label>()
                 for (i in 0..2) {
-                    field!![i] = Label()
-                    field!![i]?.setMinSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
-                    field!![i]?.setMaxSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
-                    field!![i]?.setPrefSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
-                    field!![i]?.graphic = previewsFirst?.get(i)
-                    field!![i]?.contentDisplay = ContentDisplay.TOP
+                    val label = Label()
+                    label.setMinSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    label.setMaxSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    label.setPrefSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    label.graphic = previewsFirst[i]
+                    label.contentDisplay = ContentDisplay.TOP
+                    list.add(label)
                 }
+                _labelsFirst = list.toTypedArray()
             }
-            return field
+            return _labelsFirst!!
         }
-    var labelsLast: Array<Label?>? = null
+    private var _labelsLast: Array<Label>? = null
+    val labelsLast: Array<Label>
         get() {
-            if (field == null) {
-                field = arrayOfNulls(3)
+            if (_labelsLast == null) {
+                val list = mutableListOf<Label>()
                 for (i in 0..2) {
-                    field!![i] = Label()
-                    field!![i]?.setMinSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
-                    field!![i]?.setMaxSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
-                    field!![i]?.setPrefSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
-                    field!![i]?.graphic = previewsLast?.get(i)
-                    field!![i]?.contentDisplay = ContentDisplay.TOP
+                    val label = Label()
+                    label.setMinSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    label.setMaxSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    label.setPrefSize(Main.PREVIEW_FRAME_W,Main.PREVIEW_FRAME_H)
+                    label.graphic = previewsLast[i]
+                    label.contentDisplay = ContentDisplay.TOP
+                    list.add(label)
                 }
+                _labelsLast = list.toTypedArray()
             }
-            return field
+            return _labelsLast!!
         }
-    var previewType: ImageView? = null
+    private var _previewType: ImageView? = null
+    val previewType: ImageView
         get() {
-            if (field == null) {
-                field = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(shot.typePerson.pathToPicture))))
+            if (_previewType == null) {
+                _previewType = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(shot.typePerson.pathToPicture))))
             }
-            return field
+            return _previewType!!
         }
-    var labelType: Label? = null
+    private var _labelType: Label? = null
+    val labelType: Label
         get() {
-            if (field == null) {
-                field = Label()
-                field!!.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
-                field!!.graphic = previewType
-                field!!.alignment = Pos.CENTER
-
-//                val contextMenuShotType = ContextMenu()
-//                ShotTypePerson.values().forEach { shotTypePerson ->
-//                    val imageView = ImageView(ConvertToFxImage.convertToFxImage(ImageIO.read(IOFile(shotTypePerson.pathToPicture))))
-//                    val contextMenuShotTypeItem = MenuItem(null, imageView)
-//                    contextMenuShotTypeItem.onAction = EventHandler { e: ActionEvent? ->
-//                        this.shot.typePerson = shotTypePerson
-//                        ShotController.save(shot)
-//                        this.previewType = null
-//                        this.labelType = null
-//                        this.labelType
-//                    }
-//                    contextMenuShotType.items.add(contextMenuShotTypeItem)
-//                }
-//                field!!.contextMenu = contextMenuShotType
-
+            if (_labelType == null) {
+                _labelType = Label()
+                _labelType!!.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
+                _labelType!!.graphic = previewType
+                _labelType!!.alignment = Pos.CENTER
             }
-            return field
+            return _labelType!!
         }
 
-    val labelFirst1: Label? get() = labelsFirst?.get(0)
-    val labelFirst2: Label? get() = labelsFirst?.get(1)
-    val labelFirst3: Label? get() = labelsFirst?.get(2)
-    val labelLast1: Label? get() = labelsLast?.get(0)
-    val labelLast2: Label? get() = labelsLast?.get(1)
-    val labelLast3: Label? get() = labelsLast?.get(2)
+    val labelFirst1: Label get() = labelsFirst[0]
+    val labelFirst2: Label get() = labelsFirst[1]
+    val labelFirst3: Label get() = labelsFirst[2]
+    val labelLast1: Label get() = labelsLast[0]
+    val labelLast2: Label get() = labelsLast[1]
+    val labelLast3: Label get() = labelsLast[2]
     var buttonGetType: Button = Button()
+
+    fun resetPreview() {
+        _previewsFirst = null
+        _previewsLast = null
+        _previewType = null
+    }
 
 }

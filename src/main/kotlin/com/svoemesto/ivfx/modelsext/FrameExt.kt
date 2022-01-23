@@ -24,80 +24,104 @@ data class FrameExt(val frame: Frame,
     val pathToSmall: String get() = "${fileExt.folderFramesSmall}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     val pathToMedium: String get() = "${fileExt.folderFramesMedium}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
     val pathToFull: String get() = "${fileExt.folderFramesFull}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
-    var biSmall: BufferedImage? = null
+    private var _biSmall: BufferedImage? = null
+    val biSmall: BufferedImage
         get() {
-            if (field == null) {
-                field = ImageIO.read(IOFile(if (IOFile(pathToSmall).exists()) pathToSmall else pathToStubSmall))
+            if (_biSmall == null) {
+                _biSmall = ImageIO.read(IOFile(if (IOFile(pathToSmall).exists()) pathToSmall else pathToStubSmall))
             }
-            return field
+            return _biSmall!!
         }
-    var previewSmall: ImageView? = null
+    private var _previewSmall: ImageView? = null
+    val previewSmall: ImageView
         get() {
-            if (field == null) {
-                val bi: BufferedImage = biSmall!!
-                field = ImageView(ConvertToFxImage.convertToFxImage(bi))
+            if (_previewSmall == null) {
+                val bi: BufferedImage = biSmall
+                _previewSmall = ImageView(ConvertToFxImage.convertToFxImage(bi))
             }
-            return field
+            return _previewSmall!!
         }
-    var labelSmall: Label? = null
+    private var _labelSmall: Label? = null
+    val labelSmall: Label
         get() {
-            if (field == null) {
-                field = Label()
-                field!!.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
-                field!!.graphic = previewSmall
-                field!!.alignment = Pos.CENTER
+            if (_labelSmall == null) {
+                _labelSmall = Label()
+                _labelSmall!!.setPrefSize(Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
+                _labelSmall!!.graphic = previewSmall
+                _labelSmall!!.alignment = Pos.CENTER
             }
-            return field
+            return _labelSmall!!
         }
-    var biMedium: BufferedImage? = null
+    private var _biMedium: BufferedImage? = null
+    val biMedium: BufferedImage
         get() {
-            if (field == null) {
-                field = ImageIO.read(IOFile(if (IOFile(pathToMedium).exists()) pathToMedium else pathToStubMedium))
+            if (_biMedium == null) {
+                _biMedium = ImageIO.read(IOFile(if (IOFile(pathToMedium).exists()) pathToMedium else pathToStubMedium))
             }
-            return field
+            return _biMedium!!
         }
-    var previewMedium: ImageView? = null
+    private var _previewMedium: ImageView? = null
+    val previewMedium: ImageView
         get() {
-            if (field == null) {
-                field = ImageView(ConvertToFxImage.convertToFxImage(biMedium))
+            if (_previewMedium == null) {
+                _previewMedium = ImageView(ConvertToFxImage.convertToFxImage(biMedium))
             }
-            return field
+            return _previewMedium!!
         }
-    var labelMedium: Label? = null
+    private var _labelMedium: Label? = null
+    val labelMedium: Label
         get() {
-            if (field == null) {
-                field = Label()
-                field!!.setPrefSize(Main.MEDIUM_FRAME_W, Main.MEDIUM_FRAME_H)
-                field!!.graphic = previewMedium
-                field!!.alignment = Pos.CENTER
+            if (_labelMedium == null) {
+                _labelMedium = Label()
+                _labelMedium!!.setPrefSize(Main.MEDIUM_FRAME_W, Main.MEDIUM_FRAME_H)
+                _labelMedium!!.graphic = previewMedium
+                _labelMedium!!.alignment = Pos.CENTER
             }
-            return field
+            return _labelMedium!!
         }
 
-    var biFull: BufferedImage? = null
+    private var _biFull: BufferedImage? = null
+    val biFull: BufferedImage
         get() {
-            if (field == null) {
-                field = ImageIO.read(IOFile(if (IOFile(pathToFull).exists()) pathToFull else pathToStubFull))
+            if (_biFull == null) {
+                _biFull = ImageIO.read(IOFile(if (IOFile(pathToFull).exists()) pathToFull else pathToStubFull))
             }
-            return field
+            return _biFull!!
         }
-    var previewFull: ImageView? = null
+    private var _previewFull: ImageView? = null
+    val previewFull: ImageView
         get() {
-            if (field == null) {
-                field = ImageView(ConvertToFxImage.convertToFxImage(biFull))
+            if (_previewFull == null) {
+                _previewFull = ImageView(ConvertToFxImage.convertToFxImage(biFull))
             }
-            return field
+            return _previewFull!!
         }
-    var labelFull: Label? = null
+    private var _labelFull: Label? = null
+    val labelFull: Label
         get() {
-            if (field == null) {
-                field = Label()
-                field!!.setPrefSize(Main.FULL_FRAME_W, Main.FULL_FRAME_H)
-                field!!.graphic = previewFull
-                field!!.alignment = Pos.CENTER
+            if (_labelFull == null) {
+                _labelFull = Label()
+                _labelFull!!.setPrefSize(Main.FULL_FRAME_W, Main.FULL_FRAME_H)
+                _labelFull!!.graphic = previewFull
+                _labelFull!!.alignment = Pos.CENTER
             }
-            return field
+            return _labelFull!!
         }
+
+    fun resetPreviewSmall() {
+        _biSmall = null
+        _previewSmall = null
+    }
+
+    fun resetPreviewMedium() {
+        _biMedium = null
+        _previewMedium = null
+    }
+
+    fun resetPreviewFull() {
+        _biFull = null
+        _previewFull = null
+    }
 
     fun facesExt() : MutableList<FaceExt> {
         val listFacesInCurrentFrame = Main.faceRepo.getListFacesInFrame(fileExt.file.id, frame.frameNumber).toMutableList()

@@ -11,7 +11,6 @@ import com.svoemesto.ivfx.controllers.SceneController
 import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.enums.ShotTypePerson
-import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.modelsext.EventExt
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -52,7 +51,6 @@ import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.control.CheckBox
 import javafx.scene.control.ContextMenu
-import javafx.scene.control.Control
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ProgressBar
@@ -60,7 +58,6 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.RadioButton
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.Skin
-import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
@@ -75,7 +72,6 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.ScrollEvent
 import javafx.scene.input.TransferMode
 import javafx.scene.layout.Pane
-import javafx.scene.text.Text
 import javafx.stage.Modality
 import javafx.stage.Stage
 import org.springframework.transaction.annotation.Transactional
@@ -1394,8 +1390,7 @@ class ShotsEditFXController {
                 val lastFrameExt = currentFileExt!!.framesExt.first{it.frame.frameNumber == lastFrameNumber}
                 shotExt.shot.lastFrameNumber = matrixFrame.frameNumber!! - 1
                 shotExt.lastFrameExt = currentFileExt!!.framesExt.first{it.frame.frameNumber == matrixFrame.frameNumber!! - 1}
-                shotExt.previewsLast = null
-                shotExt.labelsLast = null
+                shotExt.resetPreview()
                 ShotController.save(shotExt.shot)
                 val shot = ShotController.getOrCreate(currentFileExt!!.file, matrixFrame.frameNumber!!, lastFrameNumber)
                 val addedShotExt = ShotExt(shot, currentFileExt!!, matrixFrame.frameExt!!, lastFrameExt)
@@ -1409,8 +1404,7 @@ class ShotsEditFXController {
                 if (unionShot != null) {
                     unionShot.shot.lastFrameNumber = shotExt.shot.lastFrameNumber
                     unionShot.lastFrameExt = shotExt.lastFrameExt
-                    unionShot.previewsLast = null
-                    unionShot.labelsLast = null
+                    unionShot.resetPreview()
                     ShotController.save(unionShot.shot)
                     currentFileExt!!.shotsExt.remove(shotExt)
                     currentFileExt!!.shotsExt.sort()
@@ -2028,7 +2022,7 @@ class ShotsEditFXController {
                                     val outputfile = IOFile(mf.faceExt!!.pathToPreviewFile)
                                     ImageIO.write(bi, "jpg", outputfile)
                                 }
-                                mf.faceExt!!.previewSmall = null
+                                mf.faceExt!!.resetPreviewSmall()
                                 mf.faceExt!!.previewSmall
                             }
                         }
@@ -2066,7 +2060,7 @@ class ShotsEditFXController {
                                     val outputfile = IOFile(mf.faceExt!!.pathToPreviewFile)
                                     ImageIO.write(bi, "jpg", outputfile)
                                 }
-                                mf.faceExt!!.previewSmall = null
+                                mf.faceExt!!.resetPreviewSmall()
                                 mf.faceExt!!.previewSmall
                             }
                         }
@@ -2230,8 +2224,7 @@ class ShotsEditFXController {
             contextMenuShotTypeItem.onAction = EventHandler { e: ActionEvent? ->
                 shotExt.shot.typePerson = shotTypePerson
                 ShotController.save(shotExt.shot)
-                shotExt.previewType = null
-                shotExt.labelType = null
+                shotExt.resetPreview()
                 shotExt.labelType
                 tblShots!!.refresh()
             }
@@ -2310,10 +2303,7 @@ class ShotsEditFXController {
                     val sceneInTable = currentFileExt!!.scenesExt.firstOrNull { it.scene.id == sceneExt.scene.id }
                     if (sceneInTable != null) tblScenes!!.selectionModel.select(sceneInTable)
                     selectedShots.forEach {
-                        it.previewsFirst = null
-                        it.previewsLast = null
-                        it.labelsFirst = null
-                        it.labelsLast = null
+                        it.resetPreview()
                         it.labelsFirst
                         it.labelsLast
                     }
@@ -2321,10 +2311,7 @@ class ShotsEditFXController {
 
                     if (prevIndex >= 0) {
                         val shotExt = currentFileExt!!.shotsExt[prevIndex]
-                        shotExt.previewsFirst = null
-                        shotExt.previewsLast = null
-                        shotExt.labelsFirst = null
-                        shotExt.labelsLast = null
+                        shotExt.resetPreview()
                         shotExt.labelsFirst
                         shotExt.labelsLast
                     }
@@ -2332,10 +2319,7 @@ class ShotsEditFXController {
                     val nextIndex = currentFileExt!!.shotsExt.indexOf(selectedShots.last())+1
                     if (nextIndex < currentFileExt!!.shotsExt.size) {
                         val shotExt = currentFileExt!!.shotsExt[nextIndex]
-                        shotExt.previewsFirst = null
-                        shotExt.previewsLast = null
-                        shotExt.labelsFirst = null
-                        shotExt.labelsLast = null
+                        shotExt.resetPreview()
                         shotExt.labelsFirst
                         shotExt.labelsLast
                     }
@@ -2376,10 +2360,7 @@ class ShotsEditFXController {
                     val eventInTable = currentFileExt!!.eventsExt.firstOrNull { it.event.id == sceneExt.event.id }
                     if (eventInTable != null) tblEvents!!.selectionModel.select(eventInTable)
                     selectedShots.forEach {
-                        it.previewsFirst = null
-                        it.previewsLast = null
-                        it.labelsFirst = null
-                        it.labelsLast = null
+                        it.resetPreview()
                         it.labelsFirst
                         it.labelsLast
                     }
@@ -2387,10 +2368,7 @@ class ShotsEditFXController {
 
                     if (prevIndex >= 0) {
                         val shotExt = currentFileExt!!.shotsExt[prevIndex]
-                        shotExt.previewsFirst = null
-                        shotExt.previewsLast = null
-                        shotExt.labelsFirst = null
-                        shotExt.labelsLast = null
+                        shotExt.resetPreview()
                         shotExt.labelsFirst
                         shotExt.labelsLast
                     }
@@ -2398,10 +2376,7 @@ class ShotsEditFXController {
                     val nextIndex = currentFileExt!!.shotsExt.indexOf(selectedShots.last())+1
                     if (nextIndex < currentFileExt!!.shotsExt.size) {
                         val shotExt = currentFileExt!!.shotsExt[nextIndex]
-                        shotExt.previewsFirst = null
-                        shotExt.previewsLast = null
-                        shotExt.labelsFirst = null
-                        shotExt.labelsLast = null
+                        shotExt.resetPreview()
                         shotExt.labelsFirst
                         shotExt.labelsLast
                     }
@@ -2436,10 +2411,7 @@ class ShotsEditFXController {
         tblEvents!!.items = currentFileExt!!.eventsExt
 
         setShotExtToUpdate.map {
-            it.previewsFirst = null
-            it.previewsLast = null
-            it.labelsFirst = null
-            it.labelsLast = null
+            it.resetPreview()
             it.labelsFirst
             it.labelsLast
         }
