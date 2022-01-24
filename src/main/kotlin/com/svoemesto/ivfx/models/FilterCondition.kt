@@ -38,6 +38,9 @@ class FilterCondition {
     @Column(name = "object_id", nullable = false, columnDefinition = "int default 0")
     var objectId: Long = 0
 
+    @Column(name = "object_name", columnDefinition = "varchar(255) default ''")
+    var objectName: String = ""
+
     @Column(name = "object_class", columnDefinition = "varchar(255) default ''")
     var objectClass: String = ""
 
