@@ -36,6 +36,7 @@
                <items>
                   <MenuItem fx:id="menuProjectActions" mnemonicParsing="false" onAction="#doMenuProjectActions" text="Project Actions..." />
                   <MenuItem fx:id="menuEditShots" mnemonicParsing="false" onAction="#doMenuEditShots" text="Edit shots..." />
+                  <MenuItem fx:id="menuEditFilters" mnemonicParsing="false" onAction="#doMenuEditFilters" text="Edit filters..." />
                </items>
             </Menu>
             <Menu fx:id="menuDatabase" mnemonicParsing="false" text="Database">
