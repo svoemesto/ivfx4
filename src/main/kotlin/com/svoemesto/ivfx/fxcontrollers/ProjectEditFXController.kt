@@ -99,6 +99,9 @@ class ProjectEditFXController {
     private var menuEditShots: MenuItem? = null
 
     @FXML
+    private var menuEditFilters: MenuItem? = null
+
+    @FXML
     private var menuDatabase: Menu? = null
 
     @FXML
@@ -461,6 +464,7 @@ class ProjectEditFXController {
         mainStage?.title = if (currentProjectExt == null) "Откройте или создайте проект." else "Проект: ${currentProjectExt!!.project.name}"
         menuDeleteProject?.isDisable = currentProjectExt == null
         menuActions?.isDisable = currentProjectExt == null
+        menuEditFilters?.isDisable = currentProjectExt == null
         menuEditShots?.isDisable = currentFileExt == null
         paneMain?.isVisible = currentProjectExt != null
         paneFile?.isVisible = currentFileExt != null
@@ -1241,7 +1245,13 @@ class ProjectEditFXController {
     fun doMenuEditShots(event: ActionEvent?) {
         if (currentFileExt != null) {
             ShotsEditFXController().editShots(FileExt(currentFileExt!!.file, currentProjectExt!!), hostServices)
-//            ShotsEditFXController.editShots(currentFile!!, hostServices)
+        }
+    }
+
+    @FXML
+    fun doMenuEditFilters(event: ActionEvent?) {
+        if (currentProjectExt != null) {
+            FilterEditFXController().editFilters(currentProjectExt!!, hostServices)
         }
     }
 
