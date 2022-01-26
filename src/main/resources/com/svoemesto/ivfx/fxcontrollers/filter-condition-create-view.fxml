@@ -14,7 +14,7 @@
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Create new filter condition">
+            <Label fx:id="lblHeader" alignment="CENTER" maxWidth="1.7976931348623157E308" text="Create new filter condition">
                <font>
                   <Font name="System Bold" size="12.0" />
                </font>

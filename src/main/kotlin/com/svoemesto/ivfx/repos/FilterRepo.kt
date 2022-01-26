@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.repos
 
 import com.svoemesto.ivfx.models.Filter
+import com.svoemesto.ivfx.modelsext.FilterExt
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
@@ -19,5 +20,6 @@ interface FilterRepo : CrudRepository<Filter, Long> {
     @Modifying
     @Query(value = "DELETE FROM tbl_filters WHERE id = ?", nativeQuery = true)
     fun delete(filterId:Long)
+    fun findByProjectId(projectId: Long): Iterable<Filter>
 
 }

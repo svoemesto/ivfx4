@@ -50,7 +50,7 @@ class FilterCondition {
     @Column(name = "subject_class", columnDefinition = "varchar(255) default ''")
     var subjectClass: String = ""
 
-    @ManyToMany(mappedBy = "filterConditions")
+    @ManyToMany(mappedBy = "filterConditions", fetch = FetchType.EAGER)
     var filterGroups: MutableSet<FilterGroup> = mutableSetOf()
 
 }

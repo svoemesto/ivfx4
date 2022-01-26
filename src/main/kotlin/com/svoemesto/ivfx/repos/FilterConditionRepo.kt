@@ -1,6 +1,7 @@
 package com.svoemesto.ivfx.repos
 
 import com.svoemesto.ivfx.models.FilterCondition
+import com.svoemesto.ivfx.modelsext.FilterConditionExt
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
@@ -19,5 +20,6 @@ interface FilterConditionRepo : CrudRepository<FilterCondition, Long> {
     @Modifying
     @Query(value = "DELETE FROM tbl_filters_conditions WHERE id = ?", nativeQuery = true)
     fun delete(filterConditionId:Long)
+    fun findByProjectId(projectId: Long): Iterable<FilterCondition>
 
 }

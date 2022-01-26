@@ -113,5 +113,9 @@ class TagController {
             }
         }
 
+        fun getById(tagId: Long): Tag {
+            return Main.tagRepo.findById(tagId).get()
+        }
+
     }
 }

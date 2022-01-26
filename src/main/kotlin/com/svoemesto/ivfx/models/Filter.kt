@@ -35,7 +35,7 @@ class Filter {
     @Column(name = "is_and", columnDefinition = "boolean default true")
     var isAnd: Boolean = true
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "tbl_filters_filters_groups",
         joinColumns = [JoinColumn(name = "filter_id")],

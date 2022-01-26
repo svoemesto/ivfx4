@@ -39,7 +39,7 @@ class FilterGroup {
     @Column(name = "is_and", columnDefinition = "boolean default true")
     var isAnd: Boolean = true
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "tbl_filters_groups_conditions",
         joinColumns = [JoinColumn(name = "filter_group_id")],
@@ -47,7 +47,7 @@ class FilterGroup {
     )
     var filterConditions: MutableSet<FilterCondition> = mutableSetOf()
 
-    @ManyToMany(mappedBy = "filterGroups")
+    @ManyToMany(mappedBy = "filterGroups", fetch = FetchType.EAGER)
     var filterFilters: MutableSet<Filter> = mutableSetOf()
 
 }
