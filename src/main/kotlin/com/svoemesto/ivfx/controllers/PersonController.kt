@@ -125,5 +125,9 @@ class PersonController() {
 //            return person ?: create(project,"", PersonType.PERSON, personRecognizedName, fileIdToCreate, frameNumberToCreate, faceNumberInFrameToCreate)
         }
 
+        fun getById(personId: Long): Person {
+            return Main.personRepo.findById(personId).get()
+        }
+
     }
 }

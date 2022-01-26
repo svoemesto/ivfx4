@@ -73,7 +73,7 @@
                               <ToggleGroup fx:id="tgFilterGroup" />
                            </toggleGroup>
                         </RadioButton>
-                        <RadioButton fx:id="rbFilterGroupIsOr" mnemonicParsing="false" text="OR" toggleGroup="$tgFilterGroup" />
+                        <RadioButton fx:id="rbFilterGroupIsOr" mnemonicParsing="false" onAction="#doFilterGroupIsAnd" text="OR" toggleGroup="$tgFilterGroup" />
                      </children>
                   </HBox>
                   <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Group conditions" />
@@ -121,7 +121,7 @@
                               <ToggleGroup fx:id="tgFilter" />
                            </toggleGroup>
                         </RadioButton>
-                        <RadioButton fx:id="rbFilterIsOr" mnemonicParsing="false" text="OR" toggleGroup="$tgFilter" />
+                        <RadioButton fx:id="rbFilterIsOr" mnemonicParsing="false" onAction="#doFilterIsAnd" text="OR" toggleGroup="$tgFilter" />
                      </children>
                   </HBox>
                   <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Filter groups" />
@@ -131,7 +131,8 @@
                            <children>
                               <TableView fx:id="tblFiltersFiltersGroups" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                  <columns>
-                                    <TableColumn fx:id="colFilterFilterGroup" maxWidth="20.0" minWidth="230.0" prefWidth="230.0" text="Name" />
+                                    <TableColumn fx:id="colFilterFilterGroupName" maxWidth="20.0" minWidth="200.0" prefWidth="200.0" text="Name" />
+                                    <TableColumn fx:id="colFilterFilterGroupIsAnd" maxWidth="20.0" minWidth="30.0" prefWidth="30.0" text="&amp;|" />
                                  </columns>
                               </TableView>
                            </children>
