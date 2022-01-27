@@ -1,12 +1,12 @@
 package com.svoemesto.ivfx.fxcontrollers
 
-import com.svoemesto.ivfx.controllers.FilterConditionExtController
+import com.svoemesto.ivfx.controllers.FilterConditionController
 import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.controllers.TagController
-import com.svoemesto.ivfx.models.FilterCondition
 import com.svoemesto.ivfx.models.Person
 import com.svoemesto.ivfx.models.Tag
 import com.svoemesto.ivfx.modelsext.FilterConditionExt
+import com.svoemesto.ivfx.modelsext.FilterGroupExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import javafx.event.ActionEvent
 import javafx.fxml.FXML
@@ -71,15 +71,19 @@ class FilterConditionCreateFXController {
 
     companion object {
         private var currentProjectExt: ProjectExt? = null
+        private var currentFilterGroupExt: FilterGroupExt? = null
         private var mainStage: Stage? = null
         private var initFilterConditionExt: FilterConditionExt? = null
+        private var currentFilterConditionExt: FilterConditionExt? = null
     }
 
-    private var currentFilterConditionExt: FilterConditionExt? = null
+
     private var currentObjectId: Long? = null
     private var currentObjectName: String = "???"
 
-    fun createFilterCondition(projectExt: ProjectExt, initFilterConditionExt: FilterConditionExt? = null) : FilterConditionExt? {
+    fun createFilterCondition(projectExt: ProjectExt, filterGroupExt: FilterGroupExt, initFilterConditionExt: FilterConditionExt? = null) : FilterConditionExt? {
+        currentFilterConditionExt = null
+        currentFilterGroupExt = filterGroupExt
         currentProjectExt = projectExt
         mainStage = Stage()
         try {
@@ -160,8 +164,8 @@ class FilterConditionCreateFXController {
     fun doOk(event: ActionEvent?) {
         if (currentObjectId != null) {
             if (currentFilterConditionExt == null) {
-                currentFilterConditionExt = FilterConditionExtController.create(
-                    currentProjectExt!!,
+                currentFilterConditionExt = FilterConditionExt( FilterConditionController.create(
+                    currentFilterGroupExt!!.filterGroup,
                     getCurrentName(),
                     currentObjectId!!,
                     if (rbPerson!!.isSelected) Person::class.java.simpleName else Tag::class.java.simpleName,
@@ -172,7 +176,7 @@ class FilterConditionCreateFXController {
                         else -> "Error"
                     },
                     rbIsIncluded!!.isSelected
-                )
+                ))
             } else {
                 currentFilterConditionExt!!.filterCondition.name = getCurrentName()
                 currentFilterConditionExt!!.filterCondition.objectId = currentObjectId!!
@@ -185,7 +189,7 @@ class FilterConditionCreateFXController {
                         else -> "Error"
                     }
                 currentFilterConditionExt!!.filterCondition.isIncluded = rbIsIncluded!!.isSelected
-                FilterConditionExtController.save(currentFilterConditionExt!!)
+                FilterConditionController.save(currentFilterConditionExt!!.filterCondition)
 
             }
 

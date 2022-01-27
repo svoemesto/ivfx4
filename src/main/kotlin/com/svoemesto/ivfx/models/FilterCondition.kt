@@ -21,7 +21,11 @@ import javax.persistence.Table
 @Entity
 @Table(name = "tbl_filters_conditions")
 @Transactional
-class FilterCondition {
+class FilterCondition: Comparable<FilterCondition> {
+
+    override fun compareTo(other: FilterCondition): Int {
+        return this.order - other.order
+    }
 
     @Id
     @Column(name = "id", nullable = false)
@@ -29,11 +33,14 @@ class FilterCondition {
     var id: Long = 0
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id")
-    lateinit var project: Project
+    @JoinColumn(name = "filter_group_id")
+    lateinit var filterGroup: FilterGroup
 
     @Column(name = "name", columnDefinition = "varchar(255) default ''")
     var name: String = ""
+
+    @Column(name = "order_filter_condition", nullable = false, columnDefinition = "int default 0")
+    var order: Int = 0
 
     @Column(name = "object_id", nullable = false, columnDefinition = "int default 0")
     var objectId: Long = 0
@@ -49,8 +56,5 @@ class FilterCondition {
 
     @Column(name = "subject_class", columnDefinition = "varchar(255) default ''")
     var subjectClass: String = ""
-
-    @ManyToMany(mappedBy = "filterConditions", fetch = FetchType.EAGER)
-    var filterGroups: MutableSet<FilterGroup> = mutableSetOf()
 
 }

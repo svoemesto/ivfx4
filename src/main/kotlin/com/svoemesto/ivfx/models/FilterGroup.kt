@@ -22,7 +22,11 @@ import javax.persistence.Table
 @Entity
 @Table(name = "tbl_filters_groups")
 @Transactional
-class FilterGroup {
+class FilterGroup: Comparable<FilterGroup> {
+
+    override fun compareTo(other: FilterGroup): Int {
+        return this.order - other.order
+    }
 
     @Id
     @Column(name = "id", nullable = false)
@@ -30,24 +34,20 @@ class FilterGroup {
     var id: Long = 0
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id")
-    lateinit var project: Project
+    @JoinColumn(name = "filter_id")
+    lateinit var filter: Filter
 
     @Column(name = "name", columnDefinition = "varchar(255) default ''")
     var name: String = ""
 
+    @Column(name = "order_filter_group", nullable = false, columnDefinition = "int default 0")
+    var order: Int = 0
+
     @Column(name = "is_and", columnDefinition = "boolean default true")
     var isAnd: Boolean = true
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "tbl_filters_groups_conditions",
-        joinColumns = [JoinColumn(name = "filter_group_id")],
-        inverseJoinColumns = [JoinColumn(name = "filter_condition_id")]
-    )
+    @OneToMany(mappedBy = "filterGroup", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SUBSELECT)
     var filterConditions: MutableSet<FilterCondition> = mutableSetOf()
-
-    @ManyToMany(mappedBy = "filterGroups", fetch = FetchType.EAGER)
-    var filterFilters: MutableSet<Filter> = mutableSetOf()
 
 }

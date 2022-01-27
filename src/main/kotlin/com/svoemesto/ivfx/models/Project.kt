@@ -88,6 +88,10 @@ class Project {
 
     @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
+    var filters: MutableSet<Filter> = mutableSetOf()
+
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SUBSELECT)
     var cdfs: MutableSet<ProjectCdf> = mutableSetOf()
 
     var folder: String
