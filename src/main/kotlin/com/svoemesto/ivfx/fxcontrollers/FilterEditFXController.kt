@@ -1,14 +1,21 @@
 package com.svoemesto.ivfx.fxcontrollers
 
-import com.svoemesto.ivfx.controllers.FilterConditionExtController
-import com.svoemesto.ivfx.controllers.FilterExtController
-import com.svoemesto.ivfx.controllers.FilterGroupExtController
-import com.svoemesto.ivfx.models.FilterCondition
-import com.svoemesto.ivfx.models.FilterGroup
+import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.FilterConditionController
+import com.svoemesto.ivfx.controllers.FilterController
+import com.svoemesto.ivfx.controllers.FilterGroupController
+import com.svoemesto.ivfx.enums.ReorderTypes
+import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FilterConditionExt
 import com.svoemesto.ivfx.modelsext.FilterExt
 import com.svoemesto.ivfx.modelsext.FilterGroupExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
+import com.svoemesto.ivfx.modelsext.ShotExt
+import com.svoemesto.ivfx.threads.loadlists.LoadListEventsExt
+import com.svoemesto.ivfx.threads.loadlists.LoadListFilesExt
+import com.svoemesto.ivfx.threads.loadlists.LoadListFramesExt
+import com.svoemesto.ivfx.threads.loadlists.LoadListScenesExt
+import com.svoemesto.ivfx.threads.loadlists.LoadListShotsExt
 import javafx.application.HostServices
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -20,7 +27,10 @@ import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.control.Control
+import javafx.scene.control.Label
+import javafx.scene.control.ProgressBar
 import javafx.scene.control.RadioButton
+import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
@@ -33,77 +43,22 @@ import javafx.stage.Modality
 import javafx.stage.Stage
 import java.io.IOException
 
+
 class FilterEditFXController {
 
-    // FILTER CONDITION
-    @FXML
-    private var tblFiltersConditions: TableView<FilterConditionExt>? = null
-
-    @FXML
-    private var colFilterConditionName: TableColumn<FilterConditionExt, String>? = null
-
-    @FXML
-    private var btnAddFilterConditionToFilterGroup: Button? = null
-
-    @FXML
-    private var btnAddNewFilterCondition: Button? = null
-
-    @FXML
-    private var btnDeleteFilterCondition: Button? = null
-
-    // FILTER GROUP
-    @FXML
-    private var tblFiltersGroups: TableView<FilterGroupExt>? = null
-
-    @FXML
-    private var colFilterGroupName: TableColumn<FilterGroupExt, String>? = null
-
-    @FXML
-    private var colFilterGroupIsAnd: TableColumn<FilterGroupExt, String>? = null
-
-    @FXML
-    private var btnAddFilterGroupToFilter: Button? = null
-
-    @FXML
-    private var btnAddNewFilterGroup: Button? = null
-
-    @FXML
-    private var btnDeleteFilterGroup: Button? = null
-
-    @FXML
-    private var fldFilterGroupName: TextField? = null
-
-    @FXML
-    private var rbFilterGroupIsAnd: RadioButton? = null
-
-    @FXML
-    private var tgFilterGroup: ToggleGroup? = null
-
-    @FXML
-    private var rbFilterGroupIsOr: RadioButton? = null
-
-    // FILTER GROUP CONDITION
-    @FXML
-    private var tblFiltersGroupsConditions: TableView<FilterConditionExt>? = null
-
-    @FXML
-    private var colFilterGroupConditionName: TableColumn<FilterConditionExt, String>? = null
-
     // FILTER
+
     @FXML
     private var tblFilters: TableView<FilterExt>? = null
+
+    @FXML
+    private var colFilterOrder: TableColumn<FilterExt, Int>? = null
 
     @FXML
     private var colFilterName: TableColumn<FilterExt, String>? = null
 
     @FXML
     private var colFilterIsAnd: TableColumn<FilterExt, String>? = null
-
-    @FXML
-    private var btnAddNewFilter: Button? = null
-
-    @FXML
-    private var btnDeleteFilter: Button? = null
 
     @FXML
     private var fldFilterName: TextField? = null
@@ -117,16 +72,132 @@ class FilterEditFXController {
     @FXML
     private var rbFilterIsOr: RadioButton? = null
 
-    // FILTER FILTER GROUP
     @FXML
-    private var tblFiltersFiltersGroups: TableView<FilterGroupExt>? = null
+    private var btnFilterMoveToFirst: Button? = null
 
     @FXML
-    private var colFilterFilterGroupName: TableColumn<FilterGroupExt, String>? = null
+    private var btnFilterMoveUp: Button? = null
 
     @FXML
-    private var colFilterFilterGroupIsAnd: TableColumn<FilterGroupExt, String>? = null
+    private var btnFilterMoveDown: Button? = null
 
+    @FXML
+    private var btnFilterMoveToLast: Button? = null
+
+    @FXML
+    private var btnFilterAdd: Button? = null
+
+    @FXML
+    private var btnFilterDelete: Button? = null
+
+    // FILGER GROUP
+
+    @FXML
+    private var tblFiltersGroups: TableView<FilterGroupExt>? = null
+
+    @FXML
+    private var colFilterGroupOrder: TableColumn<FilterGroupExt, Int>? = null
+
+    @FXML
+    private var colFilterGroupName: TableColumn<FilterGroupExt, String>? = null
+
+    @FXML
+    private var colFilterGroupIsAnd: TableColumn<FilterGroupExt, String>? = null
+
+    @FXML
+    private var fldFilterGroupName: TextField? = null
+
+    @FXML
+    private var rbFilterGroupIsAnd: RadioButton? = null
+
+    @FXML
+    private var tgFilterGroup: ToggleGroup? = null
+
+    @FXML
+    private var rbFilterGroupIsOr: RadioButton? = null
+
+    @FXML
+    private var btnFilterGroupMoveToFirst: Button? = null
+
+    @FXML
+    private var btnFilterGroupMoveUp: Button? = null
+
+    @FXML
+    private var btnFilterGroupMoveDown: Button? = null
+
+    @FXML
+    private var btnFilterGroupMoveToLast: Button? = null
+
+    @FXML
+    private var btnFilterGroupAdd: Button? = null
+
+    @FXML
+    private var btnFilterGroupDelete: Button? = null
+
+    // FILTER CONDITION
+
+    @FXML
+    private var tblFiltersConditions: TableView<FilterConditionExt>? = null
+
+    @FXML
+    private var colFilterConditionOrder: TableColumn<FilterConditionExt, Int>? = null
+
+    @FXML
+    private var colFilterConditionName: TableColumn<FilterConditionExt, String>? = null
+
+    @FXML
+    private var btnFilterConditionMoveToFirst: Button? = null
+
+    @FXML
+    private var btnFilterConditionMoveUp: Button? = null
+
+    @FXML
+    private var btnFilterConditionMoveDown: Button? = null
+
+    @FXML
+    private var btnFilterConditionMoveToLast: Button? = null
+
+    @FXML
+    private var btnFilterConditionAdd: Button? = null
+
+    @FXML
+    private var btnFilterConditionDelete: Button? = null
+
+    // FILES
+
+    @FXML
+    private var tblFiles: TableView<FileExt>? = null
+
+    @FXML
+    private var colFileOrder: TableColumn<FileExt, Int>? = null
+
+    @FXML
+    private var colFileName: TableColumn<FileExt, String>? = null
+
+    @FXML
+    private var btnFilter: Button? = null
+
+    // SHOTS
+
+    @FXML
+    private var tblShots: TableView<ShotExt>? = null
+
+    @FXML
+    private var colShotFileName: TableColumn<ShotExt, String>? = null
+
+    @FXML
+    private var colShotFrom: TableColumn<ShotExt, String>? = null
+
+    @FXML
+    private var colShotTo: TableColumn<ShotExt, String>? = null
+
+    // PROGRESS
+
+    @FXML
+    private var pb: ProgressBar? = null
+
+    @FXML
+    private var lblPb: Label? = null
 
     companion object {
         private var currentProjectExt: ProjectExt? = null
@@ -134,15 +205,13 @@ class FilterEditFXController {
         private var hostServices: HostServices? = null
     }
 
+    private var listFilesExt: ObservableList<FileExt> = FXCollections.observableArrayList()
+    private var listShotsExt: ObservableList<ShotExt> = FXCollections.observableArrayList()
     private var listFilterConditionsExt: ObservableList<FilterConditionExt> = FXCollections.observableArrayList()
     private var listFilterGroupsExt: ObservableList<FilterGroupExt> = FXCollections.observableArrayList()
-    private var listFilterFilterGroupsExt: ObservableList<FilterGroupExt> = FXCollections.observableArrayList()
-    private var listFilterGroupConditionsExt: ObservableList<FilterConditionExt> = FXCollections.observableArrayList()
     private var listFiltersExt: ObservableList<FilterExt> = FXCollections.observableArrayList()
     private var currentFilterConditionExt: FilterConditionExt? = null
-    private var currentFilterGroupConditionExt: FilterConditionExt? = null
     private var currentFilterGroupExt: FilterGroupExt? = null
-    private var currentFilterFilterGroupExt: FilterGroupExt? = null
     private var currentFilterExt: FilterExt? = null
 
     fun editFilters(projectExt: ProjectExt, hostServices: HostServices? = null) {
@@ -171,24 +240,37 @@ class FilterEditFXController {
 
         println("Инициализация FilterEditFXController.")
 
+        colFilterConditionOrder?.cellValueFactory = PropertyValueFactory("order")
         colFilterConditionName?.cellValueFactory = PropertyValueFactory("name")
-        listFilterConditionsExt = FXCollections.observableList(FilterConditionExtController.getList(currentProjectExt!!))
-        tblFiltersConditions?.items = listFilterConditionsExt
 
+        colFilterGroupOrder?.cellValueFactory = PropertyValueFactory("order")
         colFilterGroupName?.cellValueFactory = PropertyValueFactory("name")
         colFilterGroupIsAnd?.cellValueFactory = PropertyValueFactory("andText")
-        listFilterGroupsExt = FXCollections.observableList(FilterGroupExtController.getList(currentProjectExt!!))
-        tblFiltersGroups?.items = listFilterGroupsExt
 
+        colFilterOrder?.cellValueFactory = PropertyValueFactory("order")
         colFilterName?.cellValueFactory = PropertyValueFactory("name")
         colFilterIsAnd?.cellValueFactory = PropertyValueFactory("andText")
-        listFiltersExt = FXCollections.observableList(FilterExtController.getList(currentProjectExt!!))
+
+        colFileOrder?.cellValueFactory = PropertyValueFactory("fileOrder")
+        colFileName?.cellValueFactory = PropertyValueFactory("fileName")
+
+        colShotFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
+        colShotTo?.cellValueFactory = PropertyValueFactory("labelLast1")
+        colShotFileName?.cellValueFactory = PropertyValueFactory("fileName")
+
+
+        tblFiles!!.selectionModel.selectionMode = SelectionMode.MULTIPLE
+
+        tblFiles?.items = listFilesExt
+        tblFiltersGroups?.items = listFilterGroupsExt
+        tblFiltersConditions?.items = listFilterConditionsExt
+
+        LoadListFilesExt(listFilesExt, currentProjectExt!!, pb, lblPb).start()
+
+        listFiltersExt = FXCollections.observableList(FilterController.getList(currentProjectExt!!))
         tblFilters?.items = listFiltersExt
 
-        colFilterGroupConditionName?.cellValueFactory = PropertyValueFactory("name")
-        colFilterFilterGroupName?.cellValueFactory = PropertyValueFactory("name")
-        colFilterFilterGroupIsAnd?.cellValueFactory = PropertyValueFactory("andText")
-
+        enabledButtons()
 
         // делаем поле colFilterConditionName таблицы tblFiltersConditions с переносом по словам и расширяемым по высоте
         colFilterConditionName?.setCellFactory { param: TableColumn<FilterConditionExt?, String?>? ->
@@ -226,35 +308,27 @@ class FilterEditFXController {
             cell
         }
 
-        // делаем поле colFilterGroupConditionName таблицы tblFiltersGroupsConditions с переносом по словам и расширяемым по высоте
-        colFilterGroupConditionName?.setCellFactory { param: TableColumn<FilterConditionExt?, String?>? ->
-            val cell: TableCell<FilterConditionExt, String> = TableCell<FilterConditionExt, String>()
-            val text = Text()
-            text.style = ""
-            cell.graphic = text
-            cell.prefHeight = Control.USE_COMPUTED_SIZE
-            text.textProperty().bind(cell.itemProperty())
-            text.wrappingWidthProperty().bind(colFilterGroupConditionName!!.widthProperty())
-            cell
-        }
-
-        // делаем поле colFilterFilterGroupName таблицы tblFiltersFiltersGroups с переносом по словам и расширяемым по высоте
-        colFilterFilterGroupName?.setCellFactory { param: TableColumn<FilterGroupExt?, String?>? ->
-            val cell: TableCell<FilterGroupExt, String> = TableCell<FilterGroupExt, String>()
-            val text = Text()
-            text.style = ""
-            cell.graphic = text
-            cell.prefHeight = Control.USE_COMPUTED_SIZE
-            text.textProperty().bind(cell.itemProperty())
-            text.wrappingWidthProperty().bind(colFilterFilterGroupName!!.widthProperty())
-            cell
-        }
-
         // selectedItemProperty
-        tblFiltersConditions!!.selectionModel.selectedItemProperty()
-            .addListener { _, _, newValue: FilterConditionExt? ->
+        tblFilters!!.selectionModel.selectedItemProperty()
+            .addListener { _, _, newValue: FilterExt? ->
                 if (newValue != null) {
-                    currentFilterConditionExt = newValue
+
+                    currentFilterExt = newValue
+                    currentFilterGroupExt = null
+                    currentFilterConditionExt = null
+
+                    listFilterConditionsExt = FXCollections.observableArrayList()
+                    tblFiltersConditions?.items = listFilterConditionsExt
+
+                    enabledButtons()
+
+                    fldFilterName?.text = currentFilterExt!!.name
+                    rbFilterIsAnd?.isSelected = currentFilterExt!!.filter.isAnd
+                    rbFilterIsOr?.isSelected = !currentFilterExt!!.filter.isAnd
+                    listFilterGroupsExt = FXCollections.observableList(FilterGroupController.getList(currentFilterExt!!))
+                    tblFiltersGroups?.items = listFilterGroupsExt
+
+
                 }
             }
 
@@ -263,40 +337,25 @@ class FilterEditFXController {
             .addListener { _, _, newValue: FilterGroupExt? ->
                 if (newValue != null) {
                     currentFilterGroupExt = newValue
+
+                    enabledButtons()
+
                     fldFilterGroupName?.text = currentFilterGroupExt!!.name
                     rbFilterGroupIsAnd?.isSelected = currentFilterGroupExt!!.filterGroup.isAnd
                     rbFilterGroupIsOr?.isSelected = !currentFilterGroupExt!!.filterGroup.isAnd
-                    listFilterGroupConditionsExt = FXCollections.observableArrayList(currentFilterGroupExt!!.filterGroup.filterConditions.map{FilterConditionExt(it)}.toMutableList())
-                    tblFiltersGroupsConditions?.items = listFilterGroupConditionsExt
+                    listFilterConditionsExt = FXCollections.observableList(FilterConditionController.getList(currentFilterGroupExt!!))
+                    tblFiltersConditions?.items = listFilterConditionsExt
                 }
             }
 
         // selectedItemProperty
-        tblFilters!!.selectionModel.selectedItemProperty()
-            .addListener { _, _, newValue: FilterExt? ->
-                if (newValue != null) {
-                    currentFilterExt = newValue
-                    fldFilterName?.text = currentFilterExt!!.name
-                    rbFilterIsAnd?.isSelected = currentFilterExt!!.filter.isAnd
-                    rbFilterIsOr?.isSelected = !currentFilterExt!!.filter.isAnd
-                    listFilterFilterGroupsExt = FXCollections.observableArrayList(currentFilterExt!!.filter.filterGroups.map{FilterGroupExt(it)}.toMutableList())
-                    tblFiltersFiltersGroups?.items = listFilterFilterGroupsExt
-                }
-            }
-
-        // selectedItemProperty
-        tblFiltersGroupsConditions!!.selectionModel.selectedItemProperty()
+        tblFiltersConditions!!.selectionModel.selectedItemProperty()
             .addListener { _, _, newValue: FilterConditionExt? ->
                 if (newValue != null) {
-                    currentFilterGroupConditionExt = newValue
-                }
-            }
+                    currentFilterConditionExt = newValue
 
-        // selectedItemProperty
-        tblFiltersFiltersGroups!!.selectionModel.selectedItemProperty()
-            .addListener { _, _, newValue: FilterGroupExt? ->
-                if (newValue != null) {
-                    currentFilterFilterGroupExt = newValue
+                    enabledButtons()
+
                 }
             }
 
@@ -305,64 +364,9 @@ class FilterEditFXController {
         tblFiltersConditions!!.onMouseClicked = EventHandler { mouseEvent ->
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
-                    if (currentFilterConditionExt != null) {
-                        FilterConditionCreateFXController().createFilterCondition(currentProjectExt!!, currentFilterConditionExt)
+                    if (currentFilterConditionExt != null && currentFilterGroupExt != null) {
+                        FilterConditionCreateFXController().createFilterCondition(currentProjectExt!!, currentFilterGroupExt!!)
                         tblFiltersConditions!!.refresh()
-                    }
-                }
-            }
-        }
-
-        // Click
-        tblFiltersGroupsConditions!!.onMouseClicked = EventHandler { mouseEvent ->
-            if (mouseEvent.button == MouseButton.PRIMARY) {
-                if (mouseEvent.clickCount == 2) {
-                    if (currentFilterGroupConditionExt != null && currentFilterGroupExt != null) {
-
-                        val currentFilterGroupId = currentFilterGroupExt!!.filterGroup.id
-                        currentFilterGroupExt?.filterGroup?.filterConditions?.remove(currentFilterGroupConditionExt!!.filterCondition)
-                        FilterGroupExtController.save(currentFilterGroupExt!!)
-
-                        listFilterConditionsExt = FXCollections.observableList(FilterConditionExtController.getList(currentProjectExt!!))
-                        tblFiltersConditions?.items = listFilterConditionsExt
-                        if (currentFilterConditionExt != null) {
-                            val currentFilterConditionId = currentFilterConditionExt!!.filterCondition.id
-                            tblFiltersConditions?.selectionModel?.select(listFilterConditionsExt.first { it.filterCondition.id == currentFilterConditionId })
-                        }
-
-                        listFilterGroupsExt = FXCollections.observableList(FilterGroupExtController.getList(currentProjectExt!!))
-                        tblFiltersGroups?.items = listFilterGroupsExt
-                        tblFiltersGroups?.selectionModel?.select(listFilterGroupsExt.first { it.filterGroup.id == currentFilterGroupId })
-
-                    }
-                }
-            }
-        }
-
-        // Click
-        tblFiltersFiltersGroups!!.onMouseClicked = EventHandler { mouseEvent ->
-            if (mouseEvent.button == MouseButton.PRIMARY) {
-                if (mouseEvent.clickCount == 2) {
-                    if (currentFilterFilterGroupExt != null && currentFilterExt != null) {
-
-                        val currentFilterId = currentFilterExt!!.filter.id
-
-                        currentFilterExt!!.filter.filterGroups.remove(currentFilterFilterGroupExt!!.filterGroup)
-                        FilterExtController.save(currentFilterExt!!)
-                        listFilterFilterGroupsExt = FXCollections.observableArrayList(currentFilterExt!!.filter.filterGroups.map{FilterGroupExt(it)}.toMutableList())
-                        tblFiltersFiltersGroups?.items = listFilterFilterGroupsExt
-
-                        listFilterGroupsExt = FXCollections.observableList(FilterGroupExtController.getList(currentProjectExt!!))
-                        tblFiltersGroups?.items = listFilterGroupsExt
-                        if (currentFilterGroupExt != null) {
-                            val currentFilterGroupId = currentFilterGroupExt!!.filterGroup.id
-                            tblFiltersGroups?.selectionModel?.select(listFilterGroupsExt.first { it.filterGroup.id == currentFilterGroupId })
-                        }
-
-                        listFiltersExt = FXCollections.observableList(FilterExtController.getList(currentProjectExt!!))
-                        tblFilters?.items = listFiltersExt
-                        tblFilters?.selectionModel?.select(listFiltersExt.first { it.filter.id == currentFilterId })
-
                     }
                 }
             }
@@ -371,7 +375,7 @@ class FilterEditFXController {
         fldFilterGroupName!!.textProperty().addListener { _, _, newValue ->
             if (currentFilterGroupExt != null) {
                 currentFilterGroupExt?.filterGroup?.name = newValue
-                FilterGroupExtController.save(currentFilterGroupExt!!)
+                FilterGroupController.save(currentFilterGroupExt!!.filterGroup)
                 tblFiltersGroups?.refresh()
             }
         }
@@ -379,57 +383,62 @@ class FilterEditFXController {
         fldFilterName!!.textProperty().addListener { _, _, newValue ->
             if (currentFilterExt != null) {
                 currentFilterExt?.filter?.name = newValue
-                FilterExtController.save(currentFilterExt!!)
+                FilterController.save(currentFilterExt!!.filter)
                 tblFilters?.refresh()
             }
         }
 
+    }
+
+
+    fun enabledButtons() {
+
+        btnFilterDelete?.isDisable = currentFilterExt == null
+        btnFilterMoveToFirst?.isDisable = listFiltersExt.isEmpty() || currentFilterExt == null || currentFilterExt == listFiltersExt.first()
+        btnFilterMoveUp?.isDisable = listFiltersExt.isEmpty() || currentFilterExt == null || currentFilterExt == listFiltersExt.first()
+        btnFilterMoveToLast?.isDisable = listFiltersExt.isEmpty() || currentFilterExt == null || currentFilterExt == listFiltersExt.last()
+        btnFilterMoveDown?.isDisable = listFiltersExt.isEmpty() || currentFilterExt == null || currentFilterExt == listFiltersExt.last()
+        btnFilterGroupAdd?.isDisable = currentFilterExt == null
+
+        btnFilterGroupDelete?.isDisable = currentFilterGroupExt == null
+        btnFilterGroupMoveToFirst?.isDisable = listFilterGroupsExt.isEmpty() || currentFilterGroupExt == null || currentFilterGroupExt == listFilterGroupsExt.first()
+        btnFilterGroupMoveUp?.isDisable = listFilterGroupsExt.isEmpty() || currentFilterGroupExt == null || currentFilterGroupExt == listFilterGroupsExt.first()
+        btnFilterGroupMoveToLast?.isDisable = listFilterGroupsExt.isEmpty() || currentFilterGroupExt == null || currentFilterGroupExt == listFilterGroupsExt.last()
+        btnFilterGroupMoveDown?.isDisable = listFilterGroupsExt.isEmpty() || currentFilterGroupExt == null || currentFilterGroupExt == listFilterGroupsExt.last()
+        btnFilterConditionAdd?.isDisable = currentFilterGroupExt == null
+
+
+        btnFilterConditionDelete?.isDisable = currentFilterConditionExt == null
+        btnFilterConditionMoveToFirst?.isDisable = listFilterConditionsExt.isEmpty() || currentFilterConditionExt == null || currentFilterConditionExt == listFilterConditionsExt.first()
+        btnFilterConditionMoveUp?.isDisable = listFilterConditionsExt.isEmpty() || currentFilterConditionExt == null || currentFilterConditionExt == listFilterConditionsExt.first()
+        btnFilterConditionMoveToLast?.isDisable = listFilterConditionsExt.isEmpty() || currentFilterConditionExt == null || currentFilterConditionExt == listFilterConditionsExt.last()
+        btnFilterConditionMoveDown?.isDisable = listFilterConditionsExt.isEmpty() || currentFilterConditionExt == null || currentFilterConditionExt == listFilterConditionsExt.last()
 
     }
 
-    @FXML //Создание нового фильтра
-    fun doAddNewFilter(event: ActionEvent?) {
-        val filter = FilterExtController.create(currentProjectExt!!.project)
-        listFiltersExt = FXCollections.observableList(FilterExtController.getList(currentProjectExt!!))
-        tblFilters?.items = listFiltersExt
-        tblFilters?.selectionModel?.select(filter)
-    }
+    @FXML
+    fun doFilter(event: ActionEvent?) {
 
-    @FXML // Создание нового условия
-    fun doAddNewFilterCondition(event: ActionEvent?) {
-        val filterCondition = FilterConditionCreateFXController().createFilterCondition(currentProjectExt!!)
-        if (filterCondition != null) {
-            listFilterConditionsExt = FXCollections.observableList(FilterConditionExtController.getList(currentProjectExt!!))
-            tblFiltersConditions?.items = listFilterConditionsExt
-            tblFiltersConditions?.selectionModel?.select(filterCondition)
+        val shotsExt: MutableSet<ShotExt> = mutableSetOf()
+        tblFiles?.selectionModel?.selectedItems?.forEach { fileExt->
+            LoadListFramesExt(fileExt.framesExt, fileExt, pb, lblPb).run()
+            LoadListScenesExt(fileExt.scenesExt, fileExt,  pb, lblPb).run()
+            LoadListEventsExt(fileExt.eventsExt, fileExt,  pb, lblPb).run()
+            LoadListShotsExt(fileExt.shotsExt, fileExt, pb, lblPb).run()
+            shotsExt.addAll(fileExt.shotsExt)
         }
+
+        tblShots?.items = FXCollections.observableArrayList(tblFilters?.selectionModel?.selectedItem?.shotsExt(shotsExt))
+
     }
 
-    @FXML // Создание новой группы
-    fun doAddNewFilterGroup(event: ActionEvent?) {
-        val filterGroup = FilterGroupExtController.create(currentProjectExt!!.project)
-        listFilterGroupsExt = FXCollections.observableList(FilterGroupExtController.getList(currentProjectExt!!))
-        tblFiltersGroups?.items = listFilterGroupsExt
-        tblFiltersGroups?.selectionModel?.select(filterGroup)
-    }
 
-    @FXML // Удаление фильтра
-    fun doDeleteFilter(event: ActionEvent?) {
-    }
-
-    @FXML // Удаление условия
-    fun doDeleteFilterCondition(event: ActionEvent?) {
-    }
-
-    @FXML // Удаление группы
-    fun doDeleteFilterGroup(event: ActionEvent?) {
-    }
 
     @FXML // Изменения IsAnd у группы
     fun doFilterGroupIsAnd(event: ActionEvent?) {
         if (currentFilterGroupExt != null) {
             currentFilterGroupExt?.filterGroup?.isAnd = rbFilterGroupIsAnd!!.isSelected
-            FilterGroupExtController.save(currentFilterGroupExt!!)
+            FilterGroupController.save(currentFilterGroupExt!!.filterGroup)
             tblFiltersGroups?.refresh()
         }
     }
@@ -438,55 +447,149 @@ class FilterEditFXController {
     fun doFilterIsAnd(event: ActionEvent?) {
         if (currentFilterExt != null) {
             currentFilterExt?.filter?.isAnd = rbFilterIsAnd!!.isSelected
-            FilterExtController.save(currentFilterExt!!)
+            FilterController.save(currentFilterExt!!.filter)
             tblFilters?.refresh()
         }
     }
 
-    @FXML // Добавление условия к группе
-    fun doAddFilterConditionToFilterGroup(event: ActionEvent?) {
-        if (currentFilterConditionExt != null && currentFilterGroupExt != null) {
+    @FXML
+    fun doFilterAdd(event: ActionEvent?) {
+        val filter = FilterController.create(currentProjectExt!!.project)
+        listFiltersExt = FXCollections.observableList(FilterController.getList(currentProjectExt!!))
+        tblFilters?.items = listFiltersExt
+        tblFilters?.selectionModel?.select(listFiltersExt.first { it.filter.id == filter.id })
+    }
 
-            val currentFilterConditionId = currentFilterConditionExt!!.filterCondition.id
-            val currentFilterGroupId = currentFilterGroupExt!!.filterGroup.id
-
-            currentFilterGroupExt!!.filterGroup.filterConditions.add(currentFilterConditionExt!!.filterCondition)
-            FilterGroupExtController.save(currentFilterGroupExt!!)
-            listFilterGroupConditionsExt = FXCollections.observableArrayList(currentFilterGroupExt!!.filterGroup.filterConditions.map{FilterConditionExt(it)}.toMutableList())
-            tblFiltersGroupsConditions?.items = listFilterGroupConditionsExt
-
-            listFilterConditionsExt = FXCollections.observableList(FilterConditionExtController.getList(currentProjectExt!!))
+    @FXML
+    fun doFilterConditionAdd(event: ActionEvent?) {
+        val filterCondition = FilterConditionCreateFXController().createFilterCondition(currentProjectExt!!, currentFilterGroupExt!!)
+        if (filterCondition != null) {
+            listFilterConditionsExt = FXCollections.observableList(FilterConditionController.getList(currentFilterGroupExt!!))
             tblFiltersConditions?.items = listFilterConditionsExt
-            tblFiltersConditions?.selectionModel?.select(listFilterConditionsExt.first { it.filterCondition.id == currentFilterConditionId })
-
-            listFilterGroupsExt = FXCollections.observableList(FilterGroupExtController.getList(currentProjectExt!!))
-            tblFiltersGroups?.items = listFilterGroupsExt
-            tblFiltersGroups?.selectionModel?.select(listFilterGroupsExt.first { it.filterGroup.id == currentFilterGroupId })
-
+            tblFiltersConditions?.selectionModel?.select(filterCondition)
         }
     }
 
-    @FXML // Добавление группы к фильтру
-    fun doAddFilterGroupToFilter(event: ActionEvent?) {
-        if (currentFilterGroupExt != null && currentFilterExt != null) {
+    @FXML
+    fun doFilterGroupAdd(event: ActionEvent?) {
+        val filterGroup = FilterGroupController.create(currentFilterExt!!.filter)
+        listFilterGroupsExt = FXCollections.observableList(FilterGroupController.getList(currentFilterExt!!))
+        tblFiltersGroups?.items = listFilterGroupsExt
+        tblFiltersGroups?.selectionModel?.select(listFilterGroupsExt.first { it.filterGroup.id == filterGroup.id })
+    }
 
-            val currentFilterGroupId = currentFilterGroupExt!!.filterGroup.id
-            val currentFilterId = currentFilterExt!!.filter.id
-
-            currentFilterExt!!.filter.filterGroups.add(currentFilterGroupExt!!.filterGroup)
-            FilterExtController.save(currentFilterExt!!)
-            listFilterFilterGroupsExt = FXCollections.observableArrayList(currentFilterExt!!.filter.filterGroups.map{FilterGroupExt(it)}.toMutableList())
-            tblFiltersFiltersGroups?.items = listFilterFilterGroupsExt
-
-            listFilterGroupsExt = FXCollections.observableList(FilterGroupExtController.getList(currentProjectExt!!))
-            tblFiltersGroups?.items = listFilterGroupsExt
-            tblFiltersGroups?.selectionModel?.select(listFilterGroupsExt.first { it.filterGroup.id == currentFilterGroupId })
-
-            listFiltersExt = FXCollections.observableList(FilterExtController.getList(currentProjectExt!!))
-            tblFilters?.items = listFiltersExt
-            tblFilters?.selectionModel?.select(listFiltersExt.first { it.filter.id == currentFilterId })
-
+    @FXML
+    fun doFilterConditionDelete(event: ActionEvent?) {
+        if (currentFilterConditionExt != null && currentFilterGroupExt!= null) {
+            FilterConditionController.delete(currentFilterConditionExt!!.filterCondition)
+            currentFilterConditionExt = null
+            listFilterConditionsExt = FXCollections.observableList(FilterConditionController.getList(currentFilterGroupExt!!))
+            tblFiltersConditions?.items = listFilterConditionsExt
         }
+    }
+
+    @FXML
+    fun doFilterDelete(event: ActionEvent?) {
+        if (currentFilterExt != null) {
+            FilterController.delete(currentFilterExt!!.filter)
+            currentFilterExt = null
+            listFiltersExt = FXCollections.observableList(FilterController.getList(currentProjectExt!!))
+            tblFilters?.items = listFiltersExt
+        }
+    }
+
+    @FXML
+    fun doFilterGroupDelete(event: ActionEvent?) {
+        if (currentFilterGroupExt!= null && currentFilterExt!= null) {
+            FilterGroupController.delete(currentFilterGroupExt!!.filterGroup)
+            currentFilterGroupExt = null
+            listFilterGroupsExt = FXCollections.observableList(FilterGroupController.getList(currentFilterExt!!))
+            tblFiltersGroups?.items = listFilterGroupsExt
+        }
+    }
+
+    @FXML
+    fun doFilterConditionMoveDown(event: ActionEvent?) {
+        doMoveFilterCondition(ReorderTypes.MOVE_DOWN)
+    }
+
+    @FXML
+    fun doFilterConditionMoveToFirst(event: ActionEvent?) {
+        doMoveFilterCondition(ReorderTypes.MOVE_TO_FIRST)
+    }
+
+    @FXML
+    fun doFilterConditionMoveToLast(event: ActionEvent?) {
+        doMoveFilterCondition(ReorderTypes.MOVE_TO_LAST)
+    }
+
+    @FXML
+    fun doFilterConditionMoveUp(event: ActionEvent?) {
+        doMoveFilterCondition(ReorderTypes.MOVE_UP)
+    }
+
+    fun doMoveFilterCondition(reorderType: ReorderTypes) {
+        val id = currentFilterConditionExt!!.filterCondition.id
+        currentFilterConditionExt?.let { FilterConditionController.reOrder(reorderType, it.filterCondition) }
+        tblFiltersConditions?.items = listFilterConditionsExt
+        currentFilterConditionExt = listFilterConditionsExt.first { it.filterCondition.id == id }
+        tblFiltersConditions?.selectionModel?.select(currentFilterConditionExt)
+    }
+
+    @FXML
+    fun doFilterGroupMoveDown(event: ActionEvent?) {
+        doMoveFilterGroup(ReorderTypes.MOVE_DOWN)
+    }
+
+    @FXML
+    fun doFilterGroupMoveToFirst(event: ActionEvent?) {
+        doMoveFilterGroup(ReorderTypes.MOVE_TO_FIRST)
+    }
+
+    @FXML
+    fun doFilterGroupMoveToLast(event: ActionEvent?) {
+        doMoveFilterGroup(ReorderTypes.MOVE_TO_LAST)
+    }
+
+    @FXML
+    fun doFilterGroupMoveUp(event: ActionEvent?) {
+        doMoveFilterGroup(ReorderTypes.MOVE_UP)
+    }
+
+    fun doMoveFilterGroup(reorderType: ReorderTypes) {
+        val id = currentFilterGroupExt!!.filterGroup.id
+        currentFilterGroupExt?.let { FilterGroupController.reOrder(reorderType, it.filterGroup) }
+        tblFiltersGroups?.items = listFilterGroupsExt
+        currentFilterGroupExt = listFilterGroupsExt.first { it.filterGroup.id == id }
+        tblFiltersGroups?.selectionModel?.select(currentFilterGroupExt)
+    }
+
+    @FXML
+    fun doFilterMoveDown(event: ActionEvent?) {
+        doMoveFilter(ReorderTypes.MOVE_DOWN)
+    }
+
+    @FXML
+    fun doFilterMoveToFirst(event: ActionEvent?) {
+        doMoveFilter(ReorderTypes.MOVE_TO_FIRST)
+    }
+
+    @FXML
+    fun doFilterMoveToLast(event: ActionEvent?) {
+        doMoveFilter(ReorderTypes.MOVE_TO_LAST)
+    }
+
+    @FXML
+    fun doFilterMoveUp(event: ActionEvent?) {
+        doMoveFilter(ReorderTypes.MOVE_UP)
+    }
+
+    fun doMoveFilter(reorderType: ReorderTypes) {
+        val id = currentFilterExt!!.filter.id
+        currentFilterExt?.let { FilterController.reOrder(reorderType, it.filter) }
+        tblFilters?.items = listFiltersExt
+        currentFilterExt = listFiltersExt.first { it.filter.id == id }
+        tblFilters?.selectionModel?.select(currentFilterExt)
     }
 
 }

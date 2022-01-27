@@ -30,7 +30,7 @@ import javax.validation.constraints.NotNull
 class Shot: Comparable<Shot> {
 
     override fun compareTo(other: Shot): Int {
-        return this.firstFrameNumber - other.firstFrameNumber
+        return (this.file.order - other.file.order) * 1000000 + (this.firstFrameNumber - other.firstFrameNumber)
     }
 
     @NotNull(message = "ID плана не может быть NULL")

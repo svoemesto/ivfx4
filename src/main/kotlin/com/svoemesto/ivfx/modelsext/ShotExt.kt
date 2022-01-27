@@ -1,11 +1,7 @@
 package com.svoemesto.ivfx.modelsext
 
 import com.svoemesto.ivfx.Main
-import com.svoemesto.ivfx.controllers.ShotController
-import com.svoemesto.ivfx.enums.ShotTypePerson
 import com.svoemesto.ivfx.enums.VideoContainers
-import com.svoemesto.ivfx.models.Event
-import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.convertDurationToString
@@ -17,14 +13,10 @@ import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsEndScene
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsStartEvent
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayIsStartScene
 import com.svoemesto.ivfx.utils.OverlayImage.Companion.setOverlayUnderlineText
-import javafx.event.ActionEvent
-import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import javafx.scene.control.ContentDisplay
-import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
-import javafx.scene.control.MenuItem
 import javafx.scene.image.ImageView
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -38,14 +30,14 @@ data class ShotExt(
 ): Comparable<ShotExt> {
 
     override fun compareTo(other: ShotExt): Int {
-        return this.shot.firstFrameNumber - other.shot.firstFrameNumber
+        return (this.shot.file.order - other.shot.file.order) * 1000000 + (this.shot.firstFrameNumber - other.shot.firstFrameNumber)
     }
 
     val start: String get() = convertDurationToString(getDurationByFrameNumber(shot.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(shot.lastFrameNumber, fileExt.fps))
     val duration: Int get() = getDurationByFrameNumber(shot.lastFrameNumber - shot.firstFrameNumber + 1, fileExt.fps)
     val sceneExt: SceneExt? get() = fileExt.scenesExt.firstOrNull { shot.firstFrameNumber >= it.scene.firstFrameNumber && shot.lastFrameNumber <= it.scene.lastFrameNumber }
-    val eventExt: EventExt? get() = fileExt.eventsExt.firstOrNull { shot.firstFrameNumber >= it.event.firstFrameNumber && shot.lastFrameNumber <= it.event.lastFrameNumber }
+    val eventsExt: List<EventExt> get() = fileExt.eventsExt.filter { shot.firstFrameNumber >= it.event.firstFrameNumber && shot.lastFrameNumber <= it.event.lastFrameNumber }
     val filenameWithoutExt: String get() = "${fileExt.file.shortName}_shot_[${start.replace(":",".")}-${end.replace(":",".")}]-(${shot.firstFrameNumber}-${shot.lastFrameNumber})"
     val pathToCompressedWithAudio: String get() = "${fileExt.folderShotsCompressedWithAudio}${IOFile.separator}${filenameWithoutExt}" +
             ".${VideoContainers.valueOf(fileExt.projectExt.project.container).extention}"
@@ -56,6 +48,7 @@ data class ShotExt(
     val hasCompressedWithAudio: Boolean get() = IOFile(pathToCompressedWithAudio).exists()
     val hasLosslessWithAudio: Boolean get() = IOFile(pathToLosslessWithAudio).exists()
     val hasLosslessWithoutAudio: Boolean get() = IOFile(pathToLosslessWithoutAudio).exists()
+    val fileName: String get() = fileExt.file.name
 
     val personsExt: MutableList<PersonExt>
         get() {
@@ -96,10 +89,10 @@ data class ShotExt(
                 for (i in 0..2) {
                     var bi: BufferedImage = ImageIO.read(IOFile(if (IOFile(lastFrameExt.pathToSmall).exists()) lastFrameExt.pathToSmall else FrameExt.pathToStubSmall))
                     bi = setOverlayUnderlineText(bi, end)
-                    if (eventExt != null) {
-                        if (shot.firstFrameNumber >= eventExt!!.event.firstFrameNumber && shot.lastFrameNumber <= eventExt!!.event.lastFrameNumber) bi = setOverlayIsBodyEvent(bi)
-                        if (shot.firstFrameNumber == eventExt!!.event.firstFrameNumber) bi = setOverlayIsStartEvent(bi)
-                        if (shot.lastFrameNumber == eventExt!!.event.lastFrameNumber) bi = setOverlayIsEndEvent(bi)
+                    eventsExt.forEach { eventExt ->
+                        if (shot.firstFrameNumber >= eventExt.event.firstFrameNumber && shot.lastFrameNumber <= eventExt.event.lastFrameNumber) bi = setOverlayIsBodyEvent(bi)
+                        if (shot.firstFrameNumber == eventExt.event.firstFrameNumber) bi = setOverlayIsStartEvent(bi)
+                        if (shot.lastFrameNumber == eventExt.event.lastFrameNumber) bi = setOverlayIsEndEvent(bi)
                     }
                     list.add(i, ImageView(ConvertToFxImage.convertToFxImage(bi)))
                 }

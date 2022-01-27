@@ -46,6 +46,7 @@ class ProjectController() {
                 project.cdfs.add(ProjectCdfController.getProjectCdf(project))
                 project.files = FileController.getSetFiles(project)
                 project.persons = PersonController.getSetPersons(project)
+                project.filters = FilterController.getSetFilters(project)
             }
             return result
         }

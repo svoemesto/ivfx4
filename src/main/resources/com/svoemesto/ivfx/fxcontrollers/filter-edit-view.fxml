@@ -1,148 +1,308 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.FilterEditFXController">
    <children>
-      <HBox layoutX="-58.0" layoutY="65.0" prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <VBox prefWidth="300.0">
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Conditions" />
-                  <HBox prefHeight="10000.0">
+                  <VBox prefWidth="800.0">
                      <children>
-                        <VBox prefWidth="300.0">
+                        <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                            <children>
-                              <TableView fx:id="tblFiltersConditions" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                <columns>
-                                  <TableColumn fx:id="colFilterConditionName" maxWidth="20.0" minWidth="230.0" prefWidth="230.0" text="Name" />
-                                </columns>
-                              </TableView>
+                              <VBox maxWidth="1.7976931348623157E308" prefWidth="10000.0">
+                                 <HBox.margin>
+                                    <Insets />
+                                 </HBox.margin>
+                                 <children>
+                                    <TableView fx:id="tblFilters" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                       <columns>
+                                          <TableColumn fx:id="colFilterOrder" maxWidth="40.0" prefWidth="40.0" text="#" />
+                                          <TableColumn fx:id="colFilterName" maxWidth="660.0" minWidth="660.0" prefWidth="660.0" text="Filter" />
+                                          <TableColumn fx:id="colFilterIsAnd" maxWidth="20.0" minWidth="30.0" prefWidth="30.0" text="&amp;|" />
+                                       </columns>
+                                    </TableView>
+                                    <HBox prefHeight="100.0" prefWidth="200.0">
+                                       <children>
+                                          <TextField fx:id="fldFilterName" maxWidth="1.7976931348623157E308" prefWidth="10000.0" />
+                                          <RadioButton fx:id="rbFilterIsAnd" minWidth="50.0" mnemonicParsing="false" onAction="#doFilterIsAnd" text="AND">
+                                             <toggleGroup>
+                                                <ToggleGroup fx:id="tgFilter" />
+                                             </toggleGroup>
+                                          </RadioButton>
+                                          <RadioButton fx:id="rbFilterIsOr" minWidth="50.0" mnemonicParsing="false" onAction="#doFilterIsAnd" text="OR" toggleGroup="$tgFilter" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                              <VBox alignment="CENTER" prefWidth="46.0">
+                                 <children>
+                                    <Button fx:id="btnFilterMoveToFirst" mnemonicParsing="false" onAction="#doFilterMoveToFirst" prefHeight="46.0" prefWidth="46.0" text="⟰">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="В начало списка" />
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterMoveUp" mnemonicParsing="false" onAction="#doFilterMoveUp" prefHeight="46.0" prefWidth="46.0" text="⇧">
+                                       <font>
+                                          <Font name="Arial" size="24.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="На один уровень вверх">
+                                             <font>
+                                                <Font size="14.0" />
+                                             </font>
+                                          </Tooltip>
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterMoveDown" mnemonicParsing="false" onAction="#doFilterMoveDown" prefHeight="46.0" prefWidth="46.0" text="⇩">
+                                       <font>
+                                          <Font name="Arial" size="24.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="На один уровень вниз" />
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterMoveToLast" mnemonicParsing="false" onAction="#doFilterMoveToLast" prefHeight="46.0" prefWidth="46.0" text="⟱">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="В конец списка" />
+                                       </tooltip>
+                                    </Button>
+                                    <Separator prefWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets bottom="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </Separator>
+                                    <Button fx:id="btnFilterAdd" mnemonicParsing="false" onAction="#doFilterAdd" prefHeight="46.0" prefWidth="46.0" text="➕">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="Добавить файл" />
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterDelete" mnemonicParsing="false" onAction="#doFilterDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="Удалить файл из проекта" />
+                                       </tooltip>
+                                    </Button>
+                                 </children>
+                                 <HBox.margin>
+                                    <Insets left="5.0" />
+                                 </HBox.margin>
+                              </VBox>
                            </children>
-                        </VBox>
-                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                        </HBox>
+                        <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                            <children>
-                              <Button fx:id="btnAddFilterConditionToFilterGroup" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doAddFilterConditionToFilterGroup" text="&gt;&gt;" />
+                              <VBox maxWidth="1.7976931348623157E308" prefWidth="10000.0">
+                                 <HBox.margin>
+                                    <Insets />
+                                 </HBox.margin>
+                                 <children>
+                                    <TableView fx:id="tblFiltersGroups" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                       <columns>
+                                          <TableColumn fx:id="colFilterGroupOrder" maxWidth="40.0" prefWidth="40.0" text="#" />
+                                          <TableColumn fx:id="colFilterGroupName" maxWidth="260.0" minWidth="260.0" prefWidth="260.0" text="Group" />
+                                          <TableColumn fx:id="colFilterGroupIsAnd" maxWidth="20.0" minWidth="30.0" prefWidth="30.0" text="&amp;|" />
+                                       </columns>
+                                    </TableView>
+                                    <HBox prefHeight="100.0" prefWidth="200.0">
+                                       <children>
+                                          <TextField fx:id="fldFilterGroupName" maxWidth="1.7976931348623157E308" prefWidth="10000.0" />
+                                          <RadioButton fx:id="rbFilterGroupIsAnd" minWidth="50.0" mnemonicParsing="false" onAction="#doFilterGroupIsAnd" text="AND">
+                                             <toggleGroup>
+                                                <ToggleGroup fx:id="tgFilterGroup" />
+                                             </toggleGroup>
+                                          </RadioButton>
+                                          <RadioButton fx:id="rbFilterGroupIsOr" minWidth="50.0" mnemonicParsing="false" onAction="#doFilterGroupIsAnd" text="OR" toggleGroup="$tgFilterGroup" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                              <VBox alignment="CENTER" prefWidth="46.0">
+                                 <children>
+                                    <Button fx:id="btnFilterGroupMoveToFirst" mnemonicParsing="false" onAction="#doFilterGroupMoveToFirst" prefHeight="46.0" prefWidth="46.0" text="⟰">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="В начало списка" />
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterGroupMoveUp" mnemonicParsing="false" onAction="#doFilterGroupMoveUp" prefHeight="46.0" prefWidth="46.0" text="⇧">
+                                       <font>
+                                          <Font name="Arial" size="24.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="На один уровень вверх">
+                                             <font>
+                                                <Font size="14.0" />
+                                             </font>
+                                          </Tooltip>
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterGroupMoveDown" mnemonicParsing="false" onAction="#doFilterGroupMoveDown" prefHeight="46.0" prefWidth="46.0" text="⇩">
+                                       <font>
+                                          <Font name="Arial" size="24.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="На один уровень вниз" />
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterGroupMoveToLast" mnemonicParsing="false" onAction="#doFilterGroupMoveToLast" prefHeight="46.0" prefWidth="46.0" text="⟱">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="В конец списка" />
+                                       </tooltip>
+                                    </Button>
+                                    <Separator prefWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets bottom="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </Separator>
+                                    <Button fx:id="btnFilterGroupAdd" mnemonicParsing="false" onAction="#doFilterGroupAdd" prefHeight="46.0" prefWidth="46.0" text="➕">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="Добавить файл" />
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterGroupDelete" mnemonicParsing="false" onAction="#doFilterGroupDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="Удалить файл из проекта" />
+                                       </tooltip>
+                                    </Button>
+                                 </children>
+                                 <HBox.margin>
+                                    <Insets left="5.0" />
+                                 </HBox.margin>
+                              </VBox>
+                              <VBox maxWidth="1.7976931348623157E308" prefWidth="10000.0">
+                                 <children>
+                                    <TableView fx:id="tblFiltersConditions" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                      <columns>
+                                          <TableColumn fx:id="colFilterConditionOrder" maxWidth="40.0" prefWidth="40.0" text="#" />
+                                        <TableColumn fx:id="colFilterConditionName" maxWidth="290.0" minWidth="290.0" prefWidth="290.0" text="Condition" />
+                                      </columns>
+                                    </TableView>
+                                 </children>
+                              </VBox>
+                              <VBox alignment="CENTER" prefWidth="46.0">
+                                 <children>
+                                    <Button fx:id="btnFilterConditionMoveToFirst" mnemonicParsing="false" onAction="#doFilterConditionMoveToFirst" prefHeight="46.0" prefWidth="46.0" text="⟰">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="В начало списка" />
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterConditionMoveUp" mnemonicParsing="false" onAction="#doFilterConditionMoveUp" prefHeight="46.0" prefWidth="46.0" text="⇧">
+                                       <font>
+                                          <Font name="Arial" size="24.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="На один уровень вверх">
+                                             <font>
+                                                <Font size="14.0" />
+                                             </font>
+                                          </Tooltip>
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterConditionMoveDown" mnemonicParsing="false" onAction="#doFilterConditionMoveDown" prefHeight="46.0" prefWidth="46.0" text="⇩">
+                                       <font>
+                                          <Font name="Arial" size="24.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="На один уровень вниз" />
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterConditionMoveToLast" mnemonicParsing="false" onAction="#doFilterConditionMoveToLast" prefHeight="46.0" prefWidth="46.0" text="⟱">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="В конец списка" />
+                                       </tooltip>
+                                    </Button>
+                                    <Separator prefWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets bottom="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </Separator>
+                                    <Button fx:id="btnFilterConditionAdd" mnemonicParsing="false" onAction="#doFilterConditionAdd" prefHeight="46.0" prefWidth="46.0" text="➕">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="Добавить файл" />
+                                       </tooltip>
+                                    </Button>
+                                    <Button fx:id="btnFilterConditionDelete" mnemonicParsing="false" onAction="#doFilterConditionDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="Удалить файл из проекта" />
+                                       </tooltip>
+                                    </Button>
+                                 </children>
+                              </VBox>
                            </children>
-                        </VBox>
+                        </HBox>
                      </children>
-                  </HBox>
-                  <Button fx:id="btnAddNewFilterCondition" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doAddNewFilterCondition" text="Add" />
-                  <Button fx:id="btnDeleteFilterCondition" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doDeleteFilterCondition" text="Del" />
+                  </VBox>
+                  <TableView fx:id="tblFiles" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="250.0" prefHeight="10000.0" prefWidth="200.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                     <columns>
+                        <TableColumn fx:id="colFileOrder" maxWidth="40.0" prefWidth="40.0" text="#" />
+                        <TableColumn fx:id="colFileName" maxWidth="190.0" prefWidth="190.0" text="Файл" />
+                     </columns>
+                  </TableView>
+                  <Button fx:id="btnFilter" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doFilter" text="&gt;&gt;" />
+                  <TableView fx:id="tblShots" maxHeight="1.7976931348623157E308" maxWidth="440.0" minWidth="440.0" prefHeight="5000.0" prefWidth="440.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                     <columns>
+                        <TableColumn fx:id="colShotFileName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FILE" />
+                        <TableColumn fx:id="colShotFrom" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="FROM" />
+                        <TableColumn fx:id="colShotTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
+                     </columns>
+                  </TableView>
                </children>
-            </VBox>
-            <VBox prefWidth="300.0">
-               <children>
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Groups" />
-                  <HBox prefHeight="10000.0">
-                     <children>
-                        <VBox prefWidth="300.0">
-                           <children>
-                              <TableView fx:id="tblFiltersGroups" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                 <columns>
-                                    <TableColumn fx:id="colFilterGroupName" maxWidth="20.0" minWidth="200.0" prefWidth="200.0" text="Name" />
-                                    <TableColumn fx:id="colFilterGroupIsAnd" maxWidth="20.0" minWidth="30.0" prefWidth="30.0" text="&amp;|" />
-                                 </columns>
-                              </TableView>
-                           </children>
-                        </VBox>
-                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-                           <children>
-                              <Button fx:id="btnAddFilterGroupToFilter" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doAddFilterGroupToFilter" text="&gt;&gt;" />
-                           </children>
-                        </VBox>
-                     </children>
-                  </HBox>
-                  <Button fx:id="btnAddNewFilterGroup" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doAddNewFilterGroup" text="Add" />
-                  <Button fx:id="btnDeleteFilterGroup" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doDeleteFilterGroup" text="Del" />
-                  <HBox prefHeight="100.0" prefWidth="200.0">
-                     <children>
-                        <TextField fx:id="fldFilterGroupName" />
-                        <RadioButton fx:id="rbFilterGroupIsAnd" mnemonicParsing="false" onAction="#doFilterGroupIsAnd" text="AND">
-                           <toggleGroup>
-                              <ToggleGroup fx:id="tgFilterGroup" />
-                           </toggleGroup>
-                        </RadioButton>
-                        <RadioButton fx:id="rbFilterGroupIsOr" mnemonicParsing="false" onAction="#doFilterGroupIsAnd" text="OR" toggleGroup="$tgFilterGroup" />
-                     </children>
-                  </HBox>
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Group conditions" />
-                  <HBox prefHeight="10000.0">
-                     <children>
-                        <VBox prefWidth="300.0">
-                           <children>
-                              <TableView fx:id="tblFiltersGroupsConditions" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                 <columns>
-                                    <TableColumn fx:id="colFilterGroupConditionName" maxWidth="20.0" minWidth="230.0" prefWidth="230.0" text="Name" />
-                                 </columns>
-                              </TableView>
-                           </children>
-                        </VBox>
-                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
-                     </children>
-                  </HBox>
-               </children>
-            </VBox>
-            <VBox prefWidth="300.0">
-               <children>
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Filters" />
-                  <HBox prefHeight="10000.0">
-                     <children>
-                        <VBox prefWidth="300.0">
-                           <children>
-                              <TableView fx:id="tblFilters" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                 <columns>
-                                    <TableColumn fx:id="colFilterName" maxWidth="20.0" minWidth="200.0" prefWidth="200.0" text="Name" />
-                                    <TableColumn fx:id="colFilterIsAnd" maxWidth="20.0" minWidth="30.0" prefWidth="30.0" text="&amp;|" />
-                                 </columns>
-                              </TableView>
-                           </children>
-                        </VBox>
-                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
-                     </children>
-                  </HBox>
-                  <Button fx:id="btnAddNewFilter" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doAddNewFilter" text="Add" />
-                  <Button fx:id="btnDeleteFilter" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doDeleteFilter" text="Del" />
-                  <HBox prefHeight="100.0" prefWidth="200.0">
-                     <children>
-                        <TextField fx:id="fldFilterName" />
-                        <RadioButton fx:id="rbFilterIsAnd" mnemonicParsing="false" onAction="#doFilterIsAnd" text="AND">
-                           <toggleGroup>
-                              <ToggleGroup fx:id="tgFilter" />
-                           </toggleGroup>
-                        </RadioButton>
-                        <RadioButton fx:id="rbFilterIsOr" mnemonicParsing="false" onAction="#doFilterIsAnd" text="OR" toggleGroup="$tgFilter" />
-                     </children>
-                  </HBox>
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Filter groups" />
-                  <HBox prefHeight="10000.0">
-                     <children>
-                        <VBox prefWidth="300.0">
-                           <children>
-                              <TableView fx:id="tblFiltersFiltersGroups" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                 <columns>
-                                    <TableColumn fx:id="colFilterFilterGroupName" maxWidth="20.0" minWidth="200.0" prefWidth="200.0" text="Name" />
-                                    <TableColumn fx:id="colFilterFilterGroupIsAnd" maxWidth="20.0" minWidth="30.0" prefWidth="30.0" text="&amp;|" />
-                                 </columns>
-                              </TableView>
-                           </children>
-                        </VBox>
-                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
-                     </children>
-                  </HBox>
-               </children>
-            </VBox>
+            </HBox>
+            <ProgressBar fx:id="pb" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />
+            <Label fx:id="lblPb" maxWidth="1.7976931348623157E308" text="Label" />
          </children>
-      </HBox>
+      </VBox>
    </children>
 </AnchorPane>

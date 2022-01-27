@@ -1,7 +1,6 @@
 package com.svoemesto.ivfx.repos
 
 import com.svoemesto.ivfx.models.Filter
-import com.svoemesto.ivfx.modelsext.FilterExt
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
@@ -10,6 +9,11 @@ import org.springframework.transaction.annotation.Transactional
 
 @Component
 interface FilterRepo : CrudRepository<Filter, Long> {
+    fun findByProjectIdAndOrderGreaterThanOrderByOrder(projectId: Long, order: Int) : Iterable<Filter>
+    fun findByProjectIdAndOrderLessThanOrderByOrderDesc(projectId: Long, order: Int): Iterable<Filter>
+
+    @Query(value = "SELECT * FROM tbl_filters WHERE project_id = ? ORDER BY order_filter DESC LIMIT 1", nativeQuery = true)
+    fun getEntityWithGreaterOrder(projectId:Long) : Iterable<Filter>
 
     @Transactional
     @Modifying

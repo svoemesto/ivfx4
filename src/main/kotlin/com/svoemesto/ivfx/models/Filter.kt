@@ -1,7 +1,10 @@
 package com.svoemesto.ivfx.models
 
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import javax.persistence.CascadeType
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -12,13 +15,18 @@ import javax.persistence.JoinColumn
 import javax.persistence.JoinTable
 import javax.persistence.ManyToMany
 import javax.persistence.ManyToOne
+import javax.persistence.OneToMany
 import javax.persistence.Table
 
 @Component
 @Entity
 @Table(name = "tbl_filters")
 @Transactional
-class Filter {
+class Filter: Comparable<Filter> {
+
+    override fun compareTo(other: Filter): Int {
+        return this.order - other.order
+    }
 
     @Id
     @Column(name = "id", nullable = false)
@@ -32,15 +40,14 @@ class Filter {
     @Column(name = "name", columnDefinition = "varchar(255) default ''")
     var name: String = ""
 
+    @Column(name = "order_filter", nullable = false, columnDefinition = "int default 0")
+    var order: Int = 0
+
     @Column(name = "is_and", columnDefinition = "boolean default true")
     var isAnd: Boolean = true
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "tbl_filters_filters_groups",
-        joinColumns = [JoinColumn(name = "filter_id")],
-        inverseJoinColumns = [JoinColumn(name = "filter_group_id")]
-    )
+    @OneToMany(mappedBy = "filter", cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SUBSELECT)
     var filterGroups: MutableSet<FilterGroup> = mutableSetOf()
 
 }
