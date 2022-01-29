@@ -18,4 +18,5 @@ data class ProjectExt(var project: Project) {
     var folderShotsLosslessWithoutAudio: String = ProjectController.getFolderShotsLosslessWithoutAudio(project)
     var folderConcat: String = ProjectController.getFolderConcat(project)
     var folderPersons: String = ProjectController.getFolderPersons(project)
+    var folderFilters: String = ProjectController.getFolderFilters(project)
 }

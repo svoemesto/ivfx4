@@ -4,6 +4,8 @@ import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FilterConditionController
 import com.svoemesto.ivfx.controllers.FilterController
 import com.svoemesto.ivfx.controllers.FilterGroupController
+import com.svoemesto.ivfx.controllers.ShotController
+import com.svoemesto.ivfx.controllers.ShotTmpCdfController
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FilterConditionExt
@@ -11,11 +13,8 @@ import com.svoemesto.ivfx.modelsext.FilterExt
 import com.svoemesto.ivfx.modelsext.FilterGroupExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import com.svoemesto.ivfx.modelsext.ShotExt
-import com.svoemesto.ivfx.threads.loadlists.LoadListEventsExt
 import com.svoemesto.ivfx.threads.loadlists.LoadListFilesExt
-import com.svoemesto.ivfx.threads.loadlists.LoadListFramesExt
-import com.svoemesto.ivfx.threads.loadlists.LoadListScenesExt
-import com.svoemesto.ivfx.threads.loadlists.LoadListShotsExt
+import com.svoemesto.ivfx.threads.projectactions.CreateFilterResult
 import javafx.application.HostServices
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -190,6 +189,10 @@ class FilterEditFXController {
 
     @FXML
     private var colShotTo: TableColumn<ShotExt, String>? = null
+
+
+    @FXML
+    private var btnCreateVideo: Button? = null
 
     // PROGRESS
 
@@ -416,21 +419,6 @@ class FilterEditFXController {
 
     }
 
-    @FXML
-    fun doFilter(event: ActionEvent?) {
-
-        val shotsExt: MutableSet<ShotExt> = mutableSetOf()
-        tblFiles?.selectionModel?.selectedItems?.forEach { fileExt->
-            LoadListFramesExt(fileExt.framesExt, fileExt, pb, lblPb).run()
-            LoadListScenesExt(fileExt.scenesExt, fileExt,  pb, lblPb).run()
-            LoadListEventsExt(fileExt.eventsExt, fileExt,  pb, lblPb).run()
-            LoadListShotsExt(fileExt.shotsExt, fileExt, pb, lblPb).run()
-            shotsExt.addAll(fileExt.shotsExt)
-        }
-
-        tblShots?.items = FXCollections.observableArrayList(tblFilters?.selectionModel?.selectedItem?.shotsExt(shotsExt))
-
-    }
 
 
 
@@ -592,4 +580,47 @@ class FilterEditFXController {
         tblFilters?.selectionModel?.select(currentFilterExt)
     }
 
+    @FXML
+    fun doFilter(event: ActionEvent?) {
+
+
+//        ShotTmpCdfController.deleteAll()
+//        tblFiles?.selectionModel?.selectedItems?.forEach { fileExt ->
+//            Main.shotTmpCdfRepo.addAllByFileId(Main.ccid, fileExt.file.id)
+//        }
+//        val shots = tblFilters?.selectionModel?.selectedItem?.shots()
+//
+//        if (shots != null) {
+//            val shotsExt = ShotController.convertSetShotsToListShotsExt(shots)
+//            tblShots?.items = FXCollections.observableArrayList(shotsExt)
+//        }
+
+
+        ShotTmpCdfController.deleteAll()
+        tblFiles?.selectionModel?.selectedItems?.forEach { fileExt ->
+            Main.shotTmpCdfRepo.addAllByFileId(Main.ccid, fileExt.file.id)
+        }
+
+        val shotsIds = tblFilters?.selectionModel?.selectedItem?.shotsIds()
+
+        if (shotsIds != null) {
+            val shotsExt = ShotController.convertSetShotsIdsToListShotsExt(shotsIds, currentProjectExt!!)
+            tblShots?.items = FXCollections.observableArrayList(shotsExt)
+        }
+
+
+    }
+
+    @FXML
+    fun doCreateVideo(event: ActionEvent?) {
+
+        val shotsExt = tblShots?.items?.toMutableList()
+        val fileExt = tblFiles?.items?.first()
+        val filterExt = currentFilterExt
+
+        if (shotsExt != null && fileExt != null && filterExt != null) {
+            CreateFilterResult(filterExt, currentProjectExt!!, shotsExt, fileExt).run()
+        }
+
+    }
 }

@@ -36,7 +36,7 @@ class FilterConditionController {
 
             val entity = FilterCondition()
             entity.filterGroup = filterGroup
-            val lastEntity = Main.filterGroupRepo.getEntityWithGreaterOrder(filterGroup.id).firstOrNull()
+            val lastEntity = Main.filterConditionRepo.getEntityWithGreaterOrder(filterGroup.id).firstOrNull()
             entity.order = if (lastEntity != null) lastEntity.order + 1 else 1
             entity.name = name
             entity.objectId = objectId

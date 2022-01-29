@@ -1,6 +1,8 @@
 package com.svoemesto.ivfx.modelsext
 
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.FileController
+import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.enums.VideoContainers
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.utils.ConvertToFxImage
@@ -24,14 +26,44 @@ import java.io.File as IOFile
 
 data class ShotExt(
     val shot: Shot,
-    val fileExt: FileExt,
-    var firstFrameExt: FrameExt,
-    var lastFrameExt: FrameExt
+    private var _fileExt: FileExt? = null,
+    private var _firstFrameExt: FrameExt? = null,
+    private var _lastFrameExt: FrameExt? = null
 ): Comparable<ShotExt> {
 
     override fun compareTo(other: ShotExt): Int {
         return (this.shot.file.order - other.shot.file.order) * 1000000 + (this.shot.firstFrameNumber - other.shot.firstFrameNumber)
     }
+
+//    private var _fileExt: FileExt? = null
+//    private var _firstFrameExt: FrameExt? = null
+//    private var _lastFrameExt: FrameExt? = null
+
+    val fileExt: FileExt
+        get() {
+            if (_fileExt == null) {
+                _fileExt = FileExt(shot.file, ProjectExt(shot.file.project))
+            }
+            return _fileExt!!
+        }
+
+    var firstFrameExt: FrameExt
+        get() {
+            if (_firstFrameExt == null) {
+                _firstFrameExt = FrameController.getFrameExt(fileExt, shot.firstFrameNumber)
+            }
+            return _firstFrameExt!!
+        }
+        set(value) {_firstFrameExt = value}
+
+    var lastFrameExt: FrameExt
+        get() {
+            if (_lastFrameExt == null) {
+                _lastFrameExt = FrameController.getFrameExt(fileExt, shot.lastFrameNumber)
+            }
+            return _lastFrameExt!!
+        }
+        set(value) {_lastFrameExt = value}
 
     val start: String get() = convertDurationToString(getDurationByFrameNumber(shot.firstFrameNumber - 1, fileExt.fps))
     val end: String get() = convertDurationToString(getDurationByFrameNumber(shot.lastFrameNumber, fileExt.fps))

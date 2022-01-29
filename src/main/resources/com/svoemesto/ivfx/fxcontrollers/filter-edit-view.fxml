@@ -298,6 +298,11 @@
                         <TableColumn fx:id="colShotTo" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="TO" />
                      </columns>
                   </TableView>
+                  <VBox maxWidth="1.7976931348623157E308">
+                     <children>
+                        <Button fx:id="btnCreateVideo" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doCreateVideo" text="Create Video File" />
+                     </children>
+                  </VBox>
                </children>
             </HBox>
             <ProgressBar fx:id="pb" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />

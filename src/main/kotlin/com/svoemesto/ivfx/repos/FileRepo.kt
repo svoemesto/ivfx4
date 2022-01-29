@@ -27,5 +27,8 @@ interface FileRepo : CrudRepository<File, Long> {
     @Query(value = "DELETE FROM tbl_files WHERE id = ?", nativeQuery = true)
     fun delete(fileId:Long)
 
+    @Query(value = "SELECT distinct tbl_files.* FROM tbl_files inner join tbl_shots on tbl_shots.file_id = tbl_files.id WHERE tbl_shots.id = ?", nativeQuery = true)
+    fun getFileForShotId(shotId: Long): Iterable<File>
+
 
 }

@@ -418,9 +418,9 @@ class ShotsEditFXController {
     var threadOnSelectScene: Thread? = null
     var threadOnSelectEvent: Thread? = null
 
-    val projectPersonExtUndefinded = PersonController.getUndefindedExt(currentFileExt!!.projectExt)
-    val projectPersonExtNonperson = PersonController.getNonpersonExt(currentFileExt!!.projectExt)
-    val projectPersonExtExtras = PersonController.getExtrasExt(currentFileExt!!.projectExt)
+    var projectPersonExtUndefinded: PersonExt? = null
+    var projectPersonExtNonperson: PersonExt? = null
+    var projectPersonExtExtras: PersonExt? = null
 
     fun editShots(fileExt: FileExt, hostServices: HostServices? = null) {
         currentFileExt = fileExt
@@ -484,6 +484,10 @@ class ShotsEditFXController {
 
         mainStage?.title = "Редактор планов. Файл: ${currentFileExt!!.file.name}"
         isWorking = true
+
+        projectPersonExtUndefinded = PersonController.getUndefindedExt(currentFileExt!!.projectExt)
+        projectPersonExtNonperson = PersonController.getNonpersonExt(currentFileExt!!.projectExt)
+        projectPersonExtExtras = PersonController.getExtrasExt(currentFileExt!!.projectExt)
 
         /**
          * LoadListPersonsExtForFile
@@ -1753,7 +1757,7 @@ class ShotsEditFXController {
                 selectedMatrixFaces.forEach { mf->
 
                     if (mf.faceExt!!.personExt.person.personType != PersonType.UNDEFINDED) {
-                        mf.faceExt.personExt = personExtUndefinded
+                        mf.faceExt.personExt = personExtUndefinded!!
                         mf.faceExt.face.person = personExtUndefinded.person
                         mf.faceExt.face.personRecognizedName = if (personExtUndefinded.person.personType == PersonType.UNDEFINDED) "" else personExtUndefinded.person.nameInRecognizer
                         FaceController.save(mf.faceExt.face)
@@ -1785,7 +1789,7 @@ class ShotsEditFXController {
                 selectedMatrixFaces.forEach { mf->
 
                     if (mf.faceExt!!.personExt.person.personType != PersonType.NONPERSON) {
-                        mf.faceExt.personExt = personExtNonperson
+                        mf.faceExt.personExt = personExtNonperson!!
                         mf.faceExt.face.person = personExtNonperson.person
                         mf.faceExt.face.personRecognizedName = if (personExtNonperson.person.personType == PersonType.UNDEFINDED) "" else personExtNonperson.person.nameInRecognizer
                         FaceController.save(mf.faceExt.face)
@@ -1817,7 +1821,7 @@ class ShotsEditFXController {
                 selectedMatrixFaces.forEach { mf->
 
                     if (mf.faceExt!!.personExt.person.personType != PersonType.EXTRAS) {
-                        mf.faceExt.personExt = personExtExtras
+                        mf.faceExt.personExt = personExtExtras!!
                         mf.faceExt.face.person = personExtExtras.person
                         mf.faceExt.face.personRecognizedName = if (personExtExtras.person.personType == PersonType.UNDEFINDED) "" else personExtExtras.person.nameInRecognizer
                         FaceController.save(mf.faceExt.face)

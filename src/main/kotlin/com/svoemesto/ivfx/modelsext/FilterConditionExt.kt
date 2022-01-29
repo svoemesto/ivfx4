@@ -1,5 +1,7 @@
 package com.svoemesto.ivfx.modelsext
 
+import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.models.Event
 import com.svoemesto.ivfx.models.File
@@ -16,6 +18,80 @@ class FilterConditionExt(var filterCondition: FilterCondition): Comparable<Filte
 
     val name: String get() = filterCondition.name
     val order: Int get() = filterCondition.order
+
+    fun shotsIds(): Set<Long> {
+        val setOfShotsIds: Set<Long> = Main.shotRepo.getShotsForShotsTmp(Main.ccid).map { it.id }.toSet()
+        val setOfShotsIdsWithPerson: MutableSet<Long> = mutableSetOf()
+        val shots: MutableSet<Long> = mutableSetOf()
+        when(filterCondition.objectClass) {
+            Person::class.java.simpleName ->
+            {
+                when (filterCondition.subjectClass) {
+                    Shot::class.java.simpleName -> {
+                        setOfShotsIdsWithPerson.addAll(Main.shotRepo.getShotsIdsForShotsTmpAndPerson(Main.ccid, filterCondition.objectId).map { it })
+                    }
+                    Scene::class.java.simpleName -> {
+                        setOfShotsIdsWithPerson.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndPerson(Main.ccid, filterCondition.objectId).map { it })
+                    }
+                    Event::class.java.simpleName -> {
+                        setOfShotsIdsWithPerson.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndPerson(Main.ccid, filterCondition.objectId).map { it })
+                    }
+                    File::class.java.simpleName -> {}
+                }
+
+                if (filterCondition.isIncluded) {
+                    shots.addAll(setOfShotsIdsWithPerson)
+                } else {
+
+//                    shots.addAll(setOfShotsIds.filter { idInSetOfShotsIds -> !setOfShotsIdsWithPerson.contains(idInSetOfShotsIds) })
+                    shots.addAll(setOfShotsIds)
+                    shots.removeAll(setOfShotsIdsWithPerson)
+                }
+            }
+            else -> {}
+        }
+        return shots
+    }
+
+    fun shots(): Set<Shot> {
+        val setOfShots: Set<Shot> = Main.shotRepo.getShotsForShotsTmp(Main.ccid).toSet()
+        val mapOfShots: MutableMap<Long, Shot> = setOfShots.associateBy { it.id }.toMutableMap()
+        val shots: MutableSet<Shot> = mutableSetOf()
+        val shotWithPerson: MutableMap<Long, Shot> = mutableMapOf()
+        when(filterCondition.objectClass) {
+            Person::class.java.simpleName ->
+            {
+                when (filterCondition.subjectClass) {
+                    Shot::class.java.simpleName -> {
+                        shotWithPerson.putAll(Main.shotRepo.getShotsForShotsTmpAndPerson(Main.ccid, filterCondition.objectId).associateBy { it.id }.toMutableMap())
+                    }
+                    Scene::class.java.simpleName -> {
+                        shotWithPerson.putAll(Main.shotRepo.getShotsForScenesTmpAndPerson(Main.ccid, filterCondition.objectId).associateBy { it.id }.toMutableMap())
+                    }
+                    Event::class.java.simpleName -> {
+                        shotWithPerson.putAll(Main.shotRepo.getShotsForEventsTmpAndPerson(Main.ccid, filterCondition.objectId).associateBy { it.id }.toMutableMap())
+                    }
+                    File::class.java.simpleName -> {}
+                }
+
+                if (filterCondition.isIncluded) {
+                    shots.addAll(shotWithPerson.values)
+                } else {
+                    shots.addAll(
+                        mapOfShots.filter {!shotWithPerson.keys.contains(it.key)}.values
+                    )
+                }
+            }
+            else -> {}
+        }
+        val files: MutableSet<File> = mutableSetOf()
+        shots.forEach { shot ->
+            val file = files.firstOrNull { file -> file.shots.map{it.id}.contains(shot.id) }?: FileController.getFileForShotId(shot.id)
+            files.add(file)
+            shot.file = file
+        }
+        return shots
+    }
 
     fun shotsExt(setOfShotsExt: Set<ShotExt>): Set<ShotExt> {
 
