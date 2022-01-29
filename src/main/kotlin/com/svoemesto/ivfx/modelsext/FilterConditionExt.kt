@@ -7,6 +7,7 @@ import com.svoemesto.ivfx.models.Event
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.FilterCondition
 import com.svoemesto.ivfx.models.Person
+import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.models.Scene
 import com.svoemesto.ivfx.models.Shot
 
@@ -21,33 +22,112 @@ class FilterConditionExt(var filterCondition: FilterCondition): Comparable<Filte
 
     fun shotsIds(): Set<Long> {
         val setOfShotsIds: Set<Long> = Main.shotRepo.getShotsForShotsTmp(Main.ccid).map { it.id }.toSet()
-        val setOfShotsIdsWithPerson: MutableSet<Long> = mutableSetOf()
+        val setOfShotsIdsWithObject: MutableSet<Long> = mutableSetOf()
         val shots: MutableSet<Long> = mutableSetOf()
         when(filterCondition.objectClass) {
             Person::class.java.simpleName ->
             {
                 when (filterCondition.subjectClass) {
                     Shot::class.java.simpleName -> {
-                        setOfShotsIdsWithPerson.addAll(Main.shotRepo.getShotsIdsForShotsTmpAndPerson(Main.ccid, filterCondition.objectId).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForShotsTmpAndPerson(Main.ccid, filterCondition.objectId).map { it })
                     }
                     Scene::class.java.simpleName -> {
-                        setOfShotsIdsWithPerson.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndPerson(Main.ccid, filterCondition.objectId).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndPerson(Main.ccid, filterCondition.objectId).map { it })
                     }
                     Event::class.java.simpleName -> {
-                        setOfShotsIdsWithPerson.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndPerson(Main.ccid, filterCondition.objectId).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndPerson(Main.ccid, filterCondition.objectId).map { it })
                     }
                     File::class.java.simpleName -> {}
                 }
 
                 if (filterCondition.isIncluded) {
-                    shots.addAll(setOfShotsIdsWithPerson)
+                    shots.addAll(setOfShotsIdsWithObject)
                 } else {
-
-//                    shots.addAll(setOfShotsIds.filter { idInSetOfShotsIds -> !setOfShotsIdsWithPerson.contains(idInSetOfShotsIds) })
                     shots.addAll(setOfShotsIds)
-                    shots.removeAll(setOfShotsIdsWithPerson)
+                    shots.removeAll(setOfShotsIdsWithObject)
                 }
             }
+
+            "${Person::class.java.simpleName} ${Property::class.java.simpleName}" -> {
+
+                when (filterCondition.subjectClass) {
+                    Shot::class.java.simpleName -> {
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForShotsTmpAndPersonProperty(Main.ccid, filterCondition.objectName).map { it })
+                    }
+                    Scene::class.java.simpleName -> {
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndPersonProperty(Main.ccid, filterCondition.objectName).map { it })
+                    }
+                    Event::class.java.simpleName -> {
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndPersonProperty(Main.ccid, filterCondition.objectName).map { it })
+                    }
+                    File::class.java.simpleName -> {}
+                }
+
+                if (filterCondition.isIncluded) {
+                    shots.addAll(setOfShotsIdsWithObject)
+                } else {
+                    shots.addAll(setOfShotsIds)
+                    shots.removeAll(setOfShotsIdsWithObject)
+                }
+            }
+
+            "${Shot::class.java.simpleName} ${Property::class.java.simpleName}" -> {
+
+                when (filterCondition.subjectClass) {
+                    Shot::class.java.simpleName -> {
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForShotsTmpAndShotProperty(Main.ccid, filterCondition.objectName).map { it })
+                    }
+                    Scene::class.java.simpleName -> {
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndShotProperty(Main.ccid, filterCondition.objectName).map { it })
+                    }
+                    Event::class.java.simpleName -> {
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndShotProperty(Main.ccid, filterCondition.objectName).map { it })
+                    }
+                    File::class.java.simpleName -> {}
+                }
+
+                if (filterCondition.isIncluded) {
+                    shots.addAll(setOfShotsIdsWithObject)
+                } else {
+                    shots.addAll(setOfShotsIds)
+                    shots.removeAll(setOfShotsIdsWithObject)
+                }
+            }
+
+            "${Scene::class.java.simpleName} ${Property::class.java.simpleName}" -> {
+
+                when (filterCondition.subjectClass) {
+                    Scene::class.java.simpleName -> {
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndSceneProperty(Main.ccid, filterCondition.objectName).map { it })
+                    }
+                    File::class.java.simpleName -> {}
+                }
+
+                if (filterCondition.isIncluded) {
+                    shots.addAll(setOfShotsIdsWithObject)
+                } else {
+                    shots.addAll(setOfShotsIds)
+                    shots.removeAll(setOfShotsIdsWithObject)
+                }
+            }
+
+            "${Event::class.java.simpleName} ${Property::class.java.simpleName}" -> {
+
+                when (filterCondition.subjectClass) {
+                    Event::class.java.simpleName -> {
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndEventProperty(Main.ccid, filterCondition.objectName).map { it })
+                    }
+                    File::class.java.simpleName -> {}
+                }
+
+                if (filterCondition.isIncluded) {
+                    shots.addAll(setOfShotsIdsWithObject)
+                } else {
+                    shots.addAll(setOfShotsIds)
+                    shots.removeAll(setOfShotsIdsWithObject)
+                }
+            }
+
             else -> {}
         }
         return shots

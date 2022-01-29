@@ -1,20 +1,33 @@
 package com.svoemesto.ivfx.fxcontrollers
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FilterConditionController
 import com.svoemesto.ivfx.controllers.PersonController
+import com.svoemesto.ivfx.controllers.PropertyController
+import com.svoemesto.ivfx.models.Event
 import com.svoemesto.ivfx.models.Person
 import com.svoemesto.ivfx.models.Property
+import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FilterConditionExt
 import com.svoemesto.ivfx.modelsext.FilterGroupExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
+import javafx.collections.FXCollections
 import javafx.event.ActionEvent
+import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
+import javafx.geometry.Bounds
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.control.Alert
 import javafx.scene.control.Button
+import javafx.scene.control.ButtonType
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
+import javafx.scene.control.Menu
+import javafx.scene.control.MenuItem
 import javafx.scene.control.RadioButton
+import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.ToggleGroup
 import javafx.stage.Modality
 import javafx.stage.Stage
@@ -33,7 +46,16 @@ class FilterConditionCreateFXController {
     private var tgObject: ToggleGroup? = null
 
     @FXML
-    private var rbTag: RadioButton? = null
+    private var rbPersonProperty: RadioButton? = null
+
+    @FXML
+    private var rbShotProperty: RadioButton? = null
+
+    @FXML
+    private var rbSceneProperty: RadioButton? = null
+
+    @FXML
+    private var rbEventProperty: RadioButton? = null
 
     @FXML
     private var btnSelectObject: Button? = null
@@ -147,6 +169,32 @@ class FilterConditionCreateFXController {
     fun doChangeObjectClass(event: ActionEvent?) {
         currentObjectId = null
         currentObjectName = "???"
+
+        rbShot?.isDisable = (rbSceneProperty!!.isSelected || rbEventProperty!!.isSelected)
+        rbScene?.isDisable = rbEventProperty!!.isSelected
+        rbEvent?.isDisable = rbSceneProperty!!.isSelected
+
+        btnSelectObject?.text =
+            if (rbPerson!!.isSelected) "Select Person"
+            else if((rbPersonProperty!!.isSelected)) "Select Person property"
+            else if((rbShotProperty!!.isSelected)) "Select Shot property"
+            else if((rbSceneProperty!!.isSelected)) "Select Scene property"
+            else "Select Event property"
+
+        if (rbPerson!!.isSelected) {
+            btnSelectObject?.text = "Select Person"
+        } else if (rbPersonProperty!!.isSelected) {
+            btnSelectObject?.text = "Select Person property"
+        } else if (rbShotProperty!!.isSelected) {
+            btnSelectObject?.text = "Select Shot property"
+        } else if (rbSceneProperty!!.isSelected) {
+            btnSelectObject?.text = "Select Scene property"
+            rbScene?.isSelected = true
+        } else {
+            btnSelectObject?.text = "Select Event property"
+            rbEvent?.isSelected = true
+        }
+
         updateNameLabel()
     }
 
@@ -163,7 +211,13 @@ class FilterConditionCreateFXController {
                     currentFilterGroupExt!!.filterGroup,
                     getCurrentName(),
                     currentObjectId!!,
-                    if (rbPerson!!.isSelected) Person::class.java.simpleName else Property::class.java.simpleName,
+                    currentObjectName,
+                    if (rbPerson!!.isSelected) Person::class.java.simpleName
+                    else if (rbPersonProperty!!.isSelected) "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
+                    else if (rbShotProperty!!.isSelected) "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
+                    else if (rbSceneProperty!!.isSelected) "${com.svoemesto.ivfx.models.Scene::class.java.simpleName} ${Property::class.java.simpleName}"
+                    else "${Event::class.java.simpleName} ${Property::class.java.simpleName}"
+                    ,
                     when(true) {
                         rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
                         rbScene!!.isSelected -> com.svoemesto.ivfx.models.Scene::class.java.simpleName
@@ -175,7 +229,13 @@ class FilterConditionCreateFXController {
             } else {
                 currentFilterConditionExt!!.filterCondition.name = getCurrentName()
                 currentFilterConditionExt!!.filterCondition.objectId = currentObjectId!!
-                currentFilterConditionExt!!.filterCondition.objectClass = if (rbPerson!!.isSelected) Person::class.java.simpleName else Property::class.java.simpleName
+                currentFilterConditionExt!!.filterCondition.objectName = currentObjectName
+                currentFilterConditionExt!!.filterCondition.objectClass =
+                    if (rbPerson!!.isSelected) Person::class.java.simpleName
+                    else if (rbPersonProperty!!.isSelected) "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
+                    else if (rbShotProperty!!.isSelected) "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
+                    else if (rbSceneProperty!!.isSelected) "${com.svoemesto.ivfx.models.Scene::class.java.simpleName} ${Property::class.java.simpleName}"
+                    else "${Event::class.java.simpleName} ${Property::class.java.simpleName}"
                 currentFilterConditionExt!!.filterCondition.subjectClass =
                     when(true) {
                         rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
@@ -194,7 +254,12 @@ class FilterConditionCreateFXController {
     }
 
     private fun getCurrentName() : String {
-        val objectClass = if (rbPerson!!.isSelected) Person::class.java.simpleName else Property::class.java.simpleName
+        val objectClass =
+            if (rbPerson!!.isSelected) Person::class.java.simpleName
+            else if(rbPersonProperty!!.isSelected) "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
+            else if(rbShotProperty!!.isSelected) "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
+            else if(rbSceneProperty!!.isSelected) "${com.svoemesto.ivfx.models.Scene::class.java.simpleName} ${Property::class.java.simpleName}"
+            else "${Event::class.java.simpleName} ${Property::class.java.simpleName}"
         val subjectClass = when(true) {
             rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
             rbScene!!.isSelected -> com.svoemesto.ivfx.models.Scene::class.java.simpleName
@@ -217,10 +282,105 @@ class FilterConditionCreateFXController {
             if (selectedPerson != null) {
                 currentObjectId = selectedPerson.person.id
                 currentObjectName = selectedPerson.person.name
+                updateNameLabel()
             }
-        } else {
+        } else if (rbPersonProperty!!.isSelected) {
+
+            val menu = ContextMenu()
+            var menuItem: MenuItem
+
+            val listKeys = Main.propertyRepo.getKeys(Person::class.java.simpleName)
+            listKeys.forEach { key ->
+
+                menuItem = MenuItem()
+                menuItem.isMnemonicParsing = false
+                menuItem.text = key
+                menuItem.onAction = EventHandler { e: ActionEvent? ->
+                    currentObjectId = 0
+                    currentObjectName = key
+                    updateNameLabel()
+                }
+                menu.items.add(menuItem)
+
+            }
+
+            btnSelectObject?.contextMenu = menu
+            val screenBounds: Bounds = btnSelectObject!!.localToScreen(btnSelectObject!!.boundsInLocal)
+            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
+
+        } else if (rbShotProperty!!.isSelected) {
+
+            val menu = ContextMenu()
+            var menuItem: MenuItem
+
+            val listKeys = Main.propertyRepo.getKeys(Shot::class.java.simpleName)
+            listKeys.forEach { key ->
+
+                menuItem = MenuItem()
+                menuItem.isMnemonicParsing = false
+                menuItem.text = key
+                menuItem.onAction = EventHandler { e: ActionEvent? ->
+                    currentObjectId = 0
+                    currentObjectName = key
+                    updateNameLabel()
+                }
+                menu.items.add(menuItem)
+
+            }
+
+            btnSelectObject?.contextMenu = menu
+            val screenBounds: Bounds = btnSelectObject!!.localToScreen(btnSelectObject!!.boundsInLocal)
+            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
+
+        } else if (rbSceneProperty!!.isSelected) {
+
+            val menu = ContextMenu()
+            var menuItem: MenuItem
+
+            val listKeys = Main.propertyRepo.getKeys(com.svoemesto.ivfx.models.Scene::class.java.simpleName)
+            listKeys.forEach { key ->
+
+                menuItem = MenuItem()
+                menuItem.isMnemonicParsing = false
+                menuItem.text = key
+                menuItem.onAction = EventHandler { e: ActionEvent? ->
+                    currentObjectId = 0
+                    currentObjectName = key
+                    updateNameLabel()
+                }
+                menu.items.add(menuItem)
+
+            }
+
+            btnSelectObject?.contextMenu = menu
+            val screenBounds: Bounds = btnSelectObject!!.localToScreen(btnSelectObject!!.boundsInLocal)
+            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
+
+        } else if (rbEventProperty!!.isSelected) {
+
+            val menu = ContextMenu()
+            var menuItem: MenuItem
+
+            val listKeys = Main.propertyRepo.getKeys(Event::class.java.simpleName)
+            listKeys.forEach { key ->
+
+                menuItem = MenuItem()
+                menuItem.isMnemonicParsing = false
+                menuItem.text = key
+                menuItem.onAction = EventHandler { e: ActionEvent? ->
+                    currentObjectId = 0
+                    currentObjectName = key
+                    updateNameLabel()
+                }
+                menu.items.add(menuItem)
+
+            }
+
+            btnSelectObject?.contextMenu = menu
+            val screenBounds: Bounds = btnSelectObject!!.localToScreen(btnSelectObject!!.boundsInLocal)
+            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
 
         }
-        updateNameLabel()
+
     }
 }
