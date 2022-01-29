@@ -48,7 +48,6 @@ class EventController() {
         fun delete(event: Event) {
             PropertyController.deleteAll(event::class.java.simpleName, event.id)
             PropertyCdfController.deleteAll(event::class.java.simpleName, event.id)
-            TagController.deleteAll(event::class.java.simpleName, event.id)
             Main.eventRepo.delete(event)
         }
 
@@ -56,7 +55,6 @@ class EventController() {
             getSetEvents(file).forEach { event ->
                 PropertyController.deleteAll(event::class.java.simpleName, event.id)
                 PropertyCdfController.deleteAll(event::class.java.simpleName, event.id)
-                TagController.deleteAll(event::class.java.simpleName, event.id)
             }
             Main.eventRepo.deleteAll(file.id)
         }

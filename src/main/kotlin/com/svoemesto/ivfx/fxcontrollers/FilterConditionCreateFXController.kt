@@ -2,9 +2,8 @@ package com.svoemesto.ivfx.fxcontrollers
 
 import com.svoemesto.ivfx.controllers.FilterConditionController
 import com.svoemesto.ivfx.controllers.PersonController
-import com.svoemesto.ivfx.controllers.TagController
 import com.svoemesto.ivfx.models.Person
-import com.svoemesto.ivfx.models.Tag
+import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.modelsext.FilterConditionExt
 import com.svoemesto.ivfx.modelsext.FilterGroupExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
@@ -124,10 +123,6 @@ class FilterConditionCreateFXController {
                     rbPerson!!.isSelected = true
                     currentObjectName = PersonController.getById(currentObjectId!!).name
                 }
-                Tag::class.java.simpleName -> {
-                    rbTag!!.isSelected = true
-                    currentObjectName = TagController.getById(currentObjectId!!).name
-                }
             }
             currentFilterConditionExt = initFilterConditionExt
             lblHeader!!.text = "Edit filter condition"
@@ -168,7 +163,7 @@ class FilterConditionCreateFXController {
                     currentFilterGroupExt!!.filterGroup,
                     getCurrentName(),
                     currentObjectId!!,
-                    if (rbPerson!!.isSelected) Person::class.java.simpleName else Tag::class.java.simpleName,
+                    if (rbPerson!!.isSelected) Person::class.java.simpleName else Property::class.java.simpleName,
                     when(true) {
                         rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
                         rbScene!!.isSelected -> com.svoemesto.ivfx.models.Scene::class.java.simpleName
@@ -180,7 +175,7 @@ class FilterConditionCreateFXController {
             } else {
                 currentFilterConditionExt!!.filterCondition.name = getCurrentName()
                 currentFilterConditionExt!!.filterCondition.objectId = currentObjectId!!
-                currentFilterConditionExt!!.filterCondition.objectClass = if (rbPerson!!.isSelected) Person::class.java.simpleName else Tag::class.java.simpleName
+                currentFilterConditionExt!!.filterCondition.objectClass = if (rbPerson!!.isSelected) Person::class.java.simpleName else Property::class.java.simpleName
                 currentFilterConditionExt!!.filterCondition.subjectClass =
                     when(true) {
                         rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
@@ -199,7 +194,7 @@ class FilterConditionCreateFXController {
     }
 
     private fun getCurrentName() : String {
-        val objectClass = if (rbPerson!!.isSelected) Person::class.java.simpleName else Tag::class.java.simpleName
+        val objectClass = if (rbPerson!!.isSelected) Person::class.java.simpleName else Property::class.java.simpleName
         val subjectClass = when(true) {
             rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
             rbScene!!.isSelected -> com.svoemesto.ivfx.models.Scene::class.java.simpleName
