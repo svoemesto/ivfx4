@@ -14,5 +14,6 @@ enum class Folders(val propertyCdfKey: String, val folderName: String, val forPr
     SHOTS_COMPRESSED_WITH_AUDIO("folder_shots_compressed_with_audio", "Shots", true, true),
     SHOTS_LOSSLESS_WITH_AUDIO("folder_shots_lossless_with_audio", "Shots_LL_audioYES", true, true),
     SHOTS_LOSSLESS_WITHOUT_AUDIO("folder_shots_lossless_without_audio", "Shots_LL_audioNO", true, true),
-    CONCAT("folder_concat", "Concat", true, true)
+    CONCAT("folder_concat", "Concat", true, true),
+    FILTERS("folder_filters", "Filters", true, false)
 }

@@ -56,6 +56,11 @@ class ProjectController() {
             return if (value == "") project.folder + IOFile.separator + Folders.PERSONS.folderName else value
         }
 
+        fun getFolderFilters(project: Project): String{
+            val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.FILTERS.propertyCdfKey)
+            return if (value == "") project.folder + IOFile.separator + Folders.FILTERS.folderName else value
+        }
+
         fun getFolderLossless(project: Project): String{
             val value = PropertyCdfController.getOrCreate(project::class.java.simpleName, project.id, Folders.LOSSLESS.propertyCdfKey)
             return if (value == "") project.folder + IOFile.separator + Folders.LOSSLESS.folderName else value
@@ -230,6 +235,15 @@ class ProjectController() {
         fun getProjectExt(projectId: Long): ProjectExt {
             val project = getProject(projectId)
             return ProjectExt(project)
+        }
+
+        fun getProjectForFileId(fileId: Long): Project {
+            val project = Main.projectRepo.getProjectForFileId(fileId).first()
+            project.cdfs = mutableSetOf()
+            project.cdfs.add(ProjectCdfController.getProjectCdf(project))
+            project.files = FileController.getSetFiles(project)
+            project.persons = PersonController.getSetPersons(project)
+            return project
         }
 
     }

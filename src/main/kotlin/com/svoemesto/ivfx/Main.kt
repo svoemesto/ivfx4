@@ -15,6 +15,8 @@ import com.svoemesto.ivfx.repos.PropertyCdfRepo
 import com.svoemesto.ivfx.repos.PropertyRepo
 import com.svoemesto.ivfx.repos.SceneRepo
 import com.svoemesto.ivfx.repos.ShotRepo
+import com.svoemesto.ivfx.repos.ShotTmp2CdfRepo
+import com.svoemesto.ivfx.repos.ShotTmpCdfRepo
 import com.svoemesto.ivfx.repos.TagRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -44,6 +46,8 @@ class Main {
         val filterRepo = context.getBean("filterRepo", FilterRepo::class.java)
         val filterGroupRepo = context.getBean("filterGroupRepo", FilterGroupRepo::class.java)
         val filterConditionRepo = context.getBean("filterConditionRepo", FilterConditionRepo::class.java)
+        val shotTmpCdfRepo = context.getBean("shotTmpCdfRepo", ShotTmpCdfRepo::class.java)
+        val shotTmp2CdfRepo = context.getBean("shotTmp2CdfRepo", ShotTmp2CdfRepo::class.java)
 
         const val FULL_FRAME_W = 1920.0
         const val FULL_FRAME_H = 1080.0

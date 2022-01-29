@@ -386,6 +386,7 @@ class FileController() {
             file.cdfs = mutableSetOf()
             file.cdfs.add(cdf)
             file.tracks = TrackController.getSetTracks(file)
+            file.shots = ShotController.getSetShots(file)
             return file
         }
 
@@ -404,6 +405,17 @@ class FileController() {
                 result.add(rsFaces.getInt("frame_number"))
             }
             return result
+        }
+
+        fun getFileForShotId(shotId: Long): File {
+            val file = Main.fileRepo.getFileForShotId(shotId).first()
+            file.project = ProjectController.getProjectForFileId(file.id)
+            val cdf = FileCdfController.getFileCdf(file)
+            file.cdfs = mutableSetOf()
+            file.cdfs.add(cdf)
+            file.tracks = TrackController.getSetTracks(file)
+            file.shots = ShotController.getSetShots(file)
+            return file
         }
 
     }

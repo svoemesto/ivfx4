@@ -553,9 +553,15 @@ class ProjectEditFXController {
 
         var listThreads: MutableList<Thread> = mutableListOf()
         listThreads.add(LoadListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles))
-        val updateList = UpdateListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles)
-        updateList.isDaemon = false
-        listThreads.add(updateList)
+
+
+//        val updateList = UpdateListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles)
+//        updateList.isDaemon = false
+//        listThreads.add(updateList)
+
+
+
+
 //        listThreads.add(UpdateListFilesExt(listFilesExt, currentProjectExt!!, pbFiles, lblPbFiles))
         val runListThreadsFilesFlagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)
         val runListThreadsFramesFlagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false)

@@ -2,9 +2,11 @@ package com.svoemesto.ivfx.controllers
 
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.File
-import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.models.Shot
+import com.svoemesto.ivfx.modelsext.FileExt
+import com.svoemesto.ivfx.modelsext.ProjectExt
+import com.svoemesto.ivfx.modelsext.ShotExt
 import org.springframework.stereotype.Controller
 
 @Controller
@@ -71,6 +73,49 @@ class ShotController() {
                 entity.file = file
             }
             return entity
+        }
+
+
+        fun convertSetShotsToListShotsExt(shots: Set<Shot>): MutableList<ShotExt> {
+            val projectsExt: MutableSet<ProjectExt> = mutableSetOf()
+            val filesExt: MutableSet<FileExt> = mutableSetOf()
+            val result = shots.map { shot->
+                val projectExt = projectsExt.firstOrNull{it.project.id == shot.file.project.id}?: ProjectExt(shot.file.project)
+                val fileExt = filesExt.firstOrNull{ it.file.id == shot.file.id }?: FileExt(shot.file, projectExt)
+                projectsExt.add(projectExt)
+                filesExt.add(fileExt)
+                ShotExt(shot,fileExt, FrameController.getFrameExt(fileExt, shot.firstFrameNumber), FrameController.getFrameExt(fileExt, shot.lastFrameNumber))
+            }.toMutableList()
+            result.sort()
+            return result
+        }
+
+        fun convertSetShotsIdsToListShotsExt(shotsIds: Set<Long>, projectExt: ProjectExt): MutableList<ShotExt> {
+//            val projectsExt: MutableSet<ProjectExt> = mutableSetOf()
+            val filesExt: MutableSet<FileExt> = mutableSetOf()
+            Main.shotTmp2CdfRepo.deleteAll(Main.ccid)
+//            shotsIds.forEach { Main.shotTmp2CdfRepo.addByShotId(Main.ccid, it) }
+            Main.shotTmp2CdfRepo.addByShotIds(Main.ccid, shotsIds)
+            val shotTmp2Cdfs = Main.shotTmp2CdfRepo.findByComputerId(Main.ccid)
+
+            val tmp = Main.shotRepo.findByIds(shotsIds)
+
+            val shots = tmp.associateBy { it.id }.toMutableMap()
+
+            val result = shotTmp2Cdfs.map { shotTmp2Cdf ->
+//                val shot = Main.shotRepo.findById(shotTmp2Cdf.shotId).get()
+                val shot = shots[shotTmp2Cdf.shotId]!!
+//                val projectExt = projectsExt.firstOrNull{it.project.id == shotTmp2Cdf.projectId}?: ProjectExt(ProjectController.getProject(shotTmp2Cdf.projectId))
+                val fileExt = filesExt.firstOrNull{ it.file.id == shotTmp2Cdf.fileId }?: FileExt(FileController.getFile(shotTmp2Cdf.fileId, projectExt.project), projectExt)
+//                projectsExt.add(projectExt)
+                filesExt.add(fileExt)
+                shot.file = fileExt.file
+//                shot.file.project = projectExt.project
+                ShotExt(shot,fileExt) //, FrameController.getFrameExt(fileExt, shot.firstFrameNumber), FrameController.getFrameExt(fileExt, shot.lastFrameNumber))
+            }.toMutableList()
+            result.sort()
+            return result
+
         }
 
     }
