@@ -5,7 +5,6 @@ import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.Property
-import com.svoemesto.ivfx.models.Tag
 import com.svoemesto.ivfx.modelsext.PersonExt
 import javafx.application.HostServices
 import javafx.collections.FXCollections
@@ -77,12 +76,6 @@ class PersonEditFXController {
 
     @FXML
     private var fldPropertyValue: TextArea? = null
-
-    @FXML
-    private var tblTags: TableView<Tag>? = null
-
-    @FXML
-    private var colTagName: TableColumn<Tag, String>? = null
 
     @FXML
     private var btnTagAdd: Button? = null

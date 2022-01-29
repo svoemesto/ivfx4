@@ -47,7 +47,6 @@ class SceneController() {
         fun delete(scene: Scene) {
             PropertyController.deleteAll(scene::class.java.simpleName, scene.id)
             PropertyCdfController.deleteAll(scene::class.java.simpleName, scene.id)
-            TagController.deleteAll(scene::class.java.simpleName, scene.id)
             Main.sceneRepo.delete(scene)
         }
 
@@ -55,7 +54,6 @@ class SceneController() {
             getSetScenes(file).forEach { scene ->
                 PropertyController.deleteAll(scene::class.java.simpleName, scene.id)
                 PropertyCdfController.deleteAll(scene::class.java.simpleName, scene.id)
-                TagController.deleteAll(scene::class.java.simpleName, scene.id)
             }
             Main.sceneRepo.deleteAll(file.id)
         }
