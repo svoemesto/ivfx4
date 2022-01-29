@@ -7,10 +7,13 @@ import com.svoemesto.ivfx.controllers.EventController
 import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.controllers.PersonController
+import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.controllers.SceneController
 import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.enums.PersonType
+import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.enums.ShotTypePerson
+import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.modelsext.EventExt
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -48,7 +51,9 @@ import javafx.geometry.Bounds
 import javafx.geometry.Pos
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.control.Alert
 import javafx.scene.control.Button
+import javafx.scene.control.ButtonType
 import javafx.scene.control.CheckBox
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
@@ -57,10 +62,13 @@ import javafx.scene.control.ProgressBar
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.RadioButton
 import javafx.scene.control.SelectionMode
+import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.Skin
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
+import javafx.scene.control.TextArea
+import javafx.scene.control.TextField
 import javafx.scene.control.TextInputDialog
 import javafx.scene.control.ToggleGroup
 import javafx.scene.control.cell.PropertyValueFactory
@@ -160,6 +168,40 @@ class ShotsEditFXController {
     @FXML
     private var btnOK: Button? = null
 
+    // SHOT PROPERTIES
+
+    @FXML
+    private var tblShotProperties: TableView<Property>? = null
+
+    @FXML
+    private var colShotPropertyKey: TableColumn<Property, String>? = null
+
+    @FXML
+    private var colShotPropertyValue: TableColumn<Property, String>? = null
+
+    @FXML
+    private var btnShotPropertyMoveToFirst: Button? = null
+
+    @FXML
+    private var btnShotPropertyMoveUp: Button? = null
+
+    @FXML
+    private var btnShotPropertyMoveDown: Button? = null
+
+    @FXML
+    private var btnShotPropertyMoveToLast: Button? = null
+
+    @FXML
+    private var btnShotPropertyAdd: Button? = null
+
+    @FXML
+    private var btnShotPropertyDelete: Button? = null
+
+    @FXML
+    private var fldShotPropertyKey: TextField? = null
+
+    @FXML
+    private var fldShotPropertyValue: TextArea? = null
 
     // FRAMES
 
@@ -252,8 +294,42 @@ class ShotsEditFXController {
     @FXML
     private var pbPersonsForScenes: ProgressBar? = null
 
+    // SCENE PROPERTIES
 
-    // SCENES
+    @FXML
+    private var tblSceneProperties: TableView<Property>? = null
+
+    @FXML
+    private var colScenePropertyKey: TableColumn<Property, String>? = null
+
+    @FXML
+    private var colScenePropertyValue: TableColumn<Property, String>? = null
+
+    @FXML
+    private var btnScenePropertyMoveToFirst: Button? = null
+
+    @FXML
+    private var btnScenePropertyMoveUp: Button? = null
+
+    @FXML
+    private var btnScenePropertyMoveDown: Button? = null
+
+    @FXML
+    private var btnScenePropertyMoveToLast: Button? = null
+
+    @FXML
+    private var btnScenePropertyAdd: Button? = null
+
+    @FXML
+    private var btnScenePropertyDelete: Button? = null
+
+    @FXML
+    private var fldScenePropertyKey: TextField? = null
+
+    @FXML
+    private var fldScenePropertyValue: TextArea? = null
+
+    // EVENTS
 
     @FXML
     private var tblEvents: TableView<EventExt>? = null
@@ -296,7 +372,43 @@ class ShotsEditFXController {
 
     @FXML
     private var pbPersonsForEvents: ProgressBar? = null
-    
+
+    // EVENT PROPERTIES
+
+    @FXML
+    private var tblEventProperties: TableView<Property>? = null
+
+    @FXML
+    private var colEventPropertyKey: TableColumn<Property, String>? = null
+
+    @FXML
+    private var colEventPropertyValue: TableColumn<Property, String>? = null
+
+    @FXML
+    private var btnEventPropertyMoveToFirst: Button? = null
+
+    @FXML
+    private var btnEventPropertyMoveUp: Button? = null
+
+    @FXML
+    private var btnEventPropertyMoveDown: Button? = null
+
+    @FXML
+    private var btnEventPropertyMoveToLast: Button? = null
+
+    @FXML
+    private var btnEventPropertyAdd: Button? = null
+
+    @FXML
+    private var btnEventPropertyDelete: Button? = null
+
+    @FXML
+    private var fldEventPropertyKey: TextField? = null
+
+    @FXML
+    private var fldEventPropertyValue: TextArea? = null
+
+
     // FOOTER
 
     @FXML
@@ -383,6 +495,8 @@ class ShotsEditFXController {
     private var currentMatrixFrame: MatrixFrame? = null
     private var currentMatrixFace: MatrixFace? = null
     private var currentShotExt: ShotExt? = null
+    private var currentSceneExt: SceneExt? = null
+    private var currentEventExt: EventExt? = null
     private var currentSelectedScenesExt: MutableList<SceneExt> = mutableListOf()
     private var currentSelectedEventsExt: MutableList<EventExt> = mutableListOf()
     private var currentShotExtForScene: ShotExt? = null
@@ -422,6 +536,13 @@ class ShotsEditFXController {
     var projectPersonExtNonperson: PersonExt? = null
     var projectPersonExtExtras: PersonExt? = null
 
+    private var currentShotProperty: Property? = null
+    private var listShotProperties: ObservableList<Property> = FXCollections.observableArrayList()
+    private var currentSceneProperty: Property? = null
+    private var listSceneProperties: ObservableList<Property> = FXCollections.observableArrayList()
+    private var currentEventProperty: Property? = null
+    private var listEventProperties: ObservableList<Property> = FXCollections.observableArrayList()
+    
     fun editShots(fileExt: FileExt, hostServices: HostServices? = null) {
         currentFileExt = fileExt
         mainStage = Stage()
@@ -482,6 +603,45 @@ class ShotsEditFXController {
         sbpNeedCreatePagesWasChanged.value = false
         lastClickedMatrixFace = null
 
+        btnShotPropertyMoveToFirst?.isDisable = currentShotProperty == null
+        btnShotPropertyMoveUp?.isDisable = currentShotProperty == null
+        btnShotPropertyMoveToLast?.isDisable = currentShotProperty == null
+        btnShotPropertyMoveDown?.isDisable = currentShotProperty == null
+        btnShotPropertyDelete?.isDisable = currentShotProperty == null
+        fldShotPropertyKey?.isDisable = currentShotProperty == null
+        fldShotPropertyValue?.isDisable = currentShotProperty == null
+        fldShotPropertyKey?.text = ""
+        fldShotPropertyValue?.text = ""
+
+        btnScenePropertyMoveToFirst?.isDisable = currentSceneProperty == null
+        btnScenePropertyMoveUp?.isDisable = currentSceneProperty == null
+        btnScenePropertyMoveToLast?.isDisable = currentSceneProperty == null
+        btnScenePropertyMoveDown?.isDisable = currentSceneProperty == null
+        btnScenePropertyDelete?.isDisable = currentSceneProperty == null
+        fldScenePropertyKey?.isDisable = currentSceneProperty == null
+        fldScenePropertyValue?.isDisable = currentSceneProperty == null
+        fldScenePropertyKey?.text = ""
+        fldScenePropertyValue?.text = ""
+
+        btnEventPropertyMoveToFirst?.isDisable = currentEventProperty == null
+        btnEventPropertyMoveUp?.isDisable = currentEventProperty == null
+        btnEventPropertyMoveToLast?.isDisable = currentEventProperty == null
+        btnEventPropertyMoveDown?.isDisable = currentEventProperty == null
+        btnEventPropertyDelete?.isDisable = currentEventProperty == null
+        fldEventPropertyKey?.isDisable = currentEventProperty == null
+        fldEventPropertyValue?.isDisable = currentEventProperty == null
+        fldEventPropertyKey?.text = ""
+        fldEventPropertyValue?.text = ""
+
+        colShotPropertyKey?.cellValueFactory = PropertyValueFactory("key")
+        colShotPropertyValue?.cellValueFactory = PropertyValueFactory("value")
+
+        colScenePropertyKey?.cellValueFactory = PropertyValueFactory("key")
+        colScenePropertyValue?.cellValueFactory = PropertyValueFactory("value")
+
+        colEventPropertyKey?.cellValueFactory = PropertyValueFactory("key")
+        colEventPropertyValue?.cellValueFactory = PropertyValueFactory("value")
+        
         mainStage?.title = "Редактор планов. Файл: ${currentFileExt!!.file.name}"
         isWorking = true
 
@@ -689,14 +849,30 @@ class ShotsEditFXController {
 
         // selectedItemProperty
         tblShots!!.selectionModel.selectedItemProperty()
-            .addListener { v: ObservableValue<out ShotExt?>?, oldValue: ShotExt?, newValue: ShotExt? ->
+            .addListener { _, _, newValue: ShotExt? ->
                 if (newValue != null) {
                     Thread {
                         Platform.runLater{ tblPersonsAllForShot?.placeholder = ProgressIndicator(-1.0) }
                         currentShotExt = newValue
+                        
                         listPersonsExtForShot = FXCollections.observableList(currentShotExt!!.personsExt.filter { it.person.personType != PersonType.NONPERSON })
                         tblPersonsAllForShot!!.items = listPersonsExtForShot
                         Platform.runLater{tblPersonsAllForShot?.placeholder = Label("Shot not selected or don't have any persons.") }
+                        
+                        listShotProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id))
+                        tblShotProperties?.items = listShotProperties
+                        Platform.runLater{tblShotProperties?.placeholder = Label("Shot not selected or don't have any properties.") }
+
+                        btnShotPropertyMoveToFirst?.isDisable = currentShotProperty == null
+                        btnShotPropertyMoveUp?.isDisable = currentShotProperty == null
+                        btnShotPropertyMoveToLast?.isDisable = currentShotProperty == null
+                        btnShotPropertyMoveDown?.isDisable = currentShotProperty == null
+                        btnShotPropertyDelete?.isDisable = currentShotProperty == null
+                        fldShotPropertyKey?.isDisable = currentShotProperty == null
+                        fldShotPropertyValue?.isDisable = currentShotProperty == null
+                        fldShotPropertyKey?.text = ""
+                        fldShotPropertyValue?.text = ""
+                        
                         if (wasClickTableShots) {
                             wasClickTableShots = false
                             goToFrame(getMatrixFrameByFrameExt(newValue.firstFrameExt))
@@ -768,8 +944,25 @@ class ShotsEditFXController {
 
         // selectedItemProperty
         tblScenes!!.selectionModel.selectedItemProperty()
-            .addListener { _, _, _ ->
+            .addListener { _, _, newValue: SceneExt? ->
 
+                if (newValue != null) {
+                    currentSceneExt = newValue
+                    listSceneProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id))
+                    tblSceneProperties?.items = listSceneProperties
+                    Platform.runLater{tblSceneProperties?.placeholder = Label("Scene not selected or don't have any properties.") }
+                }
+
+                btnScenePropertyMoveToFirst?.isDisable = currentSceneProperty == null
+                btnScenePropertyMoveUp?.isDisable = currentSceneProperty == null
+                btnScenePropertyMoveToLast?.isDisable = currentSceneProperty == null
+                btnScenePropertyMoveDown?.isDisable = currentSceneProperty == null
+                btnScenePropertyDelete?.isDisable = currentSceneProperty == null
+                fldScenePropertyKey?.isDisable = currentSceneProperty == null
+                fldScenePropertyValue?.isDisable = currentSceneProperty == null
+                fldScenePropertyKey?.text = ""
+                fldScenePropertyValue?.text = ""
+                
                 if (threadOnSelectScene!=null && threadOnSelectScene!!.isAlive) {
                     threadOnSelectScene!!.interrupt()
                     while (threadOnSelectScene!!.isAlive){
@@ -922,8 +1115,25 @@ class ShotsEditFXController {
 
         // selectedItemProperty
         tblEvents!!.selectionModel.selectedItemProperty()
-            .addListener { _, _, _ ->
+            .addListener { _, _, newValue: EventExt? ->
 
+                if (newValue != null) {
+                    currentEventExt = newValue
+                    listEventProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id))
+                    tblEventProperties?.items = listEventProperties
+                    Platform.runLater{tblEventProperties?.placeholder = Label("Event not selected or don't have any properties.") }
+                }
+
+                btnEventPropertyMoveToFirst?.isDisable = currentEventProperty == null
+                btnEventPropertyMoveUp?.isDisable = currentEventProperty == null
+                btnEventPropertyMoveToLast?.isDisable = currentEventProperty == null
+                btnEventPropertyMoveDown?.isDisable = currentEventProperty == null
+                btnEventPropertyDelete?.isDisable = currentEventProperty == null
+                fldEventPropertyKey?.isDisable = currentEventProperty == null
+                fldEventPropertyValue?.isDisable = currentEventProperty == null
+                fldEventPropertyKey?.text = ""
+                fldEventPropertyValue?.text = ""
+                
                 if (threadOnSelectEvent!=null && threadOnSelectEvent!!.isAlive) {
                     threadOnSelectEvent!!.interrupt()
                     while (threadOnSelectEvent!!.isAlive){
@@ -1298,8 +1508,185 @@ class ShotsEditFXController {
             }
         }
 
+
+
+        // изменение поля "fldShotPropertyKey" (событие потери фокуса полем) Нужно для рефреша таблицы свойств плана
+        fldShotPropertyKey?.focusedProperty()?.addListener { _, _, newPropertyValue ->
+            if (!newPropertyValue) {
+                saveCurrentShotProperty()
+            }
+        }
+
+        // изменение поля "fldShotPropertyValue" (событие потери фокуса полем) Нужно для рефреша таблицы свойств плана
+        fldShotPropertyValue?.focusedProperty()?.addListener { _, _, newPropertyValue ->
+            if (!newPropertyValue) {
+                saveCurrentShotProperty()
+            }
+        }
+
+        // изменение поля "fldScenePropertyKey" (событие потери фокуса полем) Нужно для рефреша таблицы свойств сцены
+        fldScenePropertyKey?.focusedProperty()?.addListener { _, _, newPropertyValue ->
+            if (!newPropertyValue) {
+                saveCurrentSceneProperty()
+            }
+        }
+
+        // изменение поля "fldScenePropertyValue" (событие потери фокуса полем) Нужно для рефреша таблицы свойств сцены
+        fldScenePropertyValue?.focusedProperty()?.addListener { _, _, newPropertyValue ->
+            if (!newPropertyValue) {
+                saveCurrentSceneProperty()
+            }
+        }
+
+        // изменение поля "fldEventPropertyKey" (событие потери фокуса полем) Нужно для рефреша таблицы свойств события
+        fldEventPropertyKey?.focusedProperty()?.addListener { _, _, newPropertyValue ->
+            if (!newPropertyValue) {
+                saveCurrentEventProperty()
+            }
+        }
+
+        // изменение поля "fldEventPropertyValue" (событие потери фокуса полем) Нужно для рефреша таблицы свойств события
+        fldEventPropertyValue?.focusedProperty()?.addListener { _, _, newPropertyValue ->
+            if (!newPropertyValue) {
+                saveCurrentEventProperty()
+            }
+        }
+
+
+        tblShotProperties?.selectionModel?.selectedItemProperty()?.addListener { _, _, newValue ->
+            if (currentShotProperty != newValue) saveCurrentShotProperty()
+
+            currentShotProperty = newValue
+
+            btnShotPropertyDelete?.isDisable = currentShotProperty == null
+            btnShotPropertyMoveToFirst?.isDisable = currentShotProperty == null || currentShotProperty == listShotProperties.first()
+            btnShotPropertyMoveUp?.isDisable = currentShotProperty == null || currentShotProperty == listShotProperties.first()
+            btnShotPropertyMoveToLast?.isDisable = currentShotProperty == null || currentShotProperty == listShotProperties.last()
+            btnShotPropertyMoveDown?.isDisable = currentShotProperty == null || currentShotProperty == listShotProperties.last()
+
+            fldShotPropertyKey?.isDisable = currentShotProperty == null
+            fldShotPropertyValue?.isDisable = currentShotProperty == null
+
+            fldShotPropertyKey?.text = currentShotProperty?.key
+            fldShotPropertyValue?.text = currentShotProperty?.value
+
+        }
+
+        tblSceneProperties?.selectionModel?.selectedItemProperty()?.addListener { _, _, newValue ->
+            if (currentSceneProperty != newValue) saveCurrentSceneProperty()
+
+            currentSceneProperty = newValue
+
+            btnScenePropertyDelete?.isDisable = currentSceneProperty == null
+            btnScenePropertyMoveToFirst?.isDisable = currentSceneProperty == null || currentSceneProperty == listSceneProperties.first()
+            btnScenePropertyMoveUp?.isDisable = currentSceneProperty == null || currentSceneProperty == listSceneProperties.first()
+            btnScenePropertyMoveToLast?.isDisable = currentSceneProperty == null || currentSceneProperty == listSceneProperties.last()
+            btnScenePropertyMoveDown?.isDisable = currentSceneProperty == null || currentSceneProperty == listSceneProperties.last()
+
+            fldScenePropertyKey?.isDisable = currentSceneProperty == null
+            fldScenePropertyValue?.isDisable = currentSceneProperty == null
+
+            fldScenePropertyKey?.text = currentSceneProperty?.key
+            fldScenePropertyValue?.text = currentSceneProperty?.value
+
+        }
+
+        tblEventProperties?.selectionModel?.selectedItemProperty()?.addListener { _, _, newValue ->
+            if (currentEventProperty != newValue) saveCurrentEventProperty()
+
+            currentEventProperty = newValue
+
+            btnEventPropertyDelete?.isDisable = currentEventProperty == null
+            btnEventPropertyMoveToFirst?.isDisable = currentEventProperty == null || currentEventProperty == listEventProperties.first()
+            btnEventPropertyMoveUp?.isDisable = currentEventProperty == null || currentEventProperty == listEventProperties.first()
+            btnEventPropertyMoveToLast?.isDisable = currentEventProperty == null || currentEventProperty == listEventProperties.last()
+            btnEventPropertyMoveDown?.isDisable = currentEventProperty == null || currentEventProperty == listEventProperties.last()
+
+            fldEventPropertyKey?.isDisable = currentEventProperty == null
+            fldEventPropertyValue?.isDisable = currentEventProperty == null
+
+            fldEventPropertyKey?.text = currentEventProperty?.key
+            fldEventPropertyValue?.text = currentEventProperty?.value
+
+        }
+        
     }
 
+    fun saveCurrentShotProperty() {
+
+        if (currentShotProperty != null) {
+            var needToSave = false
+
+            var tmp: String = fldShotPropertyKey?.text ?: ""
+            if (tmp != currentShotProperty?.key) {
+                currentShotProperty?.key = tmp
+                needToSave = true
+            }
+
+            tmp = fldShotPropertyValue?.text ?: ""
+            if (tmp != currentShotProperty?.value) {
+                currentShotProperty?.value = tmp
+                needToSave = true
+            }
+
+            if (needToSave) {
+                PropertyController.save(currentShotProperty!!)
+                tblShotProperties?.refresh()
+            }
+
+        }
+    }
+
+
+    fun saveCurrentSceneProperty() {
+
+        if (currentSceneProperty != null) {
+            var needToSave = false
+
+            var tmp: String = fldScenePropertyKey?.text ?: ""
+            if (tmp != currentSceneProperty?.key) {
+                currentSceneProperty?.key = tmp
+                needToSave = true
+            }
+
+            tmp = fldScenePropertyValue?.text ?: ""
+            if (tmp != currentSceneProperty?.value) {
+                currentSceneProperty?.value = tmp
+                needToSave = true
+            }
+
+            if (needToSave) {
+                PropertyController.save(currentSceneProperty!!)
+                tblSceneProperties?.refresh()
+            }
+
+        }
+    }
+
+    fun saveCurrentEventProperty() {
+
+        if (currentEventProperty != null) {
+            var needToSave = false
+
+            var tmp: String = fldEventPropertyKey?.text ?: ""
+            if (tmp != currentEventProperty?.key) {
+                currentEventProperty?.key = tmp
+                needToSave = true
+            }
+
+            tmp = fldEventPropertyValue?.text ?: ""
+            if (tmp != currentEventProperty?.value) {
+                currentEventProperty?.value = tmp
+                needToSave = true
+            }
+
+            if (needToSave) {
+                PropertyController.save(currentEventProperty!!)
+                tblEventProperties?.refresh()
+            }
+
+        }
+    }
 
 
     @FXML
@@ -2389,4 +2776,359 @@ class ShotsEditFXController {
         System.gc()
     }
 
+
+    @FXML
+    fun doEventPropertyAdd(event: ActionEvent?) {
+
+        if (currentEventExt!=null) {
+            val menu = ContextMenu()
+
+            var menuItem = MenuItem()
+
+            menuItem.text = "Добавить новое свойство события"
+            menuItem.onAction = EventHandler { e: ActionEvent? ->
+                val alert = Alert(Alert.AlertType.CONFIRMATION)
+                alert.title = "Добавление свойства события"
+                alert.headerText = "Вы действительно хотите добавить новое свойство для события?"
+                alert.contentText = "Имя и значение свойства будут сгенерированы автоматически."
+                val option = alert.showAndWait()
+                if (option.get() == ButtonType.OK) {
+                    saveCurrentEventProperty()
+                    val id = PropertyController.editOrCreate(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id).id
+                    listEventProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id))
+                    tblEventProperties?.items = listEventProperties
+                    currentEventProperty = listEventProperties.first { it.id == id }
+                    tblEventProperties?.selectionModel?.select(currentEventProperty)
+                }
+            }
+            menu.items.add(menuItem)
+
+            menu.items.add(SeparatorMenuItem())
+
+            val listKeys = Main.propertyRepo.getKeys(currentEventExt!!.event::class.java.simpleName)
+            var countKeysAdded = 0
+            listKeys.forEach { key ->
+
+                if (listEventProperties.filter { it.key == key }.isEmpty()) {
+                    countKeysAdded++
+                    menuItem = MenuItem()
+                    menuItem.isMnemonicParsing = false
+                    menuItem.text = key
+                    menuItem.onAction = EventHandler { e: ActionEvent? ->
+                        saveCurrentEventProperty()
+                        val id = PropertyController.editOrCreate(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id, key).id
+                        listEventProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id))
+                        tblEventProperties?.items = listEventProperties
+                        currentEventProperty = listEventProperties.first { it.id == id }
+                        tblEventProperties?.selectionModel?.select(currentEventProperty)
+                    }
+                    menu.items.add(menuItem)
+                }
+            }
+
+            btnEventPropertyAdd?.contextMenu = menu
+            val screenBounds: Bounds = btnEventPropertyAdd!!.localToScreen(btnEventPropertyAdd!!.boundsInLocal)
+            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
+
+        }
+        
+    }
+
+    @FXML
+    fun doEventPropertyDelete(event: ActionEvent?) {
+
+        if (currentEventProperty!=null) {
+            val alert = Alert(Alert.AlertType.CONFIRMATION)
+            alert.title = "Удаление свойства события"
+            alert.headerText = "Вы действительно хотите удалить свойство события с ключом «${currentEventProperty?.key}» и значением «${currentEventProperty?.value}»?"
+            alert.contentText = "В случае утвердительного ответа свойство события будет удалено из базы данных и его восстановление будет невозможно.\nВы уверены, что хотите удалить свойство события?"
+            val option = alert.showAndWait()
+            if (option.get() == ButtonType.OK) {
+                PropertyController.delete(currentEventProperty!!)
+                currentEventProperty = null
+                listEventProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id))
+                tblEventProperties?.items = listEventProperties
+
+                btnEventPropertyMoveToFirst?.isDisable = currentEventProperty == null
+                btnEventPropertyMoveUp?.isDisable = currentEventProperty == null
+                btnEventPropertyMoveToLast?.isDisable = currentEventProperty == null
+                btnEventPropertyMoveDown?.isDisable = currentEventProperty == null
+                btnEventPropertyDelete?.isDisable = currentEventProperty == null
+                fldEventPropertyKey?.isDisable = currentEventProperty == null
+                fldEventPropertyValue?.isDisable = currentEventProperty == null
+
+                fldEventPropertyKey?.text = ""
+                fldEventPropertyValue?.text = ""
+
+            }
+        }
+        
+    }
+
+    @FXML
+    fun doEventPropertyMoveDown(event: ActionEvent?) {
+        doMoveEventProperty(ReorderTypes.MOVE_DOWN)
+    }
+
+    @FXML
+    fun doEventPropertyMoveToFirst(event: ActionEvent?) {
+        doMoveEventProperty(ReorderTypes.MOVE_TO_FIRST)
+    }
+
+    @FXML
+    fun doEventPropertyMoveToLast(event: ActionEvent?) {
+        doMoveEventProperty(ReorderTypes.MOVE_TO_LAST)
+    }
+
+    @FXML
+    fun doEventPropertyMoveUp(event: ActionEvent?) {
+        doMoveEventProperty(ReorderTypes.MOVE_UP)
+    }
+
+
+    @FXML
+    fun doScenePropertyAdd(event: ActionEvent?) {
+
+        if (currentSceneExt!=null) {
+            val menu = ContextMenu()
+
+            var menuItem = MenuItem()
+
+            menuItem.text = "Добавить новое свойство сцены"
+            menuItem.onAction = EventHandler { e: ActionEvent? ->
+                val alert = Alert(Alert.AlertType.CONFIRMATION)
+                alert.title = "Добавление свойства сцены"
+                alert.headerText = "Вы действительно хотите добавить новое свойство для сцены?"
+                alert.contentText = "Имя и значение свойства будут сгенерированы автоматически."
+                val option = alert.showAndWait()
+                if (option.get() == ButtonType.OK) {
+                    saveCurrentSceneProperty()
+                    val id = PropertyController.editOrCreate(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id).id
+                    listSceneProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id))
+                    tblSceneProperties?.items = listSceneProperties
+                    currentSceneProperty = listSceneProperties.first { it.id == id }
+                    tblSceneProperties?.selectionModel?.select(currentSceneProperty)
+                }
+            }
+            menu.items.add(menuItem)
+
+            menu.items.add(SeparatorMenuItem())
+
+            val listKeys = Main.propertyRepo.getKeys(currentSceneExt!!.scene::class.java.simpleName)
+            var countKeysAdded = 0
+            listKeys.forEach { key ->
+
+                if (listSceneProperties.filter { it.key == key }.isEmpty()) {
+                    countKeysAdded++
+                    menuItem = MenuItem()
+                    menuItem.isMnemonicParsing = false
+                    menuItem.text = key
+                    menuItem.onAction = EventHandler { e: ActionEvent? ->
+                        saveCurrentSceneProperty()
+                        val id = PropertyController.editOrCreate(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id, key).id
+                        listSceneProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id))
+                        tblSceneProperties?.items = listSceneProperties
+                        currentSceneProperty = listSceneProperties.first { it.id == id }
+                        tblSceneProperties?.selectionModel?.select(currentSceneProperty)
+                    }
+                    menu.items.add(menuItem)
+                }
+            }
+
+            btnScenePropertyAdd?.contextMenu = menu
+            val screenBounds: Bounds = btnScenePropertyAdd!!.localToScreen(btnScenePropertyAdd!!.boundsInLocal)
+            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
+
+        }
+        
+    }
+
+    @FXML
+    fun doScenePropertyDelete(event: ActionEvent?) {
+
+        if (currentSceneProperty!=null) {
+            val alert = Alert(Alert.AlertType.CONFIRMATION)
+            alert.title = "Удаление свойства сцены"
+            alert.headerText = "Вы действительно хотите удалить свойство сцены с ключом «${currentSceneProperty?.key}» и значением «${currentSceneProperty?.value}»?"
+            alert.contentText = "В случае утвердительного ответа свойство сцены будет удалено из базы данных и его восстановление будет невозможно.\nВы уверены, что хотите удалить свойство сцены?"
+            val option = alert.showAndWait()
+            if (option.get() == ButtonType.OK) {
+                PropertyController.delete(currentSceneProperty!!)
+                currentSceneProperty = null
+                listSceneProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id))
+                tblSceneProperties?.items = listSceneProperties
+
+                btnScenePropertyMoveToFirst?.isDisable = currentSceneProperty == null
+                btnScenePropertyMoveUp?.isDisable = currentSceneProperty == null
+                btnScenePropertyMoveToLast?.isDisable = currentSceneProperty == null
+                btnScenePropertyMoveDown?.isDisable = currentSceneProperty == null
+                btnScenePropertyDelete?.isDisable = currentSceneProperty == null
+                fldScenePropertyKey?.isDisable = currentSceneProperty == null
+                fldScenePropertyValue?.isDisable = currentSceneProperty == null
+
+                fldScenePropertyKey?.text = ""
+                fldScenePropertyValue?.text = ""
+
+            }
+        }
+        
+    }
+
+    @FXML
+    fun doScenePropertyMoveDown(event: ActionEvent?) {
+        doMoveSceneProperty(ReorderTypes.MOVE_DOWN)
+    }
+
+    @FXML
+    fun doScenePropertyMoveToFirst(event: ActionEvent?) {
+        doMoveSceneProperty(ReorderTypes.MOVE_TO_FIRST)
+    }
+
+    @FXML
+    fun doScenePropertyMoveToLast(event: ActionEvent?) {
+        doMoveSceneProperty(ReorderTypes.MOVE_TO_LAST)
+    }
+
+    @FXML
+    fun doScenePropertyMoveUp(event: ActionEvent?) {
+        doMoveSceneProperty(ReorderTypes.MOVE_UP)
+    }
+
+
+    @FXML
+    fun doShotPropertyAdd(event: ActionEvent?) {
+
+        if (currentShotExt!=null) {
+            val menu = ContextMenu()
+
+            var menuItem = MenuItem()
+
+            menuItem.text = "Добавить новое свойство плана"
+            menuItem.onAction = EventHandler { e: ActionEvent? ->
+                val alert = Alert(Alert.AlertType.CONFIRMATION)
+                alert.title = "Добавление свойства плана"
+                alert.headerText = "Вы действительно хотите добавить новое свойство для плана?"
+                alert.contentText = "Имя и значение свойства будут сгенерированы автоматически."
+                val option = alert.showAndWait()
+                if (option.get() == ButtonType.OK) {
+                    saveCurrentShotProperty()
+                    val id = PropertyController.editOrCreate(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id).id
+                    listShotProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id))
+                    tblShotProperties?.items = listShotProperties
+                    currentShotProperty = listShotProperties.first { it.id == id }
+                    tblShotProperties?.selectionModel?.select(currentShotProperty)
+                }
+            }
+            menu.items.add(menuItem)
+
+            menu.items.add(SeparatorMenuItem())
+
+            val listKeys = Main.propertyRepo.getKeys(currentShotExt!!.shot::class.java.simpleName)
+            var countKeysAdded = 0
+            listKeys.forEach { key ->
+
+                if (listShotProperties.filter { it.key == key }.isEmpty()) {
+                    countKeysAdded++
+                    menuItem = MenuItem()
+                    menuItem.isMnemonicParsing = false
+                    menuItem.text = key
+                    menuItem.onAction = EventHandler { e: ActionEvent? ->
+                        saveCurrentShotProperty()
+                        val id = PropertyController.editOrCreate(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id, key).id
+                        listShotProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id))
+                        tblShotProperties?.items = listShotProperties
+                        currentShotProperty = listShotProperties.first { it.id == id }
+                        tblShotProperties?.selectionModel?.select(currentShotProperty)
+                    }
+                    menu.items.add(menuItem)
+                }
+            }
+
+            btnShotPropertyAdd?.contextMenu = menu
+            val screenBounds: Bounds = btnShotPropertyAdd!!.localToScreen(btnShotPropertyAdd!!.boundsInLocal)
+            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
+
+        }
+        
+    }
+
+    @FXML
+    fun doShotPropertyDelete(event: ActionEvent?) {
+
+        if (currentShotProperty!=null) {
+            val alert = Alert(Alert.AlertType.CONFIRMATION)
+            alert.title = "Удаление свойства плана"
+            alert.headerText = "Вы действительно хотите удалить свойство плана с ключом «${currentShotProperty?.key}» и значением «${currentShotProperty?.value}»?"
+            alert.contentText = "В случае утвердительного ответа свойство плана будет удалено из базы данных и его восстановление будет невозможно.\nВы уверены, что хотите удалить свойство плана?"
+            val option = alert.showAndWait()
+            if (option.get() == ButtonType.OK) {
+                PropertyController.delete(currentShotProperty!!)
+                currentShotProperty = null
+                listShotProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id))
+                tblShotProperties?.items = listShotProperties
+
+                btnShotPropertyMoveToFirst?.isDisable = currentShotProperty == null
+                btnShotPropertyMoveUp?.isDisable = currentShotProperty == null
+                btnShotPropertyMoveToLast?.isDisable = currentShotProperty == null
+                btnShotPropertyMoveDown?.isDisable = currentShotProperty == null
+                btnShotPropertyDelete?.isDisable = currentShotProperty == null
+                fldShotPropertyKey?.isDisable = currentShotProperty == null
+                fldShotPropertyValue?.isDisable = currentShotProperty == null
+
+                fldShotPropertyKey?.text = ""
+                fldShotPropertyValue?.text = ""
+
+            }
+        }
+        
+    }
+
+    
+    @FXML
+    fun doShotPropertyMoveDown(event: ActionEvent?) {
+        doMoveShotProperty(ReorderTypes.MOVE_DOWN)
+    }
+
+    @FXML
+    fun doShotPropertyMoveToFirst(event: ActionEvent?) {
+        doMoveShotProperty(ReorderTypes.MOVE_TO_FIRST)
+    }
+
+    @FXML
+    fun doShotPropertyMoveToLast(event: ActionEvent?) {
+        doMoveShotProperty(ReorderTypes.MOVE_TO_LAST)
+    }
+
+    @FXML
+    fun doShotPropertyMoveUp(event: ActionEvent?) {
+        doMoveShotProperty(ReorderTypes.MOVE_UP)
+    }
+
+    fun doMoveShotProperty(reorderType: ReorderTypes) {
+        val id = currentShotProperty?.id
+        currentShotProperty?.let { PropertyController.reOrder(reorderType, it) }
+        listShotProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id))
+        tblShotProperties?.items = listShotProperties
+        currentShotProperty = listShotProperties.first { it.id == id }
+        tblShotProperties?.selectionModel?.select(currentShotProperty)
+    }
+
+    fun doMoveSceneProperty(reorderType: ReorderTypes) {
+        val id = currentSceneProperty?.id
+        currentSceneProperty?.let { PropertyController.reOrder(reorderType, it) }
+        listSceneProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id))
+        tblSceneProperties?.items = listSceneProperties
+        currentSceneProperty = listSceneProperties.first { it.id == id }
+        tblSceneProperties?.selectionModel?.select(currentSceneProperty)
+    }
+
+    fun doMoveEventProperty(reorderType: ReorderTypes) {
+        val id = currentEventProperty?.id
+        currentEventProperty?.let { PropertyController.reOrder(reorderType, it) }
+        listEventProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id))
+        tblEventProperties?.items = listEventProperties
+        currentEventProperty = listEventProperties.first { it.id == id }
+        tblEventProperties?.selectionModel?.select(currentEventProperty)
+    }
+    
 }

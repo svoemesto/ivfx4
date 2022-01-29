@@ -9,8 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="280.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.FilterConditionCreateFXController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="340.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.FilterConditionCreateFXController">
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -24,7 +23,10 @@
                   <ToggleGroup fx:id="tgObject" />
                </toggleGroup>
             </RadioButton>
-            <RadioButton fx:id="rbTag" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doChangeObjectClass" text="Tag" toggleGroup="$tgObject" />
+            <RadioButton fx:id="rbPersonProperty" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doChangeObjectClass" text="Person property" toggleGroup="$tgObject" />
+            <RadioButton fx:id="rbShotProperty" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doChangeObjectClass" text="Shot property" toggleGroup="$tgObject" />
+            <RadioButton fx:id="rbSceneProperty" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doChangeObjectClass" text="Scene property" toggleGroup="$tgObject" />
+            <RadioButton fx:id="rbEventProperty" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doChangeObjectClass" text="Event property" toggleGroup="$tgObject" />
             <Button fx:id="btnSelectObject" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doSelectObject" text="Select Person" />
             <Separator prefWidth="200.0" />
             <RadioButton fx:id="rbIsIncluded" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doChangeIsIncluded" selected="true" text="is included">

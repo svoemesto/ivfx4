@@ -12,17 +12,21 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1200.0" prefWidth="2020.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.ShotsEditFXController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1200.0" prefWidth="2120.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.ShotsEditFXController">
    <children>
       <HBox layoutX="100.0" layoutY="71.0" prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="730.0" minWidth="720.0" prefHeight="200.0" prefWidth="100.0">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="730.0" prefHeight="200.0" prefWidth="100.0">
                <children>
                   <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                      <VBox.margin>
@@ -40,50 +44,142 @@
                                 </columns>
                               </TableView>
                               <ProgressBar fx:id="pbShots" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />
+                              <VBox>
+                                 <children>
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Shot properties" />
+                                    <HBox prefHeight="100.0" prefWidth="200.0">
+                                       <children>
+                                          <TableView fx:id="tblShotProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                             <columns>
+                                                <TableColumn fx:id="colShotPropertyKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
+                                                <TableColumn fx:id="colShotPropertyValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
+                                             </columns>
+                                             <HBox.margin>
+                                                <Insets right="5.0" />
+                                             </HBox.margin>
+                                          </TableView>
+                                          <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                             <children>
+                                                <Button fx:id="btnShotPropertyMoveToFirst" mnemonicParsing="false" onAction="#doShotPropertyMoveToFirst" prefHeight="46.0" prefWidth="46.0" text="⟰">
+                                                   <font>
+                                                      <Font name="Arial" size="18.0" />
+                                                   </font>
+                                                   <tooltip>
+                                                      <Tooltip text="В начало списка" />
+                                                   </tooltip>
+                                                </Button>
+                                                <Button fx:id="btnShotPropertyMoveUp" mnemonicParsing="false" onAction="#doShotPropertyMoveUp" prefHeight="46.0" prefWidth="46.0" text="⇧">
+                                                   <font>
+                                                      <Font name="Arial" size="24.0" />
+                                                   </font>
+                                                   <tooltip>
+                                                      <Tooltip text="На один уровень вверх">
+                                                         <font>
+                                                            <Font size="14.0" />
+                                                         </font>
+                                                      </Tooltip>
+                                                   </tooltip>
+                                                </Button>
+                                                <Button fx:id="btnShotPropertyMoveDown" mnemonicParsing="false" onAction="#doShotPropertyMoveDown" prefHeight="46.0" prefWidth="46.0" text="⇩">
+                                                   <font>
+                                                      <Font name="Arial" size="24.0" />
+                                                   </font>
+                                                   <tooltip>
+                                                      <Tooltip text="На один уровень вниз" />
+                                                   </tooltip>
+                                                </Button>
+                                                <Button fx:id="btnShotPropertyMoveToLast" mnemonicParsing="false" onAction="#doShotPropertyMoveToLast" prefHeight="46.0" prefWidth="46.0" text="⟱">
+                                                   <font>
+                                                      <Font name="Arial" size="18.0" />
+                                                   </font>
+                                                   <tooltip>
+                                                      <Tooltip text="В конец списка" />
+                                                   </tooltip>
+                                                </Button>
+                                                <Separator prefWidth="200.0">
+                                                   <VBox.margin>
+                                                      <Insets bottom="5.0" top="5.0" />
+                                                   </VBox.margin>
+                                                </Separator>
+                                                <Button fx:id="btnShotPropertyAdd" mnemonicParsing="false" onAction="#doShotPropertyAdd" prefHeight="46.0" prefWidth="46.0" text="➕">
+                                                   <font>
+                                                      <Font name="Arial" size="18.0" />
+                                                   </font>
+                                                   <tooltip>
+                                                      <Tooltip text="Добавить файл" />
+                                                   </tooltip>
+                                                </Button>
+                                                <Button fx:id="btnShotPropertyDelete" mnemonicParsing="false" onAction="#doShotPropertyDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
+                                                   <font>
+                                                      <Font name="Arial" size="18.0" />
+                                                   </font>
+                                                   <tooltip>
+                                                      <Tooltip text="Удалить файл из проекта" />
+                                                   </tooltip>
+                                                </Button>
+                                             </children>
+                                             <HBox.margin>
+                                                <Insets />
+                                             </HBox.margin>
+                                          </VBox>
+                                       </children>
+                                    </HBox>
+                                    <TextField fx:id="fldShotPropertyKey" />
+                                    <TextArea fx:id="fldShotPropertyValue" minHeight="60.0" prefHeight="200.0" prefWidth="200.0" />
+                                 </children>
+                              </VBox>
                            </children>
                         </VBox>
-                        <VBox>
+                        <VBox minWidth="720.0">
                            <children>
-                              <TableView fx:id="tblPersonsAllForShot" maxWidth="175.0" minWidth="175.0" prefHeight="10000.0" prefWidth="175.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                 <columns>
-                                    <TableColumn fx:id="colTblPersonsAllForShotName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
-                                 </columns>
-                              </TableView>
-                              <ProgressBar fx:id="pbPersonsForShot" maxWidth="1.7976931348623157E308" progress="0.0" />
-                           </children>
-                        </VBox>
-                        <VBox prefHeight="200.0" prefWidth="100.0">
-                           <children>
-                              <Label text="Persons:" />
-                              <RadioButton fx:id="rbPersonAll" mnemonicParsing="false" onAction="#doSelectPersonsRb" text="All">
-                                 <toggleGroup>
-                                    <ToggleGroup fx:id="grpPersons" />
-                                 </toggleGroup>
-                              </RadioButton>
-                              <RadioButton fx:id="rbPersonFile" mnemonicParsing="false" onAction="#doSelectPersonsRb" selected="true" text="File" toggleGroup="$grpPersons" />
-                              <Label text="Faces:" />
-                              <RadioButton fx:id="rbFaceAll" mnemonicParsing="false" onAction="#doSelectFacesRb" text="All">
-                                 <toggleGroup>
-                                    <ToggleGroup fx:id="grpFaces" />
-                                 </toggleGroup>
-                              </RadioButton>
-                              <RadioButton fx:id="rbFaceFile" mnemonicParsing="false" onAction="#doSelectFacesRb" selected="true" text="File" toggleGroup="$grpFaces" />
-                              <CheckBox fx:id="cbFacesNotExample" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Not example" />
-                              <CheckBox fx:id="cbFacesExample" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Example" />
-                              <CheckBox fx:id="cbFacesNotManual" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Not manual" />
-                              <CheckBox fx:id="cbFacesManual" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Manual" />
+                              <HBox>
+                                 <children>
+                                    <VBox>
+                                       <children>
+                                          <TableView fx:id="tblPersonsAllForShot" maxWidth="175.0" minWidth="175.0" prefHeight="10000.0" prefWidth="175.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                             <columns>
+                                                <TableColumn fx:id="colTblPersonsAllForShotName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Name" />
+                                             </columns>
+                                          </TableView>
+                                          <ProgressBar fx:id="pbPersonsForShot" maxWidth="1.7976931348623157E308" progress="0.0" />
+                                       </children>
+                                    </VBox>
+                                    <VBox prefHeight="200.0" prefWidth="100.0">
+                                       <children>
+                                          <Label text="Persons:" />
+                                          <RadioButton fx:id="rbPersonAll" mnemonicParsing="false" onAction="#doSelectPersonsRb" text="All">
+                                             <toggleGroup>
+                                                <ToggleGroup fx:id="grpPersons" />
+                                             </toggleGroup>
+                                          </RadioButton>
+                                          <RadioButton fx:id="rbPersonFile" mnemonicParsing="false" onAction="#doSelectPersonsRb" selected="true" text="File" toggleGroup="$grpPersons" />
+                                          <Label text="Faces:" />
+                                          <RadioButton fx:id="rbFaceAll" mnemonicParsing="false" onAction="#doSelectFacesRb" text="All">
+                                             <toggleGroup>
+                                                <ToggleGroup fx:id="grpFaces" />
+                                             </toggleGroup>
+                                          </RadioButton>
+                                          <RadioButton fx:id="rbFaceFile" mnemonicParsing="false" onAction="#doSelectFacesRb" selected="true" text="File" toggleGroup="$grpFaces" />
+                                          <CheckBox fx:id="cbFacesNotExample" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Not example" />
+                                          <CheckBox fx:id="cbFacesExample" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Example" />
+                                          <CheckBox fx:id="cbFacesNotManual" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Not manual" />
+                                          <CheckBox fx:id="cbFacesManual" mnemonicParsing="false" onAction="#doSelectFacesCb" selected="true" text="Manual" />
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+                              <Label fx:id="lblFrameFull" maxHeight="400.0" maxWidth="720.0" minHeight="400.0" minWidth="720.0" prefHeight="400.0" prefWidth="720.0" style="-fx-background-color: black;">
+                                 <VBox.margin>
+                                    <Insets bottom="5.0" top="5.0" />
+                                 </VBox.margin>
+                                 <contextMenu>
+                                    <ContextMenu fx:id="contextMenuFrameFull" />
+                                 </contextMenu>
+                              </Label>
                            </children>
                         </VBox>
                      </children>
                   </HBox>
-                  <Label fx:id="lblFrameFull" maxHeight="400.0" maxWidth="720.0" minHeight="400.0" minWidth="720.0" prefHeight="400.0" prefWidth="720.0" style="-fx-background-color: black;">
-                     <VBox.margin>
-                        <Insets bottom="5.0" top="5.0" />
-                     </VBox.margin>
-                     <contextMenu>
-                        <ContextMenu fx:id="contextMenuFrameFull" />
-                     </contextMenu>
-                  </Label>
                   <Button fx:id="btnOK" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doOK" text="OK">
                      <VBox.margin>
                         <Insets bottom="5.0" />
@@ -95,7 +191,7 @@
                </HBox.margin>
             </VBox>
             <Separator orientation="VERTICAL" prefHeight="200.0" />
-            <VBox prefHeight="200.0" prefWidth="5000.0">
+            <VBox minWidth="920.0" prefHeight="200.0" prefWidth="5000.0">
                <children>
                   <TabPane prefHeight="10000.0" prefWidth="10000.0">
                      <tabs>
@@ -177,6 +273,90 @@
                                                 <ProgressBar fx:id="pbScenes" maxWidth="1.7976931348623157E308" progress="0.0" />
                                                 <Button fx:id="btnCreateNewSceneBySelectedShots" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doCreateNewSceneBySelectedShots" text="Create new scene by selected shots" />
                                                 <Button fx:id="btnDeleteSelectedScenes" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doDeleteSelectedScenes" text="Delete selected scenes" />
+                                                <VBox>
+                                                   <children>
+                                                      <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Scene properties" />
+                                                      <HBox prefHeight="100.0" prefWidth="200.0">
+                                                         <children>
+                                                            <TableView fx:id="tblSceneProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                                               <columns>
+                                                                  <TableColumn fx:id="colScenePropertyKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
+                                                                  <TableColumn fx:id="colScenePropertyValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
+                                                               </columns>
+                                                               <HBox.margin>
+                                                                  <Insets right="5.0" />
+                                                               </HBox.margin>
+                                                            </TableView>
+                                                            <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                               <children>
+                                                                  <Button fx:id="btnScenePropertyMoveToFirst" mnemonicParsing="false" onAction="#doScenePropertyMoveToFirst" prefHeight="46.0" prefWidth="46.0" text="⟰">
+                                                                     <font>
+                                                                        <Font name="Arial" size="18.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="В начало списка" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Button fx:id="btnScenePropertyMoveUp" mnemonicParsing="false" onAction="#doScenePropertyMoveUp" prefHeight="46.0" prefWidth="46.0" text="⇧">
+                                                                     <font>
+                                                                        <Font name="Arial" size="24.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="На один уровень вверх">
+                                                                           <font>
+                                                                              <Font size="14.0" />
+                                                                           </font>
+                                                                        </Tooltip>
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Button fx:id="btnScenePropertyMoveDown" mnemonicParsing="false" onAction="#doScenePropertyMoveDown" prefHeight="46.0" prefWidth="46.0" text="⇩">
+                                                                     <font>
+                                                                        <Font name="Arial" size="24.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="На один уровень вниз" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Button fx:id="btnScenePropertyMoveToLast" mnemonicParsing="false" onAction="#doScenePropertyMoveToLast" prefHeight="46.0" prefWidth="46.0" text="⟱">
+                                                                     <font>
+                                                                        <Font name="Arial" size="18.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="В конец списка" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Separator prefWidth="200.0">
+                                                                     <VBox.margin>
+                                                                        <Insets bottom="5.0" top="5.0" />
+                                                                     </VBox.margin>
+                                                                  </Separator>
+                                                                  <Button fx:id="btnScenePropertyAdd" mnemonicParsing="false" onAction="#doScenePropertyAdd" prefHeight="46.0" prefWidth="46.0" text="➕">
+                                                                     <font>
+                                                                        <Font name="Arial" size="18.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="Добавить файл" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Button fx:id="btnScenePropertyDelete" mnemonicParsing="false" onAction="#doScenePropertyDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
+                                                                     <font>
+                                                                        <Font name="Arial" size="18.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="Удалить файл из проекта" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                               </children>
+                                                               <HBox.margin>
+                                                                  <Insets />
+                                                               </HBox.margin>
+                                                            </VBox>
+                                                         </children>
+                                                      </HBox>
+                                                      <TextField fx:id="fldScenePropertyKey" />
+                                                      <TextArea fx:id="fldScenePropertyValue" minHeight="60.0" prefHeight="200.0" prefWidth="200.0" />
+                                                   </children>
+                                                </VBox>
                                              </children>
                                           </VBox>
                                           <VBox>
@@ -223,6 +403,90 @@
                                                 <ProgressBar fx:id="pbEvents" maxWidth="1.7976931348623157E308" progress="0.0" />
                                                 <Button fx:id="btnCreateNewEventBySelectedShots" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doCreateNewEventBySelectedShots" text="Create new event by selected shots" />
                                                 <Button fx:id="btnDeleteSelectedEvents" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doDeleteSelectedEvents" text="Delete selected events" />
+                                                <VBox>
+                                                   <children>
+                                                      <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Event properties" />
+                                                      <HBox prefHeight="100.0" prefWidth="200.0">
+                                                         <children>
+                                                            <TableView fx:id="tblEventProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                                                               <columns>
+                                                                  <TableColumn fx:id="colEventPropertyKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
+                                                                  <TableColumn fx:id="colEventPropertyValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
+                                                               </columns>
+                                                               <HBox.margin>
+                                                                  <Insets right="5.0" />
+                                                               </HBox.margin>
+                                                            </TableView>
+                                                            <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                               <children>
+                                                                  <Button fx:id="btnEventPropertyMoveToFirst" mnemonicParsing="false" onAction="#doEventPropertyMoveToFirst" prefHeight="46.0" prefWidth="46.0" text="⟰">
+                                                                     <font>
+                                                                        <Font name="Arial" size="18.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="В начало списка" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Button fx:id="btnEventPropertyMoveUp" mnemonicParsing="false" onAction="#doEventPropertyMoveUp" prefHeight="46.0" prefWidth="46.0" text="⇧">
+                                                                     <font>
+                                                                        <Font name="Arial" size="24.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="На один уровень вверх">
+                                                                           <font>
+                                                                              <Font size="14.0" />
+                                                                           </font>
+                                                                        </Tooltip>
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Button fx:id="btnEventPropertyMoveDown" mnemonicParsing="false" onAction="#doEventPropertyMoveDown" prefHeight="46.0" prefWidth="46.0" text="⇩">
+                                                                     <font>
+                                                                        <Font name="Arial" size="24.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="На один уровень вниз" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Button fx:id="btnEventPropertyMoveToLast" mnemonicParsing="false" onAction="#doEventPropertyMoveToLast" prefHeight="46.0" prefWidth="46.0" text="⟱">
+                                                                     <font>
+                                                                        <Font name="Arial" size="18.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="В конец списка" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Separator prefWidth="200.0">
+                                                                     <VBox.margin>
+                                                                        <Insets bottom="5.0" top="5.0" />
+                                                                     </VBox.margin>
+                                                                  </Separator>
+                                                                  <Button fx:id="btnEventPropertyAdd" mnemonicParsing="false" onAction="#doEventPropertyAdd" prefHeight="46.0" prefWidth="46.0" text="➕">
+                                                                     <font>
+                                                                        <Font name="Arial" size="18.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="Добавить файл" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                                  <Button fx:id="btnEventPropertyDelete" mnemonicParsing="false" onAction="#doEventPropertyDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
+                                                                     <font>
+                                                                        <Font name="Arial" size="18.0" />
+                                                                     </font>
+                                                                     <tooltip>
+                                                                        <Tooltip text="Удалить файл из проекта" />
+                                                                     </tooltip>
+                                                                  </Button>
+                                                               </children>
+                                                               <HBox.margin>
+                                                                  <Insets />
+                                                               </HBox.margin>
+                                                            </VBox>
+                                                         </children>
+                                                      </HBox>
+                                                      <TextField fx:id="fldEventPropertyKey" />
+                                                      <TextArea fx:id="fldEventPropertyValue" minHeight="60.0" prefHeight="200.0" prefWidth="200.0" />
+                                                   </children>
+                                                </VBox>
                                              </children>
                                           </VBox>
                                           <VBox>
