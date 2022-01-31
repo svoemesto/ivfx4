@@ -20,6 +20,13 @@ class FilterController {
             }.toMutableSet()
         }
 
+        fun getFilterExt(projectExt: ProjectExt, filterId: Long): FilterExt {
+            val filter = Main.filterRepo.findById(filterId).get()
+            filter.project = projectExt.project
+            filter.filterGroups = FilterGroupController.getSetFilterGroups(filter)
+            return FilterExt(filter)
+        }
+
         fun getList(projectExt: ProjectExt): MutableList<FilterExt> {
 
             val filters = Main.filterRepo.findByProjectId(projectExt.project.id).toMutableList()

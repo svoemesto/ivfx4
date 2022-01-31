@@ -584,29 +584,15 @@ class FilterEditFXController {
     fun doFilter(event: ActionEvent?) {
 
 
-//        ShotTmpCdfController.deleteAll()
-//        tblFiles?.selectionModel?.selectedItems?.forEach { fileExt ->
-//            Main.shotTmpCdfRepo.addAllByFileId(Main.ccid, fileExt.file.id)
-//        }
-//        val shots = tblFilters?.selectionModel?.selectedItem?.shots()
-//
-//        if (shots != null) {
-//            val shotsExt = ShotController.convertSetShotsToListShotsExt(shots)
-//            tblShots?.items = FXCollections.observableArrayList(shotsExt)
-//        }
-
-
         ShotTmpCdfController.deleteAll()
         tblFiles?.selectionModel?.selectedItems?.forEach { fileExt ->
             Main.shotTmpCdfRepo.addAllByFileId(Main.ccid, fileExt.file.id)
         }
 
-        val shotsIds = tblFilters?.selectionModel?.selectedItem?.shotsIds()
+        val shotsIds = FilterController.getFilterExt(currentProjectExt!!, tblFilters?.selectionModel?.selectedItem?.filter!!.id).shotsIds()
 
-        if (shotsIds != null) {
-            val shotsExt = ShotController.convertSetShotsIdsToListShotsExt(shotsIds, currentProjectExt!!)
-            tblShots?.items = FXCollections.observableArrayList(shotsExt)
-        }
+        val shotsExt = ShotController.convertSetShotsIdsToListShotsExt(shotsIds, currentProjectExt!!)
+        tblShots?.items = FXCollections.observableArrayList(shotsExt)
 
 
     }

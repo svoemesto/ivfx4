@@ -6,9 +6,18 @@ import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.modelsext.PersonExt
+import com.svoemesto.ivfx.modelsext.ProjectExt
+import com.svoemesto.ivfx.threads.RunListThreads
+import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForProject
 import javafx.application.HostServices
+import javafx.application.Platform
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.value.ChangeListener
+import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import javafx.collections.transformation.FilteredList
+import javafx.collections.transformation.SortedList
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.fxml.FXML
@@ -30,14 +39,34 @@ import javafx.scene.control.TableView
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
 import javafx.scene.control.cell.PropertyValueFactory
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseButton
 import javafx.scene.text.Text
 import javafx.stage.Modality
 import javafx.stage.Stage
 import java.io.IOException
+import java.util.*
+import java.util.function.Predicate
 
 
 class PersonEditFXController {
+
+    @FXML
+    private var fldFind: TextField? = null
+
+    @FXML
+    private var tblPersons: TableView<PersonExt>? = null
+
+    @FXML
+    private var colPersonName: TableColumn<PersonExt, String>? = null
+
+    @FXML
+    private var btnPersonAdd: Button? = null
+
+    @FXML
+    private var btnPersonDelete: Button? = null
+
     @FXML
     private var lblMediumPreview: Label? = null
 
@@ -88,16 +117,22 @@ class PersonEditFXController {
 
     companion object {
         private var currentPersonExt: PersonExt? = null
+        private var currentProjectExt: ProjectExt? = null
         private var hostServices: HostServices? = null
         private var mainStage: Stage? = null
+        private var listLastSelectedPersons: MutableList<PersonExt> = mutableListOf()
     }
 
     private var currentProperty: Property? = null
 
     private var listProperties: ObservableList<Property> = FXCollections.observableArrayList()
+    private var listPersonsExtAll: ObservableList<PersonExt> = FXCollections.observableArrayList()
+    private var filteredPersonExt: FilteredList<PersonExt>? = FilteredList(listPersonsExtAll)
+    private val runListThreadsPersonFlagIsDone = SimpleBooleanProperty(false)
 
-    fun editPerson(personExt: PersonExt, incomingHostServices: HostServices? = null) {
+    fun editPerson(projectExt: ProjectExt, personExt: PersonExt? = null, incomingHostServices: HostServices? = null) {
         currentPersonExt = personExt
+        currentProjectExt = projectExt
         mainStage = Stage()
 
         try {
@@ -123,26 +158,104 @@ class PersonEditFXController {
         }
         println("Инициализация PersonEditFXController.")
 
-        btnPropertyMoveToFirst?.isDisable = currentProperty == null
-        btnPropertyMoveUp?.isDisable = currentProperty == null
-        btnPropertyMoveToLast?.isDisable = currentProperty == null
-        btnPropertyMoveDown?.isDisable = currentProperty == null
-        btnPropertyDelete?.isDisable = currentProperty == null
-        fldPropertyKey?.isDisable = currentProperty == null
-        fldPropertyValue?.isDisable = currentProperty == null
+        colPersonName?.cellValueFactory = PropertyValueFactory("labelSmall")
+        tblPersons!!.items = listPersonsExtAll
 
-        fldPropertyKey?.text = ""
-        fldPropertyValue?.text = ""
+        runListThreadsPersonFlagIsDone.set(false)
 
-        lblMediumPreview?.graphic = currentPersonExt?.labelMedium
-        fldName?.text = currentPersonExt?.person?.name
+        val listThreads: MutableList<Thread> = mutableListOf()
+        listThreads.add(LoadListPersonsExtForProject(listPersonsExtAll, currentProjectExt!!))
+        val runListThreadsFrames = RunListThreads(listThreads, runListThreadsPersonFlagIsDone)
+        runListThreadsFrames.start()
 
-        listProperties = FXCollections.observableArrayList(PropertyController.getListProperties(
-            currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id))
-        tblProperties?.items = listProperties
+        runListThreadsPersonFlagIsDone.addListener { observable, oldValue, newValue ->
+            if (newValue == true) {
+                val tmpList: ObservableList<PersonExt> = FXCollections.observableArrayList()
+                listLastSelectedPersons.forEach { lastPerson ->
+                    tmpList.add(listPersonsExtAll.first { lastPerson.person.id == it.person.id })
+                }
+                listPersonsExtAll.forEach {
+                    if (!tmpList.contains(it)) tmpList.add(it)
+                }
+                listPersonsExtAll = tmpList
+                tblPersons!!.items = listPersonsExtAll
+                if (currentPersonExt != null) {
+                    tblPersons!!.selectionModel.select(listPersonsExtAll.first { it.person.id ==  currentPersonExt!!.person.id} )
+                }
+            }
+        }
 
-        colPropertyKey?.setCellValueFactory(PropertyValueFactory("key"))
-        colPropertyValue?.setCellValueFactory(PropertyValueFactory("value"))
+        tblPersons!!.selectionModel.selectedItemProperty()
+            .addListener { v: ObservableValue<out PersonExt?>?, oldValue: PersonExt?, newValue: PersonExt? ->
+                if (newValue != null) {
+
+                    saveCurrentProperty()
+                    saveCurrentPerson()
+
+                    currentPersonExt = newValue
+
+                    currentProperty = null
+
+                    btnPropertyMoveToFirst?.isDisable = currentProperty == null
+                    btnPropertyMoveUp?.isDisable = currentProperty == null
+                    btnPropertyMoveToLast?.isDisable = currentProperty == null
+                    btnPropertyMoveDown?.isDisable = currentProperty == null
+                    btnPropertyDelete?.isDisable = currentProperty == null
+                    fldPropertyKey?.isDisable = currentProperty == null
+                    fldPropertyValue?.isDisable = currentProperty == null
+
+                    fldPropertyKey?.text = ""
+                    fldPropertyValue?.text = ""
+
+                    lblMediumPreview?.graphic = currentPersonExt?.labelMedium
+                    fldName?.text = currentPersonExt?.person?.name
+
+                    listProperties = FXCollections.observableArrayList(PropertyController.getListProperties(
+                        currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id))
+                    tblProperties?.items = listProperties
+
+                }
+            }
+
+
+
+        // обработка события отпускания кнопки в поле поиска fldFind
+        fldFind!!.onKeyReleased = EventHandler { e: KeyEvent? ->
+            fldFind!!.textProperty()
+                .addListener(ChangeListener { v: ObservableValue<out String?>?, oldValue: String?, newValue: String? ->
+                    filteredPersonExt!!.setPredicate(Predicate<PersonExt?> { personExt: PersonExt? ->
+                        if (newValue == null || newValue.isEmpty()) {
+                            return@Predicate true
+                        }
+                        val lowerCaseFilter = newValue.lowercase(Locale.getDefault())
+                        if (personExt!!.person.name.lowercase().contains(lowerCaseFilter)) return@Predicate true
+                        return@Predicate false
+                    } as Predicate<in PersonExt?>?)
+                })
+            val sortedTags: SortedList<PersonExt> = SortedList(filteredPersonExt)
+            sortedTags.comparatorProperty().bind(tblPersons!!.comparatorProperty())
+            tblPersons!!.items = sortedTags
+            if (sortedTags.size > 0) {
+                Platform.runLater {
+                    tblPersons!!.selectionModel.select(sortedTags[0])
+                    tblPersons!!.scrollTo(sortedTags[0])
+                }
+            }
+        }
+
+        // нажатие Enter в поле fldFind - переход на первую запись в таблице tblPersons
+        fldFind!!.onKeyPressed = EventHandler { ke: KeyEvent ->
+            if (ke.code == KeyCode.ENTER) {
+                Platform.runLater {
+                    tblPersons!!.requestFocus()
+                    tblPersons!!.selectionModel.select(0)
+                    tblPersons!!.scrollTo(0)
+                }
+            }
+        }
+
+        colPropertyKey?.cellValueFactory = PropertyValueFactory("key")
+        colPropertyValue?.cellValueFactory = PropertyValueFactory("value")
 
         tblProperties?.setOnMouseClicked { mouseEvent ->
             if (mouseEvent.button == MouseButton.PRIMARY) {
@@ -223,17 +336,20 @@ class PersonEditFXController {
 
     fun saveCurrentPerson() {
 
-        var needToSave = false
+        if (currentPersonExt != null && fldName?.text != "") {
+            var needToSave = false
 
-        var tmp: String = fldName?.text ?: ""
-        if (tmp != currentPersonExt?.person?.name) {
-            currentPersonExt?.person?.name = tmp
-            needToSave = true
+            val tmp: String = fldName?.text ?: ""
+            if (tmp != currentPersonExt?.person?.name) {
+                currentPersonExt?.person?.name = tmp
+                needToSave = true
+            }
+
+            if (needToSave) {
+                PersonController.save(currentPersonExt?.person!!)
+            }
         }
 
-        if (needToSave) {
-            PersonController.save(currentPersonExt?.person!!)
-        }
 
     }
 
@@ -243,15 +359,6 @@ class PersonEditFXController {
         saveCurrentPerson()
         mainStage?.close()
     }
-
-    @FXML
-    fun doTagAdd(event: ActionEvent?) {
-    }
-
-    @FXML
-    fun doTagDelete(event: ActionEvent?) {
-    }
-
 
 
     @FXML
@@ -283,7 +390,8 @@ class PersonEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentPersonExt!!.person::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(currentPersonExt!!.person::class.java.simpleName).toMutableList()
+            listKeys.sort()
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -386,7 +494,16 @@ class PersonEditFXController {
         listProperties = FXCollections.observableArrayList(PropertyController.getListProperties(
             currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id))
         tblProperties?.items = listProperties
-        currentProperty = listProperties.filter { it.id == id }.first()
+        currentProperty = listProperties.first { it.id == id }
         tblProperties?.selectionModel?.select(currentProperty)
+    }
+
+    @FXML
+    fun doPersonDelete(event: ActionEvent?) {
+    }
+
+    @FXML
+    fun doPersonAdd(event: ActionEvent?) {
+
     }
 }

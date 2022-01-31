@@ -154,6 +154,8 @@ data class EventExt(
     fun resetPreview() {
         _previewsFirst = null
         _previewsLast = null
+        _labelsFirst = null
+        _labelsLast = null
     }
 
 }

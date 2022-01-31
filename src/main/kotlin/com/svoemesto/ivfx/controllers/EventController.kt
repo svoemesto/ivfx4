@@ -59,7 +59,7 @@ class EventController() {
             Main.eventRepo.deleteAll(file.id)
         }
 
-        fun getOrCreate(file: File, firstFrameNumber: Int, lastFrameNumber: Int): Event {
+        fun getOrCreate(file: File, firstFrameNumber: Int, lastFrameNumber: Int, eventName:String? = null): Event {
             var entity = Main.eventRepo.findByFileIdAndFirstFrameNumberAndLastFrameNumber(file.id, firstFrameNumber, lastFrameNumber).firstOrNull()
             if (entity == null) {
 
@@ -67,7 +67,7 @@ class EventController() {
                 entity.file = file
                 entity.firstFrameNumber = firstFrameNumber
                 entity.lastFrameNumber = lastFrameNumber
-                entity.name = "Event $firstFrameNumber-$lastFrameNumber"
+                entity.name = eventName ?: "Event $firstFrameNumber-$lastFrameNumber"
                 save(entity)
 
             } else {
@@ -79,6 +79,15 @@ class EventController() {
         fun createEventExt(listShotsExt: MutableList<ShotExt>): EventExt? {
             if (listShotsExt.isNotEmpty()) {
                 val event = getOrCreate(listShotsExt.first().fileExt.file, listShotsExt.first().shot.firstFrameNumber, listShotsExt.last().shot.lastFrameNumber)
+                return EventExt(event,listShotsExt.first().fileExt,listShotsExt.first().firstFrameExt, listShotsExt.last().lastFrameExt)
+            }
+            return null
+        }
+
+        fun createEventExt(sceneExt: SceneExt): EventExt? {
+            val listShotsExt: MutableList<ShotExt> = sceneExt.shotsExt
+            if (listShotsExt.isNotEmpty()) {
+                val event = getOrCreate(listShotsExt.first().fileExt.file, listShotsExt.first().shot.firstFrameNumber, listShotsExt.last().shot.lastFrameNumber, sceneExt.sceneName)
                 return EventExt(event,listShotsExt.first().fileExt,listShotsExt.first().firstFrameExt, listShotsExt.last().lastFrameExt)
             }
             return null

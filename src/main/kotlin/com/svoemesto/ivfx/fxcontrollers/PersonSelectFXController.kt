@@ -215,7 +215,7 @@ class PersonSelectFXController {
 
     @FXML
     fun doPersonAdd(event: ActionEvent?) {
-        PersonEditFXController().editPerson(PersonExt(PersonController.create(currentProjectExt!!.project), currentProjectExt!!))
+        PersonEditFXController().editPerson(currentProjectExt!!, PersonExt(PersonController.create(currentProjectExt!!.project), currentProjectExt!!))
         initialize()
     }
 

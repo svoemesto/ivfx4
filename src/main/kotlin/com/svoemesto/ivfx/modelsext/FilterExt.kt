@@ -26,12 +26,6 @@ class FilterExt(var filter: Filter): Comparable<FilterExt> {
                     shotsIdsFromChild.addAll(shotsIdsInGroup)
                     firstIteration = false
                 } else {
-//                    val tmp: MutableSet<Long> = mutableSetOf()
-//
-//                    tmp.addAll(shotsIdsFromChild.filter { shotsIdsInGroup.contains(it) })
-//                    shotsIdsFromChild.clear()
-//                    shotsIdsFromChild.addAll(tmp)
-
                     shotsIdsFromChild.retainAll(shotsIdsInGroup)
                 }
             }

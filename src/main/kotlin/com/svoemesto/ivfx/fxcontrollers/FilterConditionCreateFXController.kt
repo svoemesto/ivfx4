@@ -289,7 +289,8 @@ class FilterConditionCreateFXController {
             val menu = ContextMenu()
             var menuItem: MenuItem
 
-            val listKeys = Main.propertyRepo.getKeys(Person::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(Person::class.java.simpleName).toMutableList()
+            listKeys.sort()
             listKeys.forEach { key ->
 
                 menuItem = MenuItem()
@@ -313,7 +314,8 @@ class FilterConditionCreateFXController {
             val menu = ContextMenu()
             var menuItem: MenuItem
 
-            val listKeys = Main.propertyRepo.getKeys(Shot::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(Shot::class.java.simpleName).toMutableList()
+            listKeys.sort()
             listKeys.forEach { key ->
 
                 menuItem = MenuItem()
@@ -337,7 +339,8 @@ class FilterConditionCreateFXController {
             val menu = ContextMenu()
             var menuItem: MenuItem
 
-            val listKeys = Main.propertyRepo.getKeys(com.svoemesto.ivfx.models.Scene::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(com.svoemesto.ivfx.models.Scene::class.java.simpleName).toMutableList()
+            listKeys.sort()
             listKeys.forEach { key ->
 
                 menuItem = MenuItem()
@@ -361,7 +364,8 @@ class FilterConditionCreateFXController {
             val menu = ContextMenu()
             var menuItem: MenuItem
 
-            val listKeys = Main.propertyRepo.getKeys(Event::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(Event::class.java.simpleName).toMutableList()
+            listKeys.sort()
             listKeys.forEach { key ->
 
                 menuItem = MenuItem()
