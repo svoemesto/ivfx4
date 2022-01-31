@@ -26,9 +26,6 @@ import com.svoemesto.ivfx.modelsext.ProjectExt
 import com.svoemesto.ivfx.setPropertyValue
 import com.svoemesto.ivfx.threads.RunListThreads
 import com.svoemesto.ivfx.threads.loadlists.LoadListFilesExt
-import com.svoemesto.ivfx.threads.loadlists.LoadListFramesExt
-import com.svoemesto.ivfx.threads.updatelists.UpdateListFilesExt
-import com.svoemesto.ivfx.threads.updatelists.UpdateListFramesExt
 import javafx.application.HostServices
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections
@@ -100,6 +97,9 @@ class ProjectEditFXController {
 
     @FXML
     private var menuEditFilters: MenuItem? = null
+
+    @FXML
+    private var menuEditPersons: MenuItem? = null
 
     @FXML
     private var menuDatabase: Menu? = null
@@ -465,6 +465,7 @@ class ProjectEditFXController {
         menuDeleteProject?.isDisable = currentProjectExt == null
         menuActions?.isDisable = currentProjectExt == null
         menuEditFilters?.isDisable = currentProjectExt == null
+        menuEditPersons?.isDisable = currentProjectExt == null
         menuEditShots?.isDisable = currentFileExt == null
         paneMain?.isVisible = currentProjectExt != null
         paneFile?.isVisible = currentFileExt != null
@@ -1262,6 +1263,13 @@ class ProjectEditFXController {
     }
 
     @FXML
+    fun doMenuEditPersons(event: ActionEvent?) {
+        if (currentProjectExt != null) {
+            PersonEditFXController().editPerson( currentProjectExt!!, null, hostServices)
+        }
+    }
+
+    @FXML
     fun doSelectDatabase(event: ActionEvent?) {
 
         val currentDatabase = getCurrentDatabase()
@@ -1467,7 +1475,8 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentFileExt!!.file::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(currentFileExt!!.file::class.java.simpleName).toMutableList()
+            listKeys.sort()
             var countKeysAdded = 0
             listKeys.forEach { key ->
 

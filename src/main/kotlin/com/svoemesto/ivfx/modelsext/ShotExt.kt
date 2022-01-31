@@ -201,6 +201,9 @@ data class ShotExt(
         _previewsFirst = null
         _previewsLast = null
         _previewType = null
+        _labelsFirst = null
+        _labelsLast = null
+        _labelType = null
     }
 
 }

@@ -274,6 +274,9 @@ class ShotsEditFXController {
     private var btnDeleteSelectedScenes: Button? = null
 
     @FXML
+    private var btnCreateEventBasedScene: Button? = null
+
+    @FXML
     private var tblShotsForScenes: TableView<ShotExt>? = null
 
     @FXML
@@ -1291,7 +1294,7 @@ class ShotsEditFXController {
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
                     if (currentPersonExt != null) {
-                        PersonEditFXController().editPerson(currentPersonExt!!, hostServices)
+                        PersonEditFXController().editPerson(currentFileExt!!.projectExt, currentPersonExt!!, hostServices)
                     }
                 }
             }
@@ -1369,7 +1372,7 @@ class ShotsEditFXController {
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
                     if (tblPersonsAllForShot!!.selectionModel.selectedItem != null) {
-                        PersonEditFXController().editPerson(tblPersonsAllForShot!!.selectionModel.selectedItem, hostServices)
+                        PersonEditFXController().editPerson(currentFileExt!!.projectExt, tblPersonsAllForShot!!.selectionModel.selectedItem, hostServices)
                     }
                 }
             }
@@ -2302,7 +2305,7 @@ class ShotsEditFXController {
                             mf.faceExt.labelSmall.style = fxBorderDefault
                         }
                     }
-                    PersonEditFXController().editPerson(selectedPerson, hostServices)
+                    PersonEditFXController().editPerson(currentFileExt!!.projectExt, selectedPerson, hostServices)
 
                 }
 
@@ -2644,28 +2647,15 @@ class ShotsEditFXController {
                     LoadListScenesExt(currentFileExt!!.scenesExt, currentFileExt!!, pb, lblPb).run()
                     tblScenes!!.items = currentFileExt!!.scenesExt
                     val sceneInTable = currentFileExt!!.scenesExt.firstOrNull { it.scene.id == sceneExt.scene.id }
-                    if (sceneInTable != null) tblScenes!!.selectionModel.select(sceneInTable)
-                    selectedShots.forEach {
+                    currentFileExt!!.shotsExt.filter {
+                            shotExt-> isPairIntersected(Pair(shotExt.shot.firstFrameNumber, shotExt.shot.lastFrameNumber), Pair(sceneExt.scene.firstFrameNumber-1, sceneExt.scene.lastFrameNumber+1))
+                    }.forEach {
                         it.resetPreview()
                         it.labelsFirst
                         it.labelsLast
                     }
-                    val prevIndex = currentFileExt!!.shotsExt.indexOf(selectedShots.first())-1
 
-                    if (prevIndex >= 0) {
-                        val shotExt = currentFileExt!!.shotsExt[prevIndex]
-                        shotExt.resetPreview()
-                        shotExt.labelsFirst
-                        shotExt.labelsLast
-                    }
-
-                    val nextIndex = currentFileExt!!.shotsExt.indexOf(selectedShots.last())+1
-                    if (nextIndex < currentFileExt!!.shotsExt.size) {
-                        val shotExt = currentFileExt!!.shotsExt[nextIndex]
-                        shotExt.resetPreview()
-                        shotExt.labelsFirst
-                        shotExt.labelsLast
-                    }
+                    if (sceneInTable != null) tblScenes!!.selectionModel.select(sceneInTable)
 
                     tblShots!!.refresh()
                 }
@@ -2696,33 +2686,20 @@ class ShotsEditFXController {
                 }
             }
             if (listShotsExt.isNotEmpty()) {
-                val sceneExt = EventController.createEventExt(listShotsExt)
-                if (sceneExt != null) {
+                val eventExt = EventController.createEventExt(listShotsExt)
+                if (eventExt != null) {
                     LoadListEventsExt(currentFileExt!!.eventsExt, currentFileExt!!, pb, lblPb).run()
                     tblEvents!!.items = currentFileExt!!.eventsExt
-                    val eventInTable = currentFileExt!!.eventsExt.firstOrNull { it.event.id == sceneExt.event.id }
-                    if (eventInTable != null) tblEvents!!.selectionModel.select(eventInTable)
-                    selectedShots.forEach {
+                    val eventInTable = currentFileExt!!.eventsExt.firstOrNull { it.event.id == eventExt.event.id }
+                    currentFileExt!!.shotsExt.filter {
+                            shotExt-> isPairIntersected(Pair(shotExt.shot.firstFrameNumber, shotExt.shot.lastFrameNumber), Pair(eventExt.event.firstFrameNumber-1, eventExt.event.lastFrameNumber+1))
+                    }.forEach {
                         it.resetPreview()
                         it.labelsFirst
                         it.labelsLast
                     }
-                    val prevIndex = currentFileExt!!.shotsExt.indexOf(selectedShots.first())-1
 
-                    if (prevIndex >= 0) {
-                        val shotExt = currentFileExt!!.shotsExt[prevIndex]
-                        shotExt.resetPreview()
-                        shotExt.labelsFirst
-                        shotExt.labelsLast
-                    }
-
-                    val nextIndex = currentFileExt!!.shotsExt.indexOf(selectedShots.last())+1
-                    if (nextIndex < currentFileExt!!.shotsExt.size) {
-                        val shotExt = currentFileExt!!.shotsExt[nextIndex]
-                        shotExt.resetPreview()
-                        shotExt.labelsFirst
-                        shotExt.labelsLast
-                    }
+                    if (eventInTable != null) tblEvents!!.selectionModel.select(eventInTable)
 
                     tblShots!!.refresh()
                 }
@@ -2805,7 +2782,8 @@ class ShotsEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentEventExt!!.event::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(currentEventExt!!.event::class.java.simpleName).toMutableList()
+            listKeys.sort()
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -2914,7 +2892,8 @@ class ShotsEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentSceneExt!!.scene::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(currentSceneExt!!.scene::class.java.simpleName).toMutableList()
+            listKeys.sort()
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -3023,7 +3002,8 @@ class ShotsEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentShotExt!!.shot::class.java.simpleName)
+            val listKeys = Main.propertyRepo.getKeys(currentShotExt!!.shot::class.java.simpleName).toMutableList()
+            listKeys.sort()
             var countKeysAdded = 0
             listKeys.forEach { key ->
 
@@ -3130,5 +3110,30 @@ class ShotsEditFXController {
         currentEventProperty = listEventProperties.first { it.id == id }
         tblEventProperties?.selectionModel?.select(currentEventProperty)
     }
-    
+
+    @FXML
+    fun doCreateEventBasedScene(event: ActionEvent?) {
+
+        if (currentSceneExt != null) {
+            val eventExt = EventController.createEventExt(currentSceneExt!!)
+            if (eventExt != null) {
+                LoadListEventsExt(currentFileExt!!.eventsExt, currentFileExt!!, pb, lblPb).run()
+                tblEvents!!.items = currentFileExt!!.eventsExt
+                val eventInTable = currentFileExt!!.eventsExt.firstOrNull { it.event.id == eventExt.event.id }
+                currentFileExt!!.shotsExt.filter {
+                        shotExt-> isPairIntersected(Pair(shotExt.shot.firstFrameNumber, shotExt.shot.lastFrameNumber), Pair(eventExt.event.firstFrameNumber-1, eventExt.event.lastFrameNumber+1))
+                }.forEach {
+                    it.resetPreview()
+                    it.labelsFirst
+                    it.labelsLast
+                }
+
+                if (eventInTable != null) tblEvents!!.selectionModel.select(eventInTable)
+
+                tblShots!!.refresh()
+            }
+        }
+
+
+    }
 }

@@ -14,23 +14,67 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="900.0" maxWidth="730.0" minHeight="900.0" minWidth="730.0" prefHeight="900.0" prefWidth="730.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.PersonEditFXController">
+<AnchorPane maxHeight="900.0" maxWidth="730.0" minHeight="900.0" minWidth="950.0" prefHeight="900.0" prefWidth="730.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.PersonEditFXController">
    <children>
-      <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <HBox layoutX="5.0" layoutY="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <Label fx:id="lblMediumPreview" contentDisplay="GRAPHIC_ONLY" maxHeight="400.0" maxWidth="720.0" minHeight="400.0" minWidth="720.0" prefHeight="400.0" prefWidth="720.0" style="-fx-background-color: black;" textFill="#ddff00" />
-            <HBox maxWidth="1.7976931348623157E308" spacing="5.0">
+            <VBox>
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
                <children>
-                  <Label alignment="CENTER_RIGHT" minWidth="-Infinity" text="Name:">
-                     <HBox.margin>
-                        <Insets top="3.0" />
-                     </HBox.margin>
-                  </Label>
-                  <TextField fx:id="fldName" prefWidth="10000.0" />
+                  <TextField fx:id="fldFind">
+                     <VBox.margin>
+                        <Insets bottom="5.0" />
+                     </VBox.margin>
+                  </TextField>
+                  <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                     <children>
+                        <TableView fx:id="tblPersons" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="155.0" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                           <columns>
+                              <TableColumn fx:id="colPersonName" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="PERSON" />
+                           </columns>
+                           <HBox.margin>
+                              <Insets right="5.0" />
+                           </HBox.margin>
+                        </TableView>
+                        <VBox alignment="CENTER" minWidth="46.0">
+                           <children>
+                              <Button fx:id="btnPersonAdd" mnemonicParsing="false" onAction="#doPersonAdd" prefHeight="46.0" prefWidth="46.0" text="➕">
+                                 <font>
+                                    <Font name="Arial" size="18.0" />
+                                 </font>
+                                 <tooltip>
+                                    <Tooltip text="Добавить файл" />
+                                 </tooltip>
+                              </Button>
+                              <Button fx:id="btnPersonDelete" mnemonicParsing="false" onAction="#doPersonDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
+                                 <font>
+                                    <Font name="Arial" size="18.0" />
+                                 </font>
+                                 <tooltip>
+                                    <Tooltip text="Удалить файл из проекта" />
+                                 </tooltip>
+                              </Button>
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
                </children>
-            </HBox>
-            <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0">
+            </VBox>
+            <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0">
                <children>
+                  <Label fx:id="lblMediumPreview" contentDisplay="GRAPHIC_ONLY" maxHeight="400.0" maxWidth="720.0" minHeight="400.0" minWidth="720.0" prefHeight="400.0" prefWidth="720.0" style="-fx-background-color: black;" textFill="#ddff00" />
+                  <HBox maxWidth="1.7976931348623157E308" spacing="5.0">
+                     <children>
+                        <Label alignment="CENTER_RIGHT" minWidth="-Infinity" text="Name:">
+                           <HBox.margin>
+                              <Insets top="3.0" />
+                           </HBox.margin>
+                        </Label>
+                        <TextField fx:id="fldName" prefWidth="10000.0" />
+                     </children>
+                  </HBox>
                   <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0">
                      <children>
                         <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Properties" />
@@ -38,8 +82,8 @@
                            <children>
                               <TableView fx:id="tblProperties" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="300.0" minWidth="350.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                                  <columns>
-                                    <TableColumn fx:id="colPropertyKey" maxWidth="135.0" minWidth="135.0" prefWidth="135.0" text="Key" />
-                                    <TableColumn fx:id="colPropertyValue" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" text="Value" />
+                                    <TableColumn fx:id="colPropertyKey" maxWidth="135.0" minWidth="300.0" prefWidth="135.0" text="Key" />
+                                    <TableColumn fx:id="colPropertyValue" maxWidth="200.0" minWidth="350.0" prefWidth="200.0" text="Value" />
                                  </columns>
                                  <HBox.margin>
                                     <Insets right="5.0" />
@@ -115,52 +159,11 @@
                         <TextArea fx:id="fldPropertyValue" minHeight="60.0" prefHeight="200.0" prefWidth="200.0" />
                      </children>
                   </VBox>
-                  <Separator orientation="VERTICAL" prefHeight="200.0" />
-                  <VBox prefHeight="200.0" prefWidth="100.0">
-                     <children>
-                        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Tags" />
-                        <HBox prefHeight="100.0" prefWidth="200.0">
-                           <children>
-                              <TableView fx:id="tblTags" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="400.0" minWidth="250.0" prefWidth="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
-                                 <columns>
-                                    <TableColumn fx:id="colTagName" maxWidth="235.0" minWidth="235.0" prefWidth="235.0" text="TAG" />
-                                 </columns>
-                                 <HBox.margin>
-                                    <Insets right="5.0" />
-                                 </HBox.margin>
-                              </TableView>
-                              <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-                                 <children>
-                                    <Button fx:id="btnTagAdd" minWidth="46.0" mnemonicParsing="false" onAction="#doTagAdd" prefHeight="46.0" prefWidth="46.0" text="➕">
-                                       <font>
-                                          <Font name="Arial" size="18.0" />
-                                       </font>
-                                       <tooltip>
-                                          <Tooltip text="Добавить файл" />
-                                       </tooltip>
-                                    </Button>
-                                    <Button fx:id="btnTagDelete" minWidth="46.0" mnemonicParsing="false" onAction="#doTagDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
-                                       <font>
-                                          <Font name="Arial" size="18.0" />
-                                       </font>
-                                       <tooltip>
-                                          <Tooltip text="Удалить файл из проекта" />
-                                       </tooltip>
-                                    </Button>
-                                 </children>
-                                 <HBox.margin>
-                                    <Insets />
-                                 </HBox.margin>
-                              </VBox>
-                           </children>
-                        </HBox>
-                     </children>
-                  </VBox>
+                  <Button fx:id="btnOk" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doOk" text="OK" />
                </children>
-            </HBox>
-            <Button fx:id="btnOk" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doOk" text="OK" />
+            </VBox>
          </children>
-      </VBox>
+      </HBox>
    </children>
    <padding>
       <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

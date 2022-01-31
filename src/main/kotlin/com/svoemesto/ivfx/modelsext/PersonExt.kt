@@ -130,5 +130,7 @@ class PersonExt(val person: Person, val projectExt: ProjectExt) : Comparable<Per
     fun resetPreview() {
         _previewSmall = null
         _previewMedium = null
+        _labelSmall = null
+        _labelMedium = null
     }
 }
