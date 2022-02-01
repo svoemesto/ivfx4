@@ -125,8 +125,8 @@ interface ShotRepo : CrudRepository<Shot, Long> {
             "inner join tbl_frames as tf on (tsh.file_id = tf.file_id and tsh.first_frame_number <= tf.frame_number and tsh.last_frame_number >= tf.frame_number) " +
             "inner join tbl_faces as tfc on (tsh.file_id = tfc.file_id and tf.frame_number = tfc.frame_number) " +
             "inner join tbl_properties as tpp on (tpp.parent_class = 'Person' and tpp.parent_id = tfc.person_id) " +
-            "where tstc.computer_id = ?1 and tpp.property_key = ?2", nativeQuery = true)
-    fun getShotsIdsForShotsTmpAndPersonProperty(computerId:Int, propertyKey: String) : Iterable<Long>
+            "where tstc.computer_id = ?1 and tpp.property_key = ?2 and tpp.property_value = ?3", nativeQuery = true)
+    fun getShotsIdsForShotsTmpAndPersonProperty(computerId:Int, propertyKey: String, propertyValue: String) : Iterable<Long>
 
     @Query(value = "select distinct tsh.id from tbl_shots as tsh " +
             "inner join " +
@@ -137,12 +137,12 @@ interface ShotRepo : CrudRepository<Shot, Long> {
             "inner join tbl_frames as tf on (tsh.file_id = tf.file_id and tsh.first_frame_number <= tf.frame_number and tsh.last_frame_number >= tf.frame_number) " +
             "inner join tbl_faces as tfc on (tsh.file_id = tfc.file_id and tf.frame_number = tfc.frame_number) " +
             "inner join tbl_properties as tpp on (tpp.parent_class = 'Person' and tpp.parent_id = tfc.person_id) " +
-            "where tstc.computer_id = ?1 and tpp.property_key = ?2) " +
+            "where tstc.computer_id = ?1 and tpp.property_key = ?2 and tpp.property_value = ?3) " +
             "as sssh on (sssh.file_id = tsc.file_id and sssh.first_frame_number >= tsc.first_frame_number and sssh.last_frame_number <= tsc.last_frame_number) " +
             ") " +
             "as sssc on (tsh.file_id = sssc.file_id and tsh.first_frame_number >= sssc.first_frame_number and tsh.last_frame_number <= sssc.last_frame_number)",
         nativeQuery = true)
-    fun getShotsIdsForScenesTmpAndPersonProperty(computerId:Int, propertyKey: String) : Iterable<Long>
+    fun getShotsIdsForScenesTmpAndPersonProperty(computerId:Int, propertyKey: String, propertyValue: String) : Iterable<Long>
 
 
     @Query(value = "select distinct tsh.id from tbl_shots as tsh " +
@@ -154,19 +154,19 @@ interface ShotRepo : CrudRepository<Shot, Long> {
             "inner join tbl_frames as tf on (tsh.file_id = tf.file_id and tsh.first_frame_number <= tf.frame_number and tsh.last_frame_number >= tf.frame_number) " +
             "inner join tbl_faces as tfc on (tsh.file_id = tfc.file_id and tf.frame_number = tfc.frame_number) " +
             "inner join tbl_properties as tpp on (tpp.parent_class = 'Person' and tpp.parent_id = tfc.person_id) " +
-            "where tstc.computer_id = ?1 and tpp.property_key = ?2) " +
+            "where tstc.computer_id = ?1 and tpp.property_key = ?2 and tpp.property_value = ?3) " +
             "as sssh on (sssh.file_id = tev.file_id and sssh.first_frame_number >= tev.first_frame_number and sssh.last_frame_number <= tev.last_frame_number) " +
             ") " +
             "as ssev on (tsh.file_id = ssev.file_id and tsh.first_frame_number >= ssev.first_frame_number and tsh.last_frame_number <= ssev.last_frame_number)",
         nativeQuery = true)
-    fun getShotsIdsForEventsTmpAndPersonProperty(computerId:Int, propertyKey: String) : Iterable<Long>
+    fun getShotsIdsForEventsTmpAndPersonProperty(computerId:Int, propertyKey: String, propertyValue: String) : Iterable<Long>
 
 
     @Query(value = "select distinct tsh.id from tbl_shots as tsh " +
             "inner join tbl_shots_tmp_cdf as tstc on tsh.id = tstc.shot_id " +
             "inner join tbl_properties as tpsh on (tpsh.parent_class = 'Shot' and tpsh.parent_id = tsh.id) " +
-            "where tstc.computer_id = ?1 and tpsh.property_key = ?2", nativeQuery = true)
-    fun getShotsIdsForShotsTmpAndShotProperty(computerId:Int, propertyKey: String) : Iterable<Long>
+            "where tstc.computer_id = ?1 and tpsh.property_key = ?2 and tpsh.property_value = ?3", nativeQuery = true)
+    fun getShotsIdsForShotsTmpAndShotProperty(computerId:Int, propertyKey: String, propertyValue: String) : Iterable<Long>
 
     @Query(value = "select distinct tsh.id from tbl_shots as tsh " +
             "inner join " +
@@ -175,12 +175,12 @@ interface ShotRepo : CrudRepository<Shot, Long> {
             "(select distinct tsh.* from tbl_shots as tsh " +
             "inner join tbl_shots_tmp_cdf as tstc on tsh.id = tstc.shot_id " +
             "inner join tbl_properties as tpsh on (tpsh.parent_class = 'Shot' and tpsh.parent_id = tsh.id) " +
-            "where tstc.computer_id = ?1 and tpsh.property_key = ?2) " +
+            "where tstc.computer_id = ?1 and tpsh.property_key = ?2 and tpsh.property_value = ?3) " +
             "as sssh on (sssh.file_id = tsc.file_id and sssh.first_frame_number >= tsc.first_frame_number and sssh.last_frame_number <= tsc.last_frame_number) " +
             ") " +
             "as sssc on (tsh.file_id = sssc.file_id and tsh.first_frame_number >= sssc.first_frame_number and tsh.last_frame_number <= sssc.last_frame_number)",
         nativeQuery = true)
-    fun getShotsIdsForScenesTmpAndShotProperty(computerId:Int, propertyKey: String) : Iterable<Long>
+    fun getShotsIdsForScenesTmpAndShotProperty(computerId:Int, propertyKey: String, propertyValue: String) : Iterable<Long>
 
 
     @Query(value = "select distinct tsh.id from tbl_shots as tsh " +
@@ -190,12 +190,12 @@ interface ShotRepo : CrudRepository<Shot, Long> {
             "(select distinct tsh.* from tbl_shots as tsh " +
             "inner join tbl_shots_tmp_cdf as tstc on tsh.id = tstc.shot_id " +
             "inner join tbl_properties as tpsh on (tpsh.parent_class = 'Shot' and tpsh.parent_id = tfc.person_id) " +
-            "where tstc.computer_id = ?1 and tpsh.property_key = ?2) " +
+            "where tstc.computer_id = ?1 and tpsh.property_key = ?2 and tpsh.property_value = ?3) " +
             "as sssh on (sssh.file_id = tev.file_id and sssh.first_frame_number >= tev.first_frame_number and sssh.last_frame_number <= tev.last_frame_number) " +
             ") " +
             "as ssev on (tsh.file_id = ssev.file_id and tsh.first_frame_number >= ssev.first_frame_number and tsh.last_frame_number <= ssev.last_frame_number)",
         nativeQuery = true)
-    fun getShotsIdsForEventsTmpAndShotProperty(computerId:Int, propertyKey: String) : Iterable<Long>
+    fun getShotsIdsForEventsTmpAndShotProperty(computerId:Int, propertyKey: String, propertyValue: String) : Iterable<Long>
 
     @Query(value = "select distinct tsh.id from tbl_shots as tsh " +
             "inner join " +
@@ -206,10 +206,10 @@ interface ShotRepo : CrudRepository<Shot, Long> {
             "inner join tbl_shots_tmp_cdf as tstc on tsh.id = tstc.shot_id " +
             "where tstc.computer_id = ?1) " +
             "as sssh on (sssh.file_id = tsc.file_id and sssh.first_frame_number >= tsc.first_frame_number and sssh.last_frame_number <= tsc.last_frame_number) " +
-            "where tpsc.property_key = ?2) " +
+            "where tpsc.property_key = ?2 and tpsc.property_value = ?3) " +
             "as sssc on (tsh.file_id = sssc.file_id and tsh.first_frame_number >= sssc.first_frame_number and tsh.last_frame_number <= sssc.last_frame_number)",
         nativeQuery = true)
-    fun getShotsIdsForScenesTmpAndSceneProperty(computerId:Int, propertyKey: String) : Iterable<Long>
+    fun getShotsIdsForScenesTmpAndSceneProperty(computerId:Int, propertyKey: String, propertyValue: String) : Iterable<Long>
 
     @Query(value = "select distinct tsh.id from tbl_shots as tsh " +
             "inner join " +
@@ -220,9 +220,9 @@ interface ShotRepo : CrudRepository<Shot, Long> {
             "inner join tbl_shots_tmp_cdf as tstc on tsh.id = tstc.shot_id " +
             "where tstc.computer_id = ?1) " +
             "as sssh on (sssh.file_id = tev.file_id and sssh.first_frame_number >= tev.first_frame_number and sssh.last_frame_number <= tev.last_frame_number) " +
-            "where tpev.property_key = ?2) " +
+            "where tpev.property_key = ?2 and tpev.property_value = ?3) " +
             "as ssev on (tsh.file_id = ssev.file_id and tsh.first_frame_number >= ssev.first_frame_number and tsh.last_frame_number <= ssev.last_frame_number)",
         nativeQuery = true)
-    fun getShotsIdsForEventsTmpAndEventProperty(computerId:Int, propertyKey: String) : Iterable<Long>
+    fun getShotsIdsForEventsTmpAndEventProperty(computerId:Int, propertyKey: String, propertyValue: String) : Iterable<Long>
 
 }

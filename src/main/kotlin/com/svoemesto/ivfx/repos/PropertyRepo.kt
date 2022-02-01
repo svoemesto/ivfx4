@@ -19,6 +19,8 @@ interface PropertyRepo : CrudRepository<Property, Long> {
     fun findByParentClassAndParentIdAndKey
                 (parentClass: String, parentId: Long, key: String): Iterable<Property>
 
+    fun findByParentClass (parentClass: String): Iterable<Property>
+
     fun findByParentClassAndParentId(parentClass: String, id: Long): Iterable<Property>
 
     @Query(value = "SELECT * FROM tbl_properties WHERE" +

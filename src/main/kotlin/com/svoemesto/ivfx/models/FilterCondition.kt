@@ -48,6 +48,9 @@ class FilterCondition: Comparable<FilterCondition> {
     @Column(name = "object_name", columnDefinition = "varchar(255) default ''")
     var objectName: String = ""
 
+    @Column(name = "object_value", columnDefinition = "varchar(255) default ''")
+    var objectValue: String = ""
+
     @Column(name = "object_class", columnDefinition = "varchar(255) default ''")
     var objectClass: String = ""
 

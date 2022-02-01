@@ -4,6 +4,7 @@ import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.enums.ReorderTypes
+import com.svoemesto.ivfx.models.Person
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
@@ -31,6 +32,7 @@ import javafx.scene.control.ButtonType
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Control
 import javafx.scene.control.Label
+import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TableCell
@@ -390,27 +392,29 @@ class PersonEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentPersonExt!!.person::class.java.simpleName).toMutableList()
-            listKeys.sort()
+            val mapKeyValues = PropertyController.getMapKeyValuesByParentClass(Person::class.java.simpleName)
             var countKeysAdded = 0
-            listKeys.forEach { key ->
-
-                if (listProperties.filter { it.key == key }.isEmpty()) {
+            mapKeyValues.forEach { (key, value) ->
+                val menuGroup = Menu()
+                menuGroup.isMnemonicParsing = false
+                menuGroup.text = key
+                value.forEach { value ->
                     countKeysAdded++
                     menuItem = MenuItem()
                     menuItem.isMnemonicParsing = false
-                    menuItem.text = key
-                    menuItem.onAction = EventHandler { e: ActionEvent? ->
+                    menuItem.text = if (value == "") "<пусто>" else value
+                    menuItem.onAction = EventHandler {
                         saveCurrentProperty()
-                        val id = PropertyController.editOrCreate(currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id, key).id
+                        val id = PropertyController.editOrCreate(currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id, key, value).id
                         listProperties = FXCollections.observableArrayList(PropertyController.getListProperties(
                             currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id))
                         tblProperties?.items = listProperties
-                        currentProperty = listProperties.filter { it.id == id }.first()
+                        currentProperty = listProperties.first { it.id == id }
                         tblProperties?.selectionModel?.select(currentProperty)
                     }
-                    menu.items.add(menuItem)
+                    menuGroup.items.add(menuItem)
                 }
+                menu.items.add(menuGroup)
             }
 
             if (countKeysAdded > 0) {
@@ -419,8 +423,8 @@ class PersonEditFXController {
                 menuItem.text = "Добавить все свойства для персонажа"
                 menuItem.onAction = EventHandler { e: ActionEvent? ->
                     saveCurrentProperty()
-                    listKeys.forEach { key ->
-                        if (listProperties.filter { it.key == key }.isEmpty()) {
+                    mapKeyValues.forEach { (key, value) ->
+                        if (listProperties.none { it.key == key }) {
                             PropertyController.editOrCreate(currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id, key)
                         }
                     }

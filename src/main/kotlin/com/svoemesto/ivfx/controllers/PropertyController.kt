@@ -12,6 +12,18 @@ class PropertyController() {
 
     companion object {
 
+        fun getMapKeyValuesByParentClass(parentClass: String): MutableMap<String, MutableList<String>> {
+            val mapPropVals: MutableMap<String, MutableList<String>> = mutableMapOf()
+            val propsMap = Main.propertyRepo.findByParentClass(parentClass).groupBy { it.key }.toSortedMap()
+            propsMap.forEach { propMap->
+                val vals = propMap.value.map { it.value }.toMutableSet()
+                vals.add("")
+                mapPropVals[propMap.key] = vals.toMutableList()
+                mapPropVals[propMap.key]?.sort()
+            }
+            return mapPropVals
+        }
+
         fun getListProperties(parentClass: String, parentId: Long): List<Property> {
             return Main.propertyRepo.findByParentClassAndParentIdAndOrderGreaterThanOrderByOrder(parentClass, parentId, 0).toList()
         }

@@ -52,13 +52,13 @@ class FilterConditionExt(var filterCondition: FilterCondition): Comparable<Filte
 
                 when (filterCondition.subjectClass) {
                     Shot::class.java.simpleName -> {
-                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForShotsTmpAndPersonProperty(Main.ccid, filterCondition.objectName).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForShotsTmpAndPersonProperty(Main.ccid, filterCondition.objectName, filterCondition.objectValue).map { it })
                     }
                     Scene::class.java.simpleName -> {
-                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndPersonProperty(Main.ccid, filterCondition.objectName).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndPersonProperty(Main.ccid, filterCondition.objectName, filterCondition.objectValue).map { it })
                     }
                     Event::class.java.simpleName -> {
-                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndPersonProperty(Main.ccid, filterCondition.objectName).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndPersonProperty(Main.ccid, filterCondition.objectName, filterCondition.objectValue).map { it })
                     }
                     File::class.java.simpleName -> {}
                 }
@@ -75,13 +75,13 @@ class FilterConditionExt(var filterCondition: FilterCondition): Comparable<Filte
 
                 when (filterCondition.subjectClass) {
                     Shot::class.java.simpleName -> {
-                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForShotsTmpAndShotProperty(Main.ccid, filterCondition.objectName).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForShotsTmpAndShotProperty(Main.ccid, filterCondition.objectName, filterCondition.objectValue).map { it })
                     }
                     Scene::class.java.simpleName -> {
-                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndShotProperty(Main.ccid, filterCondition.objectName).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndShotProperty(Main.ccid, filterCondition.objectName, filterCondition.objectValue).map { it })
                     }
                     Event::class.java.simpleName -> {
-                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndShotProperty(Main.ccid, filterCondition.objectName).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndShotProperty(Main.ccid, filterCondition.objectName, filterCondition.objectValue).map { it })
                     }
                     File::class.java.simpleName -> {}
                 }
@@ -98,7 +98,7 @@ class FilterConditionExt(var filterCondition: FilterCondition): Comparable<Filte
 
                 when (filterCondition.subjectClass) {
                     Scene::class.java.simpleName -> {
-                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndSceneProperty(Main.ccid, filterCondition.objectName).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForScenesTmpAndSceneProperty(Main.ccid, filterCondition.objectName, filterCondition.objectValue).map { it })
                     }
                     File::class.java.simpleName -> {}
                 }
@@ -115,7 +115,7 @@ class FilterConditionExt(var filterCondition: FilterCondition): Comparable<Filte
 
                 when (filterCondition.subjectClass) {
                     Event::class.java.simpleName -> {
-                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndEventProperty(Main.ccid, filterCondition.objectName).map { it })
+                        setOfShotsIdsWithObject.addAll(Main.shotRepo.getShotsIdsForEventsTmpAndEventProperty(Main.ccid, filterCondition.objectName, filterCondition.objectValue).map { it })
                     }
                     File::class.java.simpleName -> {}
                 }
