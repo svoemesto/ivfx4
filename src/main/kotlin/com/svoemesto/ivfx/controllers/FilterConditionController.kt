@@ -32,7 +32,7 @@ class FilterConditionController {
 
         }
 
-        fun create(filterGroup: FilterGroup, name: String, objectId: Long, objectName: String, objectClass: String, subjectClass: String, isIncluded: Boolean): FilterCondition {
+        fun create(filterGroup: FilterGroup, name: String, objectId: Long, objectName: String, objectValue: String, objectClass: String, subjectClass: String, isIncluded: Boolean): FilterCondition {
 
             val entity = FilterCondition()
             entity.filterGroup = filterGroup
@@ -41,6 +41,7 @@ class FilterConditionController {
             entity.name = name
             entity.objectId = objectId
             entity.objectName = objectName
+            entity.objectValue = objectValue
             entity.objectClass = objectClass
             entity.subjectClass = subjectClass
             entity.isIncluded = isIncluded

@@ -13,7 +13,10 @@ import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.enums.ShotTypePerson
+import com.svoemesto.ivfx.models.Event
+import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Property
+import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.EventExt
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -57,6 +60,7 @@ import javafx.scene.control.ButtonType
 import javafx.scene.control.CheckBox
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
+import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.ProgressIndicator
@@ -2782,26 +2786,28 @@ class ShotsEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentEventExt!!.event::class.java.simpleName).toMutableList()
-            listKeys.sort()
+            val mapKeyValues = PropertyController.getMapKeyValuesByParentClass(Event::class.java.simpleName)
             var countKeysAdded = 0
-            listKeys.forEach { key ->
-
-                if (listEventProperties.filter { it.key == key }.isEmpty()) {
+            mapKeyValues.forEach { (key, value) ->
+                val menuGroup = Menu()
+                menuGroup.isMnemonicParsing = false
+                menuGroup.text = key
+                value.forEach { value ->
                     countKeysAdded++
                     menuItem = MenuItem()
                     menuItem.isMnemonicParsing = false
-                    menuItem.text = key
-                    menuItem.onAction = EventHandler { e: ActionEvent? ->
+                    menuItem.text = if (value == "") "<пусто>" else value
+                    menuItem.onAction = EventHandler {
                         saveCurrentEventProperty()
-                        val id = PropertyController.editOrCreate(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id, key).id
+                        val id = PropertyController.editOrCreate(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id, key, value).id
                         listEventProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentEventExt!!.event::class.java.simpleName, currentEventExt!!.event.id))
                         tblEventProperties?.items = listEventProperties
                         currentEventProperty = listEventProperties.first { it.id == id }
                         tblEventProperties?.selectionModel?.select(currentEventProperty)
                     }
-                    menu.items.add(menuItem)
+                    menuGroup.items.add(menuItem)
                 }
+                menu.items.add(menuGroup)
             }
 
             btnEventPropertyAdd?.contextMenu = menu
@@ -2892,26 +2898,28 @@ class ShotsEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentSceneExt!!.scene::class.java.simpleName).toMutableList()
-            listKeys.sort()
+            val mapKeyValues = PropertyController.getMapKeyValuesByParentClass(com.svoemesto.ivfx.models.Scene::class.java.simpleName)
             var countKeysAdded = 0
-            listKeys.forEach { key ->
-
-                if (listSceneProperties.filter { it.key == key }.isEmpty()) {
+            mapKeyValues.forEach { (key, value) ->
+                val menuGroup = Menu()
+                menuGroup.isMnemonicParsing = false
+                menuGroup.text = key
+                value.forEach { value ->
                     countKeysAdded++
                     menuItem = MenuItem()
                     menuItem.isMnemonicParsing = false
-                    menuItem.text = key
-                    menuItem.onAction = EventHandler { e: ActionEvent? ->
+                    menuItem.text = if (value == "") "<пусто>" else value
+                    menuItem.onAction = EventHandler {
                         saveCurrentSceneProperty()
-                        val id = PropertyController.editOrCreate(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id, key).id
+                        val id = PropertyController.editOrCreate(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id, key, value).id
                         listSceneProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentSceneExt!!.scene::class.java.simpleName, currentSceneExt!!.scene.id))
                         tblSceneProperties?.items = listSceneProperties
                         currentSceneProperty = listSceneProperties.first { it.id == id }
                         tblSceneProperties?.selectionModel?.select(currentSceneProperty)
                     }
-                    menu.items.add(menuItem)
+                    menuGroup.items.add(menuItem)
                 }
+                menu.items.add(menuGroup)
             }
 
             btnScenePropertyAdd?.contextMenu = menu
@@ -3002,26 +3010,28 @@ class ShotsEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentShotExt!!.shot::class.java.simpleName).toMutableList()
-            listKeys.sort()
+            val mapKeyValues = PropertyController.getMapKeyValuesByParentClass(Shot::class.java.simpleName)
             var countKeysAdded = 0
-            listKeys.forEach { key ->
-
-                if (listShotProperties.filter { it.key == key }.isEmpty()) {
+            mapKeyValues.forEach { (key, value) ->
+                val menuGroup = Menu()
+                menuGroup.isMnemonicParsing = false
+                menuGroup.text = key
+                value.forEach { propValue ->
                     countKeysAdded++
                     menuItem = MenuItem()
                     menuItem.isMnemonicParsing = false
-                    menuItem.text = key
-                    menuItem.onAction = EventHandler { e: ActionEvent? ->
+                    menuItem.text = if (propValue == "") "<пусто>" else propValue
+                    menuItem.onAction = EventHandler {
                         saveCurrentShotProperty()
-                        val id = PropertyController.editOrCreate(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id, key).id
+                        val id = PropertyController.editOrCreate(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id, key, propValue).id
                         listShotProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentShotExt!!.shot::class.java.simpleName, currentShotExt!!.shot.id))
                         tblShotProperties?.items = listShotProperties
                         currentShotProperty = listShotProperties.first { it.id == id }
                         tblShotProperties?.selectionModel?.select(currentShotProperty)
                     }
-                    menu.items.add(menuItem)
+                    menuGroup.items.add(menuItem)
                 }
+                menu.items.add(menuGroup)
             }
 
             btnShotPropertyAdd?.contextMenu = menu

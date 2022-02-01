@@ -17,6 +17,8 @@ import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.enums.VideoCodecs
 import com.svoemesto.ivfx.enums.VideoContainers
 import com.svoemesto.ivfx.getCurrentDatabase
+import com.svoemesto.ivfx.models.File
+import com.svoemesto.ivfx.models.Person
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.models.PropertyCdf
@@ -1475,26 +1477,28 @@ class ProjectEditFXController {
 
             menu.items.add(SeparatorMenuItem())
 
-            val listKeys = Main.propertyRepo.getKeys(currentFileExt!!.file::class.java.simpleName).toMutableList()
-            listKeys.sort()
+            val mapKeyValues = PropertyController.getMapKeyValuesByParentClass(File::class.java.simpleName)
             var countKeysAdded = 0
-            listKeys.forEach { key ->
-
-                if (listFileProperties.filter { it.key == key }.isEmpty()) {
+            mapKeyValues.forEach { (key, value) ->
+                val menuGroup = Menu()
+                menuGroup.isMnemonicParsing = false
+                menuGroup.text = key
+                value.forEach { value ->
                     countKeysAdded++
                     menuItem = MenuItem()
                     menuItem.isMnemonicParsing = false
-                    menuItem.text = key
-                    menuItem.onAction = EventHandler { e: ActionEvent? ->
+                    menuItem.text = if (value == "") "<пусто>" else value
+                    menuItem.onAction = EventHandler {
                         saveCurrentFileProperty()
-                        val id = PropertyController.editOrCreate(currentFileExt!!.file::class.java.simpleName, currentFileExt!!.file.id, key).id
+                        val id = PropertyController.editOrCreate(currentFileExt!!.file::class.java.simpleName, currentFileExt!!.file.id, key, value).id
                         listFileProperties = FXCollections.observableArrayList(PropertyController.getListProperties(currentFileExt!!.file::class.java.simpleName, currentFileExt!!.file.id))
                         tblFileProperties?.items = listFileProperties
-                        currentFileProperty = listFileProperties.filter { it.id == id }.first()
+                        currentFileProperty = listFileProperties.first { it.id == id }
                         tblFileProperties?.selectionModel?.select(currentFileProperty)
                     }
-                    menu.items.add(menuItem)
+                    menuGroup.items.add(menuItem)
                 }
+                menu.items.add(menuGroup)
             }
 
             if (countKeysAdded > 0) {
@@ -1503,7 +1507,7 @@ class ProjectEditFXController {
                 menuItem.text = "Добавить все свойства для файла"
                 menuItem.onAction = EventHandler { e: ActionEvent? ->
                     saveCurrentFileProperty()
-                    listKeys.forEach { key ->
+                    mapKeyValues.forEach { (key, value) ->
                         if (listFileProperties.filter { it.key == key }.isEmpty()) {
                             PropertyController.editOrCreate(currentFileExt!!.file::class.java.simpleName, currentFileExt!!.file.id, key)
                         }

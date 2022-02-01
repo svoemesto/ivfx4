@@ -101,6 +101,7 @@ class FilterConditionCreateFXController {
 
     private var currentObjectId: Long? = null
     private var currentObjectName: String = "???"
+    private var currentObjectValue: String = ""
 
     fun createFilterCondition(projectExt: ProjectExt, filterGroupExt: FilterGroupExt, initFilterConditionExt: FilterConditionExt? = null) : FilterConditionExt? {
         currentFilterConditionExt = null
@@ -169,6 +170,7 @@ class FilterConditionCreateFXController {
     fun doChangeObjectClass(event: ActionEvent?) {
         currentObjectId = null
         currentObjectName = "???"
+        currentObjectValue = ""
 
         rbShot?.isDisable = (rbSceneProperty!!.isSelected || rbEventProperty!!.isSelected)
         rbScene?.isDisable = rbEventProperty!!.isSelected
@@ -212,6 +214,7 @@ class FilterConditionCreateFXController {
                     getCurrentName(),
                     currentObjectId!!,
                     currentObjectName,
+                    currentObjectValue,
                     if (rbPerson!!.isSelected) Person::class.java.simpleName
                     else if (rbPersonProperty!!.isSelected) "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
                     else if (rbShotProperty!!.isSelected) "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
@@ -230,6 +233,7 @@ class FilterConditionCreateFXController {
                 currentFilterConditionExt!!.filterCondition.name = getCurrentName()
                 currentFilterConditionExt!!.filterCondition.objectId = currentObjectId!!
                 currentFilterConditionExt!!.filterCondition.objectName = currentObjectName
+                currentFilterConditionExt!!.filterCondition.objectValue = currentObjectValue
                 currentFilterConditionExt!!.filterCondition.objectClass =
                     if (rbPerson!!.isSelected) Person::class.java.simpleName
                     else if (rbPersonProperty!!.isSelected) "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
@@ -267,7 +271,7 @@ class FilterConditionCreateFXController {
             else -> "Error"
         }
         val including = if(rbIsIncluded!!.isSelected) " " else " NOT "
-        return "$objectClass «$currentObjectName» is${including}included in $subjectClass"
+        return "$objectClass «$currentObjectName»${if(currentObjectValue=="") "" else " = «${currentObjectValue}»"} is${including}included in $subjectClass"
     }
 
     private fun updateNameLabel() {
@@ -284,100 +288,34 @@ class FilterConditionCreateFXController {
                 currentObjectName = selectedPerson.person.name
                 updateNameLabel()
             }
-        } else if (rbPersonProperty!!.isSelected) {
-
+        } else {
             val menu = ContextMenu()
             var menuItem: MenuItem
 
-            val listKeys = Main.propertyRepo.getKeys(Person::class.java.simpleName).toMutableList()
-            listKeys.sort()
-            listKeys.forEach { key ->
+            val className = if (rbPersonProperty!!.isSelected) Person::class.java.simpleName
+            else if (rbShotProperty!!.isSelected) Shot::class.java.simpleName
+            else if (rbSceneProperty!!.isSelected) Shot::class.java.simpleName
+            else if (rbSceneProperty!!.isSelected) com.svoemesto.ivfx.models.Scene::class.java.simpleName
+            else Event::class.java.simpleName
 
-                menuItem = MenuItem()
-                menuItem.isMnemonicParsing = false
-                menuItem.text = key
-                menuItem.onAction = EventHandler { e: ActionEvent? ->
-                    currentObjectId = 0
-                    currentObjectName = key
-                    updateNameLabel()
+            val mapKeyValues = PropertyController.getMapKeyValuesByParentClass(className)
+            mapKeyValues.forEach { (key, value) ->
+                val menuGroup = Menu()
+                menuGroup.isMnemonicParsing = false
+                menuGroup.text = key
+                value.forEach { value ->
+                    menuItem = MenuItem()
+                    menuItem.isMnemonicParsing = false
+                    menuItem.text = if (value == "") "<пусто>" else value
+                    menuItem.onAction = EventHandler {
+                        currentObjectId = 0
+                        currentObjectName = key
+                        currentObjectValue = value
+                        updateNameLabel()
+                    }
+                    menuGroup.items.add(menuItem)
                 }
-                menu.items.add(menuItem)
-
-            }
-
-            btnSelectObject?.contextMenu = menu
-            val screenBounds: Bounds = btnSelectObject!!.localToScreen(btnSelectObject!!.boundsInLocal)
-            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
-
-        } else if (rbShotProperty!!.isSelected) {
-
-            val menu = ContextMenu()
-            var menuItem: MenuItem
-
-            val listKeys = Main.propertyRepo.getKeys(Shot::class.java.simpleName).toMutableList()
-            listKeys.sort()
-            listKeys.forEach { key ->
-
-                menuItem = MenuItem()
-                menuItem.isMnemonicParsing = false
-                menuItem.text = key
-                menuItem.onAction = EventHandler { e: ActionEvent? ->
-                    currentObjectId = 0
-                    currentObjectName = key
-                    updateNameLabel()
-                }
-                menu.items.add(menuItem)
-
-            }
-
-            btnSelectObject?.contextMenu = menu
-            val screenBounds: Bounds = btnSelectObject!!.localToScreen(btnSelectObject!!.boundsInLocal)
-            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
-
-        } else if (rbSceneProperty!!.isSelected) {
-
-            val menu = ContextMenu()
-            var menuItem: MenuItem
-
-            val listKeys = Main.propertyRepo.getKeys(com.svoemesto.ivfx.models.Scene::class.java.simpleName).toMutableList()
-            listKeys.sort()
-            listKeys.forEach { key ->
-
-                menuItem = MenuItem()
-                menuItem.isMnemonicParsing = false
-                menuItem.text = key
-                menuItem.onAction = EventHandler { e: ActionEvent? ->
-                    currentObjectId = 0
-                    currentObjectName = key
-                    updateNameLabel()
-                }
-                menu.items.add(menuItem)
-
-            }
-
-            btnSelectObject?.contextMenu = menu
-            val screenBounds: Bounds = btnSelectObject!!.localToScreen(btnSelectObject!!.boundsInLocal)
-            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
-
-        } else if (rbEventProperty!!.isSelected) {
-
-            val menu = ContextMenu()
-            var menuItem: MenuItem
-
-            val listKeys = Main.propertyRepo.getKeys(Event::class.java.simpleName).toMutableList()
-            listKeys.sort()
-            listKeys.forEach { key ->
-
-                menuItem = MenuItem()
-                menuItem.isMnemonicParsing = false
-                menuItem.text = key
-                menuItem.onAction = EventHandler { e: ActionEvent? ->
-                    currentObjectId = 0
-                    currentObjectName = key
-                    updateNameLabel()
-                }
-                menu.items.add(menuItem)
-
+                menu.items.add(menuGroup)
             }
 
             btnSelectObject?.contextMenu = menu
