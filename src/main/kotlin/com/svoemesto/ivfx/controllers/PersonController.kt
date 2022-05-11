@@ -22,6 +22,10 @@ class PersonController() {
 //            return result
 //        }
 
+        fun isPropertyPresent(person: Person, key: String) : Boolean {
+            return Main.propertyRepo.findByParentClassAndParentIdAndKey(person::class.simpleName!!, person.id, key).any()
+        }
+
         fun getSetPersons(project: Project): MutableSet<Person> {
             return Main.personRepo.findByProjectId(project.id).map { it.project = project;it }.toMutableSet()
         }
