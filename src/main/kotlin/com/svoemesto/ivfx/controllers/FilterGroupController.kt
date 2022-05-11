@@ -46,7 +46,7 @@ class FilterGroupController {
             FilterConditionController.deleteAll(filterGroup)
             PropertyController.deleteAll(filterGroup::class.java.simpleName, filterGroup.id)
             PropertyCdfController.deleteAll(filterGroup::class.java.simpleName, filterGroup.id)
-
+            filterGroup.filterConditions.clear()
             Main.filterGroupRepo.delete(filterGroup)
 
         }

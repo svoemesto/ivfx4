@@ -161,30 +161,33 @@ class PersonEditFXController {
         println("Инициализация PersonEditFXController.")
 
         colPersonName?.cellValueFactory = PropertyValueFactory("labelSmall")
+
+
+        LoadListPersonsExtForProject(listPersonsExtAll, currentProjectExt!!).run()
         tblPersons!!.items = listPersonsExtAll
+        if (currentPersonExt != null) {
 
-        runListThreadsPersonFlagIsDone.set(false)
+            currentProperty = null
 
-        val listThreads: MutableList<Thread> = mutableListOf()
-        listThreads.add(LoadListPersonsExtForProject(listPersonsExtAll, currentProjectExt!!))
-        val runListThreadsFrames = RunListThreads(listThreads, runListThreadsPersonFlagIsDone)
-        runListThreadsFrames.start()
+            btnPropertyMoveToFirst?.isDisable = currentProperty == null
+            btnPropertyMoveUp?.isDisable = currentProperty == null
+            btnPropertyMoveToLast?.isDisable = currentProperty == null
+            btnPropertyMoveDown?.isDisable = currentProperty == null
+            btnPropertyDelete?.isDisable = currentProperty == null
+            fldPropertyKey?.isDisable = currentProperty == null
+            fldPropertyValue?.isDisable = currentProperty == null
 
-        runListThreadsPersonFlagIsDone.addListener { observable, oldValue, newValue ->
-            if (newValue == true) {
-                val tmpList: ObservableList<PersonExt> = FXCollections.observableArrayList()
-                listLastSelectedPersons.forEach { lastPerson ->
-                    tmpList.add(listPersonsExtAll.first { lastPerson.person.id == it.person.id })
-                }
-                listPersonsExtAll.forEach {
-                    if (!tmpList.contains(it)) tmpList.add(it)
-                }
-                listPersonsExtAll = tmpList
-                tblPersons!!.items = listPersonsExtAll
-                if (currentPersonExt != null) {
-                    tblPersons!!.selectionModel.select(listPersonsExtAll.first { it.person.id ==  currentPersonExt!!.person.id} )
-                }
-            }
+            fldPropertyKey?.text = ""
+            fldPropertyValue?.text = ""
+
+            listProperties = FXCollections.observableArrayList(PropertyController.getListProperties(
+                currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id))
+            tblProperties?.items = listProperties
+
+            lblMediumPreview?.graphic = currentPersonExt?.labelMedium
+            fldName?.text = currentPersonExt?.person?.name
+
+            tblPersons!!.selectionModel.select(listPersonsExtAll.first { it.person.id ==  currentPersonExt!!.person.id} )
         }
 
         tblPersons!!.selectionModel.selectedItemProperty()
@@ -209,12 +212,12 @@ class PersonEditFXController {
                     fldPropertyKey?.text = ""
                     fldPropertyValue?.text = ""
 
-                    lblMediumPreview?.graphic = currentPersonExt?.labelMedium
-                    fldName?.text = currentPersonExt?.person?.name
-
                     listProperties = FXCollections.observableArrayList(PropertyController.getListProperties(
                         currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id))
                     tblProperties?.items = listProperties
+
+                    lblMediumPreview?.graphic = currentPersonExt?.labelMedium
+                    fldName?.text = currentPersonExt?.person?.name
 
                 }
             }
@@ -394,27 +397,51 @@ class PersonEditFXController {
 
             val mapKeyValues = PropertyController.getMapKeyValuesByParentClass(Person::class.java.simpleName)
             var countKeysAdded = 0
-            mapKeyValues.forEach { (key, value) ->
-                val menuGroup = Menu()
-                menuGroup.isMnemonicParsing = false
-                menuGroup.text = key
-                value.forEach { value ->
-                    countKeysAdded++
+            mapKeyValues.forEach { (key, values) ->
+
+                if (values.size > 30 || (values.size == 1 && values[0] == "")) {
+
                     menuItem = MenuItem()
                     menuItem.isMnemonicParsing = false
-                    menuItem.text = if (value == "") "<пусто>" else value
+                    menuItem.text = key
+
                     menuItem.onAction = EventHandler {
                         saveCurrentProperty()
-                        val id = PropertyController.editOrCreate(currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id, key, value).id
+                        val id = PropertyController.editOrCreate(currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id, key, "").id
                         listProperties = FXCollections.observableArrayList(PropertyController.getListProperties(
                             currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id))
                         tblProperties?.items = listProperties
                         currentProperty = listProperties.first { it.id == id }
                         tblProperties?.selectionModel?.select(currentProperty)
                     }
-                    menuGroup.items.add(menuItem)
+                    menu.items.add(menuItem)
+
+                } else {
+
+                    val menuGroup = Menu()
+                    menuGroup.isMnemonicParsing = false
+                    menuGroup.text = key
+                    values.forEach { value ->
+                        countKeysAdded++
+                        menuItem = MenuItem()
+                        menuItem.isMnemonicParsing = false
+                        menuItem.text = if (value == "") "<пусто>" else value
+                        menuItem.onAction = EventHandler {
+                            saveCurrentProperty()
+                            val id = PropertyController.editOrCreate(currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id, key, value).id
+                            listProperties = FXCollections.observableArrayList(PropertyController.getListProperties(
+                                currentPersonExt!!.person::class.java.simpleName, currentPersonExt!!.person.id))
+                            tblProperties?.items = listProperties
+                            currentProperty = listProperties.first { it.id == id }
+                            tblProperties?.selectionModel?.select(currentProperty)
+                        }
+                        menuGroup.items.add(menuItem)
+                    }
+                    menu.items.add(menuGroup)
+
                 }
-                menu.items.add(menuGroup)
+
+
             }
 
             if (countKeysAdded > 0) {

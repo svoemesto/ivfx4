@@ -883,23 +883,26 @@ class ShotsEditFXController {
                         if (wasClickTableShots) {
                             wasClickTableShots = false
                             goToFrame(getMatrixFrameByFrameExt(newValue.firstFrameExt))
-                            if (!currentSelectedScenesExt.map{it.scene.id}.contains(currentShotExt!!.sceneExt!!.scene.id)) {
-                                tblScenes!!.selectionModel.clearSelection()
-                                val sceneToGo = currentFileExt!!.scenesExt.firstOrNull { it.scene.id == currentShotExt!!.sceneExt!!.scene.id }
-                                if (sceneToGo != null) {
-                                    tblScenes!!.selectionModel.select(sceneToGo)
-                                    tblScenesSmartScroll(sceneToGo)
-                                }
-                            } else {
-                                if (listShotsExtForScenes.map{it.shot.id}.contains(currentShotExt!!.shot.id)) {
-                                    tblShotsForScenes!!.selectionModel.clearSelection()
-                                    val shotForSceneToGo = listShotsExtForScenes.firstOrNull { it.shot.id == currentShotExt!!.shot.id }
-                                    if (shotForSceneToGo != null) {
-                                        tblShotsForScenes!!.selectionModel.select(shotForSceneToGo)
-                                        tblShotsForScenesSmartScroll(shotForSceneToGo)
+                            if(currentShotExt != null && currentShotExt!!.sceneExt != null) {
+                                if (!currentSelectedScenesExt.map{it.scene.id}.contains(currentShotExt!!.sceneExt!!.scene.id)) {
+                                    tblScenes!!.selectionModel.clearSelection()
+                                    val sceneToGo = currentFileExt!!.scenesExt.firstOrNull { it.scene.id == currentShotExt!!.sceneExt!!.scene.id }
+                                    if (sceneToGo != null) {
+                                        tblScenes!!.selectionModel.select(sceneToGo)
+                                        tblScenesSmartScroll(sceneToGo)
+                                    }
+                                } else {
+                                    if (listShotsExtForScenes.map{it.shot.id}.contains(currentShotExt!!.shot.id)) {
+                                        tblShotsForScenes!!.selectionModel.clearSelection()
+                                        val shotForSceneToGo = listShotsExtForScenes.firstOrNull { it.shot.id == currentShotExt!!.shot.id }
+                                        if (shotForSceneToGo != null) {
+                                            tblShotsForScenes!!.selectionModel.select(shotForSceneToGo)
+                                            tblShotsForScenesSmartScroll(shotForSceneToGo)
+                                        }
                                     }
                                 }
                             }
+
                         } else {
                             tblShotsSmartScroll(newValue)
                         }
@@ -2599,6 +2602,7 @@ class ShotsEditFXController {
             listFacesExt = FXCollections.observableArrayList(list)
             currentMatrixPageFacesPageNumber = currentMatrixPageFaces!!.pageNumber
             runListThreadsFacesFlagIsDone.set(true)
+            isDoneLoadListPersonFacesExt.set(true)
         }
 
     }
@@ -2647,7 +2651,21 @@ class ShotsEditFXController {
             }
             if (listShotsExt.isNotEmpty()) {
                 val sceneExt = SceneController.createSceneExt(listShotsExt)
+
+
+
                 if (sceneExt != null) {
+
+                    val dialog = TextInputDialog(sceneExt.sceneName)
+                    dialog.title = "Rename scene"
+                    dialog.headerText = "Enter new scene name:"
+                    dialog.contentText = "Name:"
+                    val result: Optional<String> = dialog.showAndWait()
+                    result.ifPresent {name ->
+                        sceneExt.scene.name = name
+                        SceneController.save(sceneExt.scene)
+                    }
+
                     LoadListScenesExt(currentFileExt!!.scenesExt, currentFileExt!!, pb, lblPb).run()
                     tblScenes!!.items = currentFileExt!!.scenesExt
                     val sceneInTable = currentFileExt!!.scenesExt.firstOrNull { it.scene.id == sceneExt.scene.id }
@@ -2690,8 +2708,20 @@ class ShotsEditFXController {
                 }
             }
             if (listShotsExt.isNotEmpty()) {
+
                 val eventExt = EventController.createEventExt(listShotsExt)
                 if (eventExt != null) {
+
+                    val dialog = TextInputDialog(eventExt.eventName)
+                    dialog.title = "Rename event"
+                    dialog.headerText = "Enter new event name:"
+                    dialog.contentText = "Name:"
+                    val result: Optional<String> = dialog.showAndWait()
+                    result.ifPresent { name ->
+                        eventExt.event.name = name
+                        EventController.save(eventExt.event)
+                    }
+
                     LoadListEventsExt(currentFileExt!!.eventsExt, currentFileExt!!, pb, lblPb).run()
                     tblEvents!!.items = currentFileExt!!.eventsExt
                     val eventInTable = currentFileExt!!.eventsExt.firstOrNull { it.event.id == eventExt.event.id }

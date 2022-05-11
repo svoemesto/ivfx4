@@ -4,9 +4,6 @@ import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
 import java.io.InputStreamReader
 
-
-
-
 //@Throws(IOException::class, InterruptedException::class)
 fun executeExe(exePath: String, parameters: List<String>): String {
 
@@ -31,11 +28,16 @@ fun executeExe(exePath: String, parameters: List<String>): String {
 }
 
 fun main() {
-    val exePath = IvfxFFmpegUtils.FFPROBE_PATH
-    val mediaFile = "E:/GOT/GOT.S01/GOT.S01E01.BDRip.1080p.mkv"
+//    val exePath = IvfxFFmpegUtils.FFPROBE_PATH
+//    val mediaFile = "E:/GOT/GOT.S01/GOT.S01E01.BDRip.1080p.mkv"
+//
+//    val ffprobe = FFprobe(exePath)
+//    val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(mediaFile)
+//
+//    println(fFmpegProbeResult)
 
-    val ffprobe = FFprobe(exePath)
-    val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(mediaFile)
+    val snils = "10091645013"
+    println("${snils.substring(0,3)}-${snils.substring(3,6)}-${snils.substring(6,9)} ${snils.substring(9,11)}")
+    println("${snils.subSequence(0,3)}-${snils.subSequence(3,6)}-${snils.subSequence(6,9)} ${snils.subSequence(9,11)}")
 
-    println(fFmpegProbeResult)
 }

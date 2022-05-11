@@ -30,7 +30,7 @@ import java.io.FileWriter
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class CreateFilterResult(var filterExt: FilterExt, var projectExt: ProjectExt, var shotsExt: MutableList<ShotExt>, var fileExt: FileExt): Thread(), Runnable {
+class CreateFilterResult(var filterExt: FilterExt, var projectExt: ProjectExt, var shotsExt: MutableList<ShotExt>, var fileExt: FileExt, var filename: String = ""): Thread(), Runnable {
     override fun run() {
 
         if (!File(projectExt.folderFilters).exists()) File(projectExt.folderFilters).mkdir()
@@ -38,7 +38,7 @@ class CreateFilterResult(var filterExt: FilterExt, var projectExt: ProjectExt, v
         var concatFiles = ""
         shotsExt.forEach { concatFiles += "file '${it.pathToCompressedWithAudio}'\n" }
 
-        val filename = "${projectExt.folderFilters}${File.separator}${filterExt.filter.name} [${shotsExt.first().fileExt.file.shortName}-${shotsExt.last().fileExt.file.shortName}]"
+        if (filename == "") filename = "${projectExt.folderFilters}${File.separator}${filterExt.filter.name} [${shotsExt.first().fileExt.file.shortName}-${shotsExt.last().fileExt.file.shortName}].${VideoContainers.valueOf(projectExt.project.container).extention}"
         val fileInput = "${filename}.txt"
         if (File(fileInput).exists()) File(fileInput).delete()
         try {
@@ -51,7 +51,7 @@ class CreateFilterResult(var filterExt: FilterExt, var projectExt: ProjectExt, v
             e.printStackTrace()
         }
 
-        val fileOutput = "${filename}.${VideoContainers.valueOf(projectExt.project.container).extention}"
+        val fileOutput = filename
 
         val ffmpeg = FFmpeg(IvfxFFmpegUtils.FFMPEG_PATH)
 

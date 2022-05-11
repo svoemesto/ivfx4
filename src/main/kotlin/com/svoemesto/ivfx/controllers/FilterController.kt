@@ -27,6 +27,27 @@ class FilterController {
             return FilterExt(filter)
         }
 
+        fun getFilterExt(projectExt: ProjectExt, filterName: String): FilterExt {
+            var filter = Main.filterRepo.findByProjectIdAndName(projectExt.project.id, filterName).firstOrNull()
+            if (filter == null) {
+                filter = create(projectExt.project,true)
+                filter.name = filterName
+                save(filter)
+            }
+            filter.project = projectExt.project
+            filter.filterGroups = FilterGroupController.getSetFilterGroups(filter)
+            return FilterExt(filter)
+        }
+
+        fun deleteFilterExt(projectExt: ProjectExt, filterName: String) {
+            val filter = Main.filterRepo.findByProjectIdAndName(projectExt.project.id, filterName).firstOrNull()
+            if (filter != null) {
+                filter.project = projectExt.project
+                filter.filterGroups = FilterGroupController.getSetFilterGroups(filter)
+                delete(filter)
+            }
+        }
+
         fun getList(projectExt: ProjectExt): MutableList<FilterExt> {
 
             val filters = Main.filterRepo.findByProjectId(projectExt.project.id).toMutableList()
@@ -52,7 +73,7 @@ class FilterController {
             FilterGroupController.deleteAll(filter)
             PropertyController.deleteAll(filter::class.java.simpleName, filter.id)
             PropertyCdfController.deleteAll(filter::class.java.simpleName, filter.id)
-
+            filter.filterGroups.clear()
             Main.filterRepo.delete(filter)
         }
 

@@ -25,5 +25,6 @@ interface FilterRepo : CrudRepository<Filter, Long> {
     @Query(value = "DELETE FROM tbl_filters WHERE id = ?", nativeQuery = true)
     fun delete(filterId:Long)
     fun findByProjectId(projectId: Long): Iterable<Filter>
+    fun findByProjectIdAndName(projectId: Long, filterName: String): Iterable<Filter>
 
 }

@@ -4,9 +4,13 @@ import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FilterConditionController
 import com.svoemesto.ivfx.controllers.FilterController
 import com.svoemesto.ivfx.controllers.FilterGroupController
+import com.svoemesto.ivfx.controllers.PersonController
+import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.controllers.ShotTmpCdfController
 import com.svoemesto.ivfx.enums.ReorderTypes
+import com.svoemesto.ivfx.enums.VideoContainers
+import com.svoemesto.ivfx.models.Event
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FilterConditionExt
 import com.svoemesto.ivfx.modelsext.FilterExt
@@ -41,6 +45,7 @@ import javafx.scene.text.Text
 import javafx.stage.Modality
 import javafx.stage.Stage
 import java.io.IOException
+import java.io.File as IOFile
 
 
 class FilterEditFXController {
@@ -193,6 +198,9 @@ class FilterEditFXController {
 
     @FXML
     private var btnCreateVideo: Button? = null
+
+    @FXML
+    private var btnCreateVideoForAllPersons: Button? = null
 
     // PROGRESS
 
@@ -607,6 +615,54 @@ class FilterEditFXController {
         if (shotsExt != null && fileExt != null && filterExt != null) {
             CreateFilterResult(filterExt, currentProjectExt!!, shotsExt, fileExt).run()
         }
+
+    }
+
+    @FXML
+    fun doCreateVideoForAllPersons(event: ActionEvent?) {
+
+        ShotTmpCdfController.deleteAll()
+        tblFiles?.selectionModel?.selectedItems?.forEach { fileExt ->
+            Main.shotTmpCdfRepo.addAllByFileId(Main.ccid, fileExt.file.id)
+        }
+
+        val personsExt = PersonController.getListPersonsExt(currentProjectExt!!).filter { PersonController.isPropertyPresent(it.person,"end") }
+
+        if (personsExt.isNotEmpty()) {
+
+            FilterController.deleteFilterExt(currentProjectExt!!, "AllEventsPerson")
+            val filterExt = FilterController.getFilterExt(currentProjectExt!!, "AllEventsPerson")
+            val filterGroup = FilterGroupController.create(filterExt.filter, true)
+            filterGroup.name = "AllEventsPerson"
+            FilterGroupController.save(filterGroup)
+
+            filterExt.filter.filterGroups = mutableSetOf(filterGroup)
+
+            personsExt.forEach { personExt ->
+                val fileName = "${personExt.projectExt.folderFilters}${IOFile.separator}AllEventsPerson «${personExt.person.name}».${VideoContainers.valueOf(currentProjectExt!!.project.container).extention}"
+                if (!IOFile(fileName).exists()) {
+                    FilterConditionController.deleteAll(filterGroup)
+                    val filterCondition = FilterConditionController.create(filterGroup,"AllEventsPerson",personExt.person.id,personExt.person.name,"",personExt.person::class.java.simpleName,Event::class.java.simpleName,true)
+                    filterGroup.filterConditions = mutableSetOf(filterCondition)
+
+                    val shotsIds = FilterController.getFilterExt(currentProjectExt!!, filterExt.filter.id).shotsIds()
+                    val shotsExt = ShotController.convertSetShotsIdsToListShotsExt(shotsIds, currentProjectExt!!)
+                    val fileExt = tblFiles?.items?.first()
+
+                    if (fileExt != null) {
+                        CreateFilterResult(filterExt, currentProjectExt!!, shotsExt, fileExt, fileName).run()
+                        println(personExt.person.name)
+                    }
+
+                }
+
+            }
+
+//            personsExt.forEach { personExt -> println(personExt.person.name) }
+
+        }
+
+
 
     }
 }

@@ -112,6 +112,7 @@ class FaceController {
                 face = Face()
                 face.isExample = false
                 face.isManual = false
+                face.file = fileExt.file
             }
 
             if (d > 4) {
