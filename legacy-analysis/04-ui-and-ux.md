@@ -226,7 +226,7 @@ FXML 533 строки. Размер окна `prefWidth=2120, prefHeight=1200`. 
 **Правая часть (VBox, minWidth 920) — `TabPane` с 4 вкладками**
 
 **Вкладка `Frames`**
-* `paneFrames` (`Pane`, `style="-fx-background-color: black;"`) — холст матрицы миниатюр кадров. Размер холста监听 `widthProperty()/heightProperty()` → `listenToChangePaneSize()` переразбивает матрицу.
+* `paneFrames` (`Pane`, `style="-fx-background-color: black;"`) — холст матрицы миниатюр кадров. Размер холста отслеживается через `widthProperty()/heightProperty()` → `listenToChangePaneSize()` переразбивает матрицу.
 * `tblPagesFrames` (`TableView<MatrixPageFrames>`) — список «страниц» кадров; `colDurationStart`(`Время: с`)←`start`, `colDurationEnd`(`Время: по`)←`end`, `colFrameStart`(`Кадры: с`)←`firstFrameNumber`, `colFrameEnd`(`Кадры: по`)←`lastFrameNumber`.
 * `pbPagesFrames`.
 
