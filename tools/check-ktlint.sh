@@ -26,5 +26,9 @@ if [ ! -x "$KTLINT" ]; then
 fi
 
 TMP=$(mktemp); trap 'rm -f "$TMP"' EXIT
-"$KTLINT" --reporter=json "src/main/kotlin/**/*.kt" > "$TMP" 2>/dev/null || true
+# src/test/kotlin в гейте с шага 4 (тесты): новое пишется под тем же
+# стандартом, что и старое. Каталога может не быть — тогда ktlint
+# предупредит, и это не повод падать.
+"$KTLINT" --reporter=json "src/main/kotlin/**/*.kt" "src/test/kotlin/**/*.kt" \
+    > "$TMP" 2>/dev/null || true
 python3 tools/ktlint-baseline.py check "$TMP" "$BASELINE"
