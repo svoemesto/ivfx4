@@ -19,11 +19,26 @@ import com.svoemesto.ivfx.repos.ShotRepo
 import com.svoemesto.ivfx.repos.ShotTmp2CdfRepo
 import com.svoemesto.ivfx.repos.ShotTmpCdfRepo
 import com.svoemesto.ivfx.repos.TrackRepo
-import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
-@SpringBootApplication
-//@Scope("singleton")
+// @SpringBootApplication здесь стоял и СЛУЧАЛСЯ причиной вечного зависания
+// при поднятии контекста вне GUI.
+//
+// Spring Boot в проекте не используется (ADR-0001): ни SpringApplication.run,
+// ни автоконфигурации нет, component scan работает от @ComponentScan в
+// SpringConfig. То есть аннотация была мёртвой по смыслу.
+//
+// Но по устройству она вредна: @SpringBootApplication включает
+// @SpringBootConfiguration, а тот помечен @Configuration. А
+// ConfigurationClassEnhancer пытается CGLIB-усилить каждый @Configuration,
+// для чего определяет класс — то есть загружает его и запускает
+// статическую инициализацию. Инициализация этого же Main создаёт
+// AnnotationConfigApplicationContext, который запускает свой cglib, который
+// снова грузит Main. Замкнутая петля, JVM виснет навсегда.
+//
+// В GUI это не проявлялось только из-за порядка потоков: если Main
+// инициализирует тот же поток, что затем работает с cglib, повторный вход
+// в инициализацию разрешён и всё проходит. Из другого потока — блокировка.
 class Main {
     companion object {
         val ccid = getCurrentComputerId()
