@@ -126,6 +126,7 @@ Purge      → временные артефакты удалены
 python3 docs/scripts/lint-docs.py     # структура документации
 bash tools/check-ktlint.sh             # стиль Kotlin, отпечаток состояния
 bash tools/check-fx-wiring.sh         # связь FXML и контроллера, сборка
+~/.local/opt/apache-maven-3.9.16/bin/mvn -B test   # тесты (JUnit 5)
 ~/.local/opt/apache-maven-3.9.16/bin/mvn -q clean compile
 ```
 
