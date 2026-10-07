@@ -53,7 +53,7 @@ tags:
 
 ## Структура компонентов (C4 L3)
 
-- `threads/projectactions/` — 16 операций
+- `threads/projectactions/` — 18 операций
 - `threads/RunListThreads.kt`, `threads/RunCmd.kt`
 - `utils/IvfxFFmpegUtils.kt`, `utils/MediaInfo.kt`
 - `fxcontrollers/ProjectActionsFXController.kt` — запуск и прогресс
