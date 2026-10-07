@@ -4,7 +4,7 @@ title: "Домен: Лица и персоны"
 status: Accepted
 supersedes: null
 superseded_by: null
-date: 2026-10-07
+date: 2026-10-08
 modules:
   - ivfx
 tags:
