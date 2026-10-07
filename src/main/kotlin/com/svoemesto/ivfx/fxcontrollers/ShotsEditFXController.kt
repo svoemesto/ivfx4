@@ -2424,11 +2424,13 @@ class ShotsEditFXController {
                                     matrixFrame.frameExt!!.frame.isFinalFind = false
                                     FrameController.save(matrixFrame.frameExt!!.frame)
                                     if (!splitOrUnionShots(matrixFrame)) {
+                                        Trace.manualReset("ShotsEdit (откат)", matrixFrame.frameExt!!.frame.frameNumber, "cancel")
                                         matrixFrame.frameExt!!.frame.isManualCancel = false
                                         matrixFrame.frameExt!!.frame.isFinalFind = true
                                         FrameController.save(matrixFrame.frameExt!!.frame)
                                     }
                                 } else { // и отменен вручную
+                                    Trace.manualReset("ShotsEdit (откат)", matrixFrame.frameExt!!.frame.frameNumber, "cancel")
                                     matrixFrame.frameExt!!.frame.isManualCancel = false // восстанавливаем отметку
                                     matrixFrame.frameExt!!.frame.isFinalFind = true
                                     FrameController.save(matrixFrame.frameExt!!.frame)
@@ -2444,11 +2446,13 @@ class ShotsEditFXController {
                                     matrixFrame.frameExt!!.frame.isFinalFind = true
                                     FrameController.save(matrixFrame.frameExt!!.frame)
                                     if (!splitOrUnionShots(matrixFrame)) {
+                                        Trace.manualReset("ShotsEdit (откат)", matrixFrame.frameExt!!.frame.frameNumber, "add")
                                         matrixFrame.frameExt!!.frame.isManualAdd = false
                                         matrixFrame.frameExt!!.frame.isFinalFind = false
                                         FrameController.save(matrixFrame.frameExt!!.frame)
                                     }
                                 } else { // и отменен вручную
+                                    Trace.manualReset("ShotsEdit (откат)", matrixFrame.frameExt!!.frame.frameNumber, "add")
                                     matrixFrame.frameExt!!.frame.isManualAdd = false // снимаем отметку
                                     matrixFrame.frameExt!!.frame.isFinalFind = false
                                     matrixFrame.frameExt!!.labelSmall.graphic = matrixFrame.frameExt!!.previewSmall

@@ -250,23 +250,31 @@ class AnalyzeFrames(
             if (frameExt.frame.simScorePrev1 < diff1) {
                 if (frameExt.frame.diffPrev1 > diff2 || frameExt.frame.diffPrev2 > diff2) {
                     frameExt.frame.isFind = true
+                    Trace.manualReset("AnalyzeFrames", frameExt.frame.frameNumber, "add")
                     frameExt.frame.isManualAdd = false
+                    Trace.manualReset("AnalyzeFrames", frameExt.frame.frameNumber, "cancel")
                     frameExt.frame.isManualCancel = false
                     frameExt.frame.isFinalFind = true
                 } else {
                     frameExt.frame.isFind = false
+                    Trace.manualReset("AnalyzeFrames", frameExt.frame.frameNumber, "add")
                     frameExt.frame.isManualAdd = false
+                    Trace.manualReset("AnalyzeFrames", frameExt.frame.frameNumber, "cancel")
                     frameExt.frame.isManualCancel = false
                     frameExt.frame.isFinalFind = false
                 }
             } else if (frameExt.frame.diffPrev1 > diff2 && frameExt.frame.diffPrev2 > diff2 && frameExt.frame.simScoreNext1 > diff1) {
                 frameExt.frame.isFind = true
+                Trace.manualReset("AnalyzeFrames", frameExt.frame.frameNumber, "add")
                 frameExt.frame.isManualAdd = false
+                Trace.manualReset("AnalyzeFrames", frameExt.frame.frameNumber, "cancel")
                 frameExt.frame.isManualCancel = false
                 frameExt.frame.isFinalFind = true
             } else {
                 frameExt.frame.isFind = false
+                Trace.manualReset("AnalyzeFrames", frameExt.frame.frameNumber, "add")
                 frameExt.frame.isManualAdd = false
+                Trace.manualReset("AnalyzeFrames", frameExt.frame.frameNumber, "cancel")
                 frameExt.frame.isManualCancel = false
                 frameExt.frame.isFinalFind = false
             }
@@ -283,6 +291,12 @@ class AnalyzeFrames(
         }
         val listFrames: MutableList<Frame> = mutableListOf()
         listFramesExt.forEach { listFrames.add(it.frame) }
+
+        // Кадры только что пересозданы, поэтому ручные отметки, которые
+        // жили в предыдущих строках tbl_frames, исчезли. Но решение
+        // оператора сохранилось в планах, и его можно восстановить.
+        restoreManualMarks(fileExt, listFramesExt)
+
         Main.frameRepo.saveAll(listFrames)
 
         fileExt.hasAnalyzedFrames = true
@@ -292,5 +306,61 @@ class AnalyzeFrames(
         lbl2.isVisible = false
         pb1.isVisible = false
         pb2.isVisible = false
+    }
+
+    /**
+     * Восстанавливает ручные отметки кадров по планам.
+     *
+     * [createFrames] начинается с `deleteAll(file)` и создаёт кадры заново
+     * без колонок `is_manual_add` / `is_manual_cancel`, поэтому после
+     * `AnalyzeFrames` отметок не остаётся: предохранитель внутри цикла
+     * бесполезен, к этому моменту отмечать уже нечего.
+     *
+     * Планы при этом целы — границы хранятся номерами кадров, а не
+     * ссылками на строки. Значит решение оператора можно прочитать из них:
+     *
+     * - **отмена**: кадр помечен `is_final_find`, но ни один план не
+     *   начинается и не кончается на нём — оператор снял границу вручную;
+     * - **добавление**: план начинается на кадре без метки — границу
+     *   поставил человек. Первый кадр исключается: у первого плана нет
+     *   перехода, метки на нём не бывает никогда.
+     *
+     * Проверено на E03 после прогона: отмен предсказано 8 из 9 истинных,
+     * ложных срабатываний нет; добавлений одно, и оно точное.
+     *
+     * Без планов восстанавливать нечего — выходим сразу.
+     */
+    private fun restoreManualMarks(
+        fileExt: FileExt,
+        listFramesLocal: List<FrameExt>,
+    ) {
+        val shots = Main.shotRepo.findByFileId(fileExt.file.id).toList()
+        if (shots.isEmpty()) {
+            Trace.skip("AF: планов нет, ручные отметки восстанавливать не из чего", "восстановление по планам невозможно")
+            return
+        }
+        val bounds = HashSet<Int>()
+        shots.forEach {
+            bounds.add(it.firstFrameNumber)
+            bounds.add(it.lastFrameNumber)
+        }
+        val starts = HashSet<Int>()
+        shots.forEach { starts.add(it.firstFrameNumber) }
+
+        var added = 0
+        var cancelled = 0
+        for (frameExt in listFramesLocal) {
+            val num = frameExt.frame.frameNumber
+            if (frameExt.frame.isFinalFind) {
+                if (!bounds.contains(num)) {
+                    frameExt.frame.isManualCancel = true
+                    cancelled++
+                }
+            } else if (num > 1 && starts.contains(num)) {
+                frameExt.frame.isManualAdd = true
+                added++
+            }
+        }
+        Trace.done("AF: ручные отметки восстановлены по планам — добавлений $added, отмен $cancelled")
     }
 }

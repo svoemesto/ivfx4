@@ -144,4 +144,27 @@ object Trace {
             throw e
         }
     }
+
+    /**
+     * Точка наблюдения: кто снимает ручную отметку кадра.
+     *
+     * Отметка «это поправил человек» обязана переживать прогон анализа.
+     * Правка в AnalyzeFrames оказалась недостаточной: флаги всё равно
+     * обнуляются, и писать их могут несколько мест. Пока не видно, кто
+     * именно, этот метод печатает кадр и стек вызовов.
+     */
+    fun manualReset(
+        where: String,
+        frameNumber: Any?,
+        flags: String,
+    ) {
+        if (!enabled) return
+        val st =
+            Thread
+                .currentThread()
+                .stackTrace
+                .drop(2)
+                .joinToString(" <- ") { it.className.substringAfterLast('.') + "." + it.methodName }
+        println("[СБРОС ОТМЕТКИ] $where: кадр=$frameNumber, флаги=$flags, из: $st")
+    }
 }
