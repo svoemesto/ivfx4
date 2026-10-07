@@ -422,12 +422,26 @@ class FileController() {
         }
 
         // удаление файла
+        //
+        // Сцены и события удаляются здесь же, а не каскадом: у File нет полей
+        // scenes и events, а сами SceneController.deleteAll(file) и
+        // EventController.deleteAll(file) написаны и чистят за собой свойства —
+        // просто никем не вызывались. Без этих двух строк после удаления файла
+        // сцены и события оставались сиротами, а вместе с ними терялись
+        // свойства сцен и событий, то есть вся ручная разметка файла.
+        //
+        // Порядок тот же, что у соседних вызовов: сначала потомки, потом сам
+        // файл. SceneController.deleteAll внутри чистит свойства по
+        // (parentClass = 'Scene', parentId), поэтому вызов должен предшествовать
+        // удалению сцен.
         fun delete(file: File) {
             reOrder(ReorderTypes.MOVE_TO_LAST, file)
             FaceController.deleteAll(file)
             FrameController.deleteAll(file)
             TrackController.deleteAll(file)
             ShotController.deleteAll(file)
+            SceneController.deleteAll(file)
+            EventController.deleteAll(file)
 
             PropertyController.deleteAll(file::class.java.simpleName, file.id)
             PropertyCdfController.deleteAll(file::class.java.simpleName, file.id)
