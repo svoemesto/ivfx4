@@ -2982,7 +2982,11 @@ class ShotsEditFXController {
                             } else if (isPressedShift) {
                                 val indexLastClicked = currentMatrixPageFaces!!.matrixFaces.indexOf(lastClickedMatrixFace)
                                 val indexCurrentClicked = currentMatrixPageFaces!!.matrixFaces.indexOf(matrixFace)
-                                if (indexLastClicked < indexCurrentClicked) {
+                                // indexOf возвращает -1, если кадра на странице
+                                // нет: страница могла смениться, пока последний
+                                // клик остался от прежней. Диапазон -1..N тут же
+                                // давал Index -1 и ронял выбор по Shift.
+                                if (indexLastClicked >= 0 && indexCurrentClicked >= 0 && indexLastClicked < indexCurrentClicked) {
                                     for (i in indexLastClicked..indexCurrentClicked) {
                                         val mf = currentMatrixPageFaces!!.matrixFaces[i]
                                         selectedMatrixFaces.add(mf)
@@ -3223,14 +3227,30 @@ class ShotsEditFXController {
         }
     }
 
+    /**
+     * Переключатель «All / File» для лиц.
+     *
+     * Обработчик был пустым — кнопки нарисованы, `onAction` есть, сборка
+     * проходит, а нажатие ничего не делает. Реализовать пока нечем: в
+     * контроллере нет двух наборов лиц, которые эти кнопки должны
+     * переключать, — есть один `listFacesExt`. Поэтому оставляем только
+     * отметку в журнале, чтобы факт нажатия был виден.
+     */
     @FXML
     fun doSelectFacesRb(event: ActionEvent?) {
-        Trace.action("doSelectFacesRb")
+        Trace.action("doSelectFacesRb: наборы лиц для All и File не разделены, переключение не работает")
     }
 
-    @FXML
     fun doSelectPersonsRb(event: ActionEvent?) {
-        Trace.action("doSelectPersonsRb")
+        val all = grpPersons?.selectedToggle == rbPersonAll
+        Trace.action("doSelectPersonsRb: " + if (all) "All" else "File")
+        if (all) {
+            tblPersonsAllForShot?.isVisible = true
+            tblPersonsAllForFile?.isVisible = false
+        } else {
+            tblPersonsAllForShot?.isVisible = false
+            tblPersonsAllForFile?.isVisible = true
+        }
     }
 
     /**
@@ -3636,7 +3656,23 @@ class ShotsEditFXController {
      * Работа с базой идёт вне потока интерфейса — иначе таблица встанет на
      * время запроса, — поэтому вызывать нужно уже из потока JavaFX.
      */
+    private var isReloadingTracks = false
+
     private fun reloadTracks(shotExt: ShotExt? = currentShotExt) {
+        // Перезагрузка пересобирает строки таблицы, а выбор строки зовёт
+        // перезагрузку. Без этой защиты на плане без треков список
+        // очищался, выбор сбрасывался и вызывал перезагрузку снова — цикл,
+        // который крутился, пока не съедал память.
+        if (isReloadingTracks) return
+        isReloadingTracks = true
+        try {
+            reloadTracksInner(shotExt)
+        } finally {
+            isReloadingTracks = false
+        }
+    }
+
+    private fun reloadTracksInner(shotExt: ShotExt? = currentShotExt) {
         // Какой трек показывали до пересборки: строки создаются заново, и без
         // этой привязки выбор возвращался бы наверх при каждом изменении.
         val keepTrackId = trackExtToShow?.tracks?.firstOrNull()?.id

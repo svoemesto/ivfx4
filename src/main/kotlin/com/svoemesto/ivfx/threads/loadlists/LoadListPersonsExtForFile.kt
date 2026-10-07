@@ -16,9 +16,9 @@ class LoadListPersonsExtForFile(
     private var pb: ProgressBar? = null,
     private var lbl: Label? = null,
     private val flagIsDone: SimpleBooleanProperty = SimpleBooleanProperty(false),
-    private val withoutNonPerson: Boolean = true
-    ) : Thread(), Runnable {
-
+    private val withoutNonPerson: Boolean = true,
+) : Thread(),
+    Runnable {
     override fun run() {
         this.name = "LoadListPersonsExtForFile"
         loadList()
@@ -26,7 +26,6 @@ class LoadListPersonsExtForFile(
     }
 
     private fun loadList() {
-
         Platform.runLater {
             if (pb != null) {
                 pb!!.progress = -1.0
@@ -42,14 +41,22 @@ class LoadListPersonsExtForFile(
         // одних и тех же людей, и персонаж, отмеченный в первой серии, должен
         // быть в списке и во второй: иначе назначить его нельзя даже вручную,
         // не только автоматически.
-        val sourceIterable = Main.personRepo.findByProjectId(fileExt.projectExt.project.id)
+        val sourceIterable = Main.personRepo.findByFileId(fileExt.file.id)
         list.clear()
 
         for ((i, person) in sourceIterable.withIndex()) {
             if (!currentThread().isInterrupted) {
                 Platform.runLater {
-                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, person ($i/${sourceIterable.count()})"
+                    if (pb != null) pb!!.progress = i.toDouble() / sourceIterable.count()
+                    if (lbl !=
+                        null
+                    ) {
+                        lbl!!.text =
+                            "${java.lang.String.format(
+                                "[%.0f%%]",
+                                100 * i / sourceIterable.count().toDouble(),
+                            )} Loading: ${fileExt.file.name}, person ($i/${sourceIterable.count()})"
+                    }
                 }
                 if (!(withoutNonPerson && person.personType == PersonType.NONPERSON)) {
                     person.project = fileExt.projectExt.project
@@ -59,14 +66,13 @@ class LoadListPersonsExtForFile(
             } else {
                 return
             }
-
         }
 
         list.sort()
 
         Platform.runLater {
-            if (pb!=null) pb!!.isVisible = false
-            if (lbl!=null) lbl!!.isVisible = false
+            if (pb != null) pb!!.isVisible = false
+            if (lbl != null) lbl!!.isVisible = false
         }
     }
 }
