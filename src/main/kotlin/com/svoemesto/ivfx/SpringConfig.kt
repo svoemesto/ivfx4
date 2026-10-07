@@ -73,6 +73,17 @@ class SpringConfig {
         emf.setJpaVendorAdapter(HibernateJpaVendorAdapter())
         emf.setJpaProperties(
             Properties().apply {
+                // Стратегия именования колонок. Без неё Hibernate подставляет имена
+                // дословно из полей: faceCount -> faceCount -> в Postgres facecount,
+                // а в таблице лежит face_count. Падало с
+                //   ERROR: column facetrack0_.facecount does not exist
+                // Схему создавал Hibernate под Spring Boot, где эта стратегия
+                // подставляется автоматически; вне Boot её нужно назвать явно.
+                // Затрагивает все модели с полями без @Column, а не одну.
+                setProperty(
+                    "hibernate.physical_naming_strategy",
+                    "org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy",
+                )
                 setProperty("hibernate.hbm2ddl.auto", "none")
                 setProperty("hibernate.show_sql", "false")
                 setProperty("hibernate.jdbc.batch_size", "50")
