@@ -688,7 +688,8 @@ class ShotsEditFXController {
             readWindowSize(mainStage!!)
             onStart()
             registerKeyboardNavigation()
-            mainStage?.setOnCloseRequest { writeWindowSize(mainStage!!) }
+            // Обработчик закрытия уже установлен в initialize(); здесь стоял
+            // второй, который его перезаписывал, и очистка памяти не шла.
             mainStage?.showAndWait()
             // Страховка: если закрытие шло мимо обработчика, размер всё равно
             // запомним — он нужен к следующему открытию.
@@ -1934,6 +1935,8 @@ class ShotsEditFXController {
     fun doOK(event: ActionEvent?) {
         Trace.action("doOK")
         isWorking = false
+        // Обработчик закрытия сам зовёт clearOnExit — гасить его здесь
+        // нельзя, иначе память серии не освободится.
         mainStage?.close()
     }
 
@@ -4337,12 +4340,47 @@ class ShotsEditFXController {
         secondPair: Pair<Int, Int>,
     ): Boolean = (min(firstPair.second, secondPair.second) - max(firstPair.first, secondPair.first)) >= 0
 
+    /**
+     * Освобождает память серии при закрытии окна.
+     *
+     * Окно открывается на одну серию за раз, но держит её очень много:
+     * FileExt с 82336 кадрами, у каждого кэш превью в BufferedImage, плюс
+     * сцена со всеми таблицами. `currentFileExt` — **статическое** поле,
+     * то есть живёт, пока жив класс, и без сброса прошлая серия продолжает
+     * занимать память при переходе к следующей.
+     *
+     * Очистка была написана и раньше, но **не вызывалась**: в проекте стояли
+     * два `setOnCloseRequest`, и второй перезаписывал первый — обработчик с
+     * очисткой был мёртвым кодом. Отсюда рост до 12 ГБ при работе с
+     * несколькими сериями подряд.
+     */
     fun clearOnExit() {
-        currentFileExt!!.shotsExt.clear()
-        currentFileExt!!.scenesExt.clear()
-        currentFileExt!!.eventsExt.clear()
-        currentFileExt!!.framesExt.clear()
-        System.gc()
+        currentFileExt?.let { file ->
+            // Превью — самая тяжёлая часть, BufferedImage на каждый кадр.
+            // Сбрасываем до отпускания списков: иначе сборщик мусора может
+            // не справиться за один проход.
+            file.framesExt.forEach {
+                it.resetPreviewSmall()
+                it.resetPreviewMedium()
+                it.resetPreviewFull()
+            }
+            file.shotsExt.clear()
+            file.scenesExt.clear()
+            file.eventsExt.clear()
+            file.facesExt.clear()
+            file.framesExt.clear()
+        }
+        currentFileExt = null
+        listMatrixPageFrames.clear()
+        listFacesExt.clear()
+        listTracksExt.clear()
+        listShotsExtForScenes.clear()
+        listShotsExtForEvents.clear()
+        listPersonsExtForFile.clear()
+        currentMatrixFrame = null
+        currentShotExt = null
+        currentShotExtForScene = null
+        Trace.done("память серии освобождена")
     }
 
     @FXML
