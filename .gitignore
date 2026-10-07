@@ -25,6 +25,11 @@ __pycache__/
 *.pyc
 *.pyo
 
+# --- Секреты: пример можно коммитить, реальный файл — никогда ---
+# Внутри API-токен OpenProject. То же и в Karaoke: deploy/.env висел
+# в публичном репозитории три года.
+.env.local-tracker
+
 # --- Служебное ---
 .codegraph/
 .gradle/
@@ -42,3 +47,5 @@ transition-analysis/scores-snapshot.txt
 # типов плана (shot_type_*.png), они часть приложения.
 /*.png
 /*.md.bak
+# --- Логи CLI-трекера (содержат URL и id задач) ---
+logs/
