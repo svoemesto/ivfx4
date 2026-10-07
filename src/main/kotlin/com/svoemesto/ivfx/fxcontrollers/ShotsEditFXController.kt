@@ -2209,80 +2209,79 @@ class ShotsEditFXController {
         }
     }
 
+    /**
+     * Диапазон видимых строк таблицы или `null`, если его смотреть нечем.
+     *
+     * `VirtualFlow.firstVisibleCell` и `lastVisibleCell` бывают **null** — когда
+     * таблица ещё не размечена или уже очищена. Все семь функций автопрокрутки
+     * ниже брали индексы без проверки, и щелчок по плану ронял фоновый поток с
+     * `NullPointerException` (проверено 2026-10-08, семь падений за один заход по
+     * планам). Проверка `cellCount > 0` от этого не спасает: ячейки при этом
+     * ещё могут не быть созданы.
+     *
+     * Нет видимых ячеек — сравнивать нечего, и прокручивать не нужно: таблица
+     * отрисуется сама.
+     */
+    private fun visibleRangeOf(flow: VirtualFlow<*>?): IntRange? {
+        if (flow == null || flow.cellCount <= 0) return null
+        val first = flow.firstVisibleCell?.getIndex() ?: return null
+        val last = flow.lastVisibleCell?.getIndex() ?: return null
+        return first..last
+    }
+
     fun tblPagesFramesSmartScroll(matrixPageFrames: MatrixPageFrames?) {
-        if (flowTblPagesFrames != null && flowTblPagesFrames!!.cellCount > 0) {
-            val first: Int = flowTblPagesFrames!!.firstVisibleCell.getIndex()
-            val last: Int = flowTblPagesFrames!!.lastVisibleCell.getIndex()
-            val selected = tblPagesFrames!!.selectionModel.selectedIndex
-            if (selected < first || selected > last) {
-                Platform.runLater { tblPagesFrames?.scrollTo(matrixPageFrames) }
-            }
+        val visible = visibleRangeOf(flowTblPagesFrames) ?: return
+        val selected = tblPagesFrames!!.selectionModel.selectedIndex
+        if (selected < visible.first || selected > visible.last) {
+            Platform.runLater { tblPagesFrames?.scrollTo(matrixPageFrames) }
         }
     }
 
     fun tblPagesFacesSmartScroll(matrixPageFaces: MatrixPageFaces?) {
-        if (flowTblPagesFaces != null && flowTblPagesFaces!!.cellCount > 0) {
-            val first: Int = flowTblPagesFaces!!.firstVisibleCell.getIndex()
-            val last: Int = flowTblPagesFaces!!.lastVisibleCell.getIndex()
-            val selected = tblPagesFaces!!.selectionModel.selectedIndex
-            if (selected < first || selected > last) {
-                Platform.runLater { tblPagesFaces?.scrollTo(matrixPageFaces) }
-            }
+        val visible = visibleRangeOf(flowTblPagesFaces) ?: return
+        val selected = tblPagesFaces!!.selectionModel.selectedIndex
+        if (selected < visible.first || selected > visible.last) {
+            Platform.runLater { tblPagesFaces?.scrollTo(matrixPageFaces) }
         }
     }
 
     fun tblShotsSmartScroll(shotExt: ShotExt?) {
-        if (flowTblShots != null && flowTblShots!!.cellCount > 0) {
-            val first: Int = flowTblShots!!.firstVisibleCell.getIndex()
-            val last: Int = flowTblShots!!.lastVisibleCell.getIndex()
-            val selected = tblShots!!.selectionModel.selectedIndex
-            if (selected < first || selected > last) {
-                Platform.runLater { tblShots?.scrollTo(shotExt) }
-            }
+        val visible = visibleRangeOf(flowTblShots) ?: return
+        val selected = tblShots!!.selectionModel.selectedIndex
+        if (selected < visible.first || selected > visible.last) {
+            Platform.runLater { tblShots?.scrollTo(shotExt) }
         }
     }
 
     fun tblScenesSmartScroll(sceneExt: SceneExt?) {
-        if (flowTblScenes != null && flowTblScenes!!.cellCount > 0) {
-            val first: Int = flowTblScenes!!.firstVisibleCell.index
-            val last: Int = flowTblScenes!!.lastVisibleCell.index
-            val selected = tblScenes!!.selectionModel.selectedIndex
-            if (selected < first || selected > last) {
-                Platform.runLater { tblScenes?.scrollTo(sceneExt) }
-            }
+        val visible = visibleRangeOf(flowTblScenes) ?: return
+        val selected = tblScenes!!.selectionModel.selectedIndex
+        if (selected < visible.first || selected > visible.last) {
+            Platform.runLater { tblScenes?.scrollTo(sceneExt) }
         }
     }
 
     fun tblShotsForScenesSmartScroll(shotExt: ShotExt?) {
-        if (flowTblShotsForScenes != null && flowTblShotsForScenes!!.cellCount > 0) {
-            val first: Int = flowTblShotsForScenes!!.firstVisibleCell.index
-            val last: Int = flowTblShotsForScenes!!.lastVisibleCell.index
-            val selected = tblShotsForScenes!!.selectionModel.selectedIndex
-            if (selected < first || selected > last) {
-                Platform.runLater { tblShotsForScenes?.scrollTo(shotExt) }
-            }
+        val visible = visibleRangeOf(flowTblShotsForScenes) ?: return
+        val selected = tblShotsForScenes!!.selectionModel.selectedIndex
+        if (selected < visible.first || selected > visible.last) {
+            Platform.runLater { tblShotsForScenes?.scrollTo(shotExt) }
         }
     }
 
     fun tblShotsForEventsSmartScroll(shotExt: ShotExt?) {
-        if (flowTblShotsForEvents != null && flowTblShotsForEvents!!.cellCount > 0) {
-            val first: Int = flowTblShotsForEvents!!.firstVisibleCell.index
-            val last: Int = flowTblShotsForEvents!!.lastVisibleCell.index
-            val selected = tblShotsForEvents!!.selectionModel.selectedIndex
-            if (selected < first || selected > last) {
-                Platform.runLater { tblShotsForEvents?.scrollTo(shotExt) }
-            }
+        val visible = visibleRangeOf(flowTblShotsForEvents) ?: return
+        val selected = tblShotsForEvents!!.selectionModel.selectedIndex
+        if (selected < visible.first || selected > visible.last) {
+            Platform.runLater { tblShotsForEvents?.scrollTo(shotExt) }
         }
     }
 
     fun tblPersonsAllSmartScroll(personExt: PersonExt?) {
-        if (flowTblPersonsAll != null && flowTblPersonsAll!!.cellCount > 0) {
-            val first: Int = flowTblPersonsAll!!.firstVisibleCell.getIndex()
-            val last: Int = flowTblPersonsAll!!.lastVisibleCell.getIndex()
-            val selected = tblPersonsAllForFile!!.selectionModel.selectedIndex
-            if (selected < first || selected > last) {
-                Platform.runLater { tblPersonsAllForFile?.scrollTo(personExt) }
-            }
+        val visible = visibleRangeOf(flowTblPersonsAll) ?: return
+        val selected = tblPersonsAllForFile!!.selectionModel.selectedIndex
+        if (selected < visible.first || selected > visible.last) {
+            Platform.runLater { tblPersonsAllForFile?.scrollTo(personExt) }
         }
     }
 

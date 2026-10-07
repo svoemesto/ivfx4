@@ -132,6 +132,22 @@ class RecognizeFaces(var fileExt: FileExt,
             return
         }
 
+        // Неопределённых лиц нет — не с кем сравнивать. Зеркально к проверке
+        // выше, и по той же причине: без этой проверки приложение писало json
+        // на двадцать с лишним тысяч отмеченных лиц, запускало Python и
+        // читало json обратно, чтобы не обновить ничего.
+        // Проверено 2026-10-08 на E03: два прогона подряд после ручной
+        // разметки дали «распознано: 0, отклонено: 0, отклонено: 0».
+        if (arrFrameFaces.isEmpty()) {
+            println("[RecognizeFaces] ОСТАНОВ: неопределённых лиц нет.")
+            Platform.runLater {
+                lbl1.isVisible = false
+                lbl2.text = "Нечего распознавать: в серии нет неопределённых лиц"
+                table.refresh()
+            }
+            return
+        }
+
         try {
             FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(arrFrameFaces + galleryFaces, fileWriter) }
         } catch (e: IOException) {
