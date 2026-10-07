@@ -12,11 +12,27 @@ interface ShotTmpCdfRepo : CrudRepository<ShotTmpCdf, Long> {
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_shots_tmp_cdf WHERE computer_id = ?", nativeQuery = true)
-    fun deleteAll(computerId:Int)
+    fun deleteAll(computerId: Int)
 
     @Transactional
     @Modifying
-    @Query(value = "INSERT INTO tbl_shots_tmp_cdf (computer_id, shot_id) select ?1, id from tbl_shots where tbl_shots.file_id = ?2", nativeQuery = true)
-    fun addAllByFileId(computerId:Int, fileId:Long)
+    @Query(
+        value = "INSERT INTO tbl_shots_tmp_cdf (computer_id, shot_id) select ?1, id from tbl_shots where tbl_shots.file_id = ?2",
+        nativeQuery = true,
+    )
+    fun addAllByFileId(
+        computerId: Int,
+        fileId: Long,
+    )
 
+    /**
+     * Переносит привязки временной таблицы с одного плана на другой.
+     */
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE tbl_shots_tmp_cdf SET shot_id = ?2 WHERE shot_id = ?1", nativeQuery = true)
+    fun moveToShot(
+        fromShotId: Long,
+        toShotId: Long,
+    )
 }

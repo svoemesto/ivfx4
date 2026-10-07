@@ -9,35 +9,72 @@ import org.springframework.transaction.annotation.Transactional
 
 @Component
 interface PropertyRepo : CrudRepository<Property, Long> {
+    fun findByParentClassAndParentIdAndOrderGreaterThanOrderByOrder(
+        parentClass: String,
+        parentId: Long,
+        order: Int,
+    ): Iterable<Property>
 
-    fun findByParentClassAndParentIdAndOrderGreaterThanOrderByOrder
-                (parentClass: String, parentId: Long, order: Int) : Iterable<Property>
+    fun findByParentClassAndParentIdAndOrderLessThanOrderByOrderDesc(
+        parentClass: String,
+        parentId: Long,
+        order: Int,
+    ): Iterable<Property>
 
-    fun findByParentClassAndParentIdAndOrderLessThanOrderByOrderDesc
-                (parentClass: String, parentId: Long, order: Int): Iterable<Property>
+    fun findByParentClassAndParentIdAndKey(
+        parentClass: String,
+        parentId: Long,
+        key: String,
+    ): Iterable<Property>
 
-    fun findByParentClassAndParentIdAndKey
-                (parentClass: String, parentId: Long, key: String): Iterable<Property>
+    fun findByParentClass(parentClass: String): Iterable<Property>
 
-    fun findByParentClass (parentClass: String): Iterable<Property>
+    fun findByParentClassAndParentId(
+        parentClass: String,
+        id: Long,
+    ): Iterable<Property>
 
-    fun findByParentClassAndParentId(parentClass: String, id: Long): Iterable<Property>
-
-    @Query(value = "SELECT * FROM tbl_properties WHERE" +
-            " parent_class = ?1 AND parent_id = ?2 ORDER BY order_property DESC LIMIT 1", nativeQuery = true)
-    fun getEntityWithGreaterOrder(parentClass: String, parentId:Long) : Iterable<Property>
+    @Query(
+        value =
+            "SELECT * FROM tbl_properties WHERE" +
+                " parent_class = ?1 AND parent_id = ?2 ORDER BY order_property DESC LIMIT 1",
+        nativeQuery = true,
+    )
+    fun getEntityWithGreaterOrder(
+        parentClass: String,
+        parentId: Long,
+    ): Iterable<Property>
 
     @Query(value = "select distinct property_key from tbl_properties where parent_class = ? order by  order_property", nativeQuery = true)
-    fun getKeys(parentClass: String) : Iterable<String>
+    fun getKeys(parentClass: String): Iterable<String>
 
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_properties WHERE parent_class = ?1 AND parent_id = ?2", nativeQuery = true)
-    fun deleteAll(parentClass: String, parentId:Long)
+    fun deleteAll(
+        parentClass: String,
+        parentId: Long,
+    )
 
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_properties WHERE id = ?", nativeQuery = true)
     fun delete(propertyId: Long)
 
+    /**
+     * Переносит свойства с одного объекта на другой того же класса.
+     * Свойства лежат в EAV-таблице без внешнего ключа, поэтому при удалении
+     * плана они молча осиротели бы, а связь потерялась бы навсегда.
+     */
+    @Transactional
+    @Modifying
+    @Query(
+        value = "UPDATE tbl_properties SET parent_id = ?3 WHERE parent_class = ?1 AND parent_id = ?2",
+        nativeQuery = true,
+    )
+    fun moveToParent(
+        parentClass: String,
+        fromParentId: Long,
+        toParentId: Long,
+    )
 }

@@ -17,12 +17,12 @@ interface FaceRepo : CrudRepository<Face, Long> {
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_faces WHERE file_id = ?", nativeQuery = true)
-    fun deleteAll(fileId:Long)
+    fun deleteAll(fileId: Long)
 
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_faces WHERE id = ?", nativeQuery = true)
-    fun delete(frameId:Long)
+    fun delete(frameId: Long)
 
     /** Лица одного трека — нужно таблице треков и разделению трека. */
     fun findByTrackId(trackId: Long): Iterable<Face>
@@ -42,7 +42,10 @@ interface FaceRepo : CrudRepository<Face, Long> {
      */
     @Modifying
     @Query(value = "UPDATE tbl_faces SET track_id = ?1 WHERE id IN (?2)", nativeQuery = true)
-    fun linkFacesToTrack(trackId: Long, faceIds: Collection<Long>): Int
+    fun linkFacesToTrack(
+        trackId: Long,
+        faceIds: Collection<Long>,
+    ): Int
 
     @Transactional
     /**
@@ -50,9 +53,15 @@ interface FaceRepo : CrudRepository<Face, Long> {
      * linkFacesToTrack: лицо не должно переписываться целиком.
      */
     @Modifying
-    @Query(value = "UPDATE tbl_faces SET person_id = ?1, person_recognized_name = ?2 WHERE id = ?3",
-        nativeQuery = true)
-    fun assignPersonToFace(personId: Long, personRecognizedName: String, faceId: Long): Int
+    @Query(
+        value = "UPDATE tbl_faces SET person_id = ?1, person_recognized_name = ?2 WHERE id = ?3",
+        nativeQuery = true,
+    )
+    fun assignPersonToFace(
+        personId: Long,
+        personRecognizedName: String,
+        faceId: Long,
+    ): Int
 
     /**
      * Лица указанных треков одним запросом.
@@ -66,21 +75,41 @@ interface FaceRepo : CrudRepository<Face, Long> {
     fun findByTrackIds(ids: Collection<Long>): Iterable<Face>
 
     /** Сколько лиц каждого персонажа файла состоят в треках: пара «идентификатор персоны, число». */
-    @Query(value = "select f.person.id, count(f) from Face f " +
-            "where f.track is not null and f.file.id = ?1 group by f.person.id")
+    @Query(
+        value =
+            "select f.person.id, count(f) from Face f " +
+                "where f.track is not null and f.file.id = ?1 group by f.person.id",
+    )
     fun getTrackFacesCountByPerson(fileId: Long): List<Array<Any>>
 
-    fun findByFileIdAndFrameNumber(fileId: Long, frameNumber: Int): Iterable<Face>
-    fun findByFileIdAndFrameNumberAndFaceNumberInFrame(fileId: Long, frameNumber: Int, faceNumberInFrame: Int): Iterable<Face>
+    fun findByFileIdAndFrameNumber(
+        fileId: Long,
+        frameNumber: Int,
+    ): Iterable<Face>
+
+    fun findByFileIdAndFrameNumberAndFaceNumberInFrame(
+        fileId: Long,
+        frameNumber: Int,
+        faceNumberInFrame: Int,
+    ): Iterable<Face>
 
     @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 AND person_id != ?2", nativeQuery = true)
-    fun findByFileIdAndPersonIdNotEqual(fileId: Long, personId: Long): Iterable<Face>
+    fun findByFileIdAndPersonIdNotEqual(
+        fileId: Long,
+        personId: Long,
+    ): Iterable<Face>
 
     @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 AND person_id != ?2 LIMIT 1", nativeQuery = true)
-    fun findFirstByFileIdAndPersonIdNotEqual(fileId: Long, personId: Long): Iterable<Face>
+    fun findFirstByFileIdAndPersonIdNotEqual(
+        fileId: Long,
+        personId: Long,
+    ): Iterable<Face>
 
     @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 AND person_id = ?2", nativeQuery = true)
-    fun findFacesToRecognize(fileId: Long, idPersonUnrecognized: Long): Iterable<Face>
+    fun findFacesToRecognize(
+        fileId: Long,
+        idPersonUnrecognized: Long,
+    ): Iterable<Face>
 
     /**
      * Все лица проекта, а не одного файла.
@@ -106,55 +135,74 @@ interface FaceRepo : CrudRepository<Face, Long> {
      * объектом. Без этого конструктор FaceExt читает file.shortName и
      * падает с LazyInitializationException.
      */
-    fun findAllByFileIdAndPersonId(fileId: Long, personId: Long): Iterable<Face>
+    fun findAllByFileIdAndPersonId(
+        fileId: Long,
+        personId: Long,
+    ): Iterable<Face>
 
-    @Query(value = "SELECT * FROM tbl_faces INNER JOIN tbl_files ON tbl_faces.file_id = tbl_files.id WHERE tbl_files.project_id = ?1 AND tbl_faces.is_example = true", nativeQuery = true)
+    @Query(
+        value = "SELECT * FROM tbl_faces INNER JOIN tbl_files ON tbl_faces.file_id = tbl_files.id WHERE tbl_files.project_id = ?1 AND tbl_faces.is_example = true",
+        nativeQuery = true,
+    )
     fun getListFacesToTrain(projectId: Long): Iterable<Face>
 
     @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 AND frame_number = ?2", nativeQuery = true)
-    fun getListFacesInFrame(fileId: Long, frameNumber: Int): Iterable<Face>
+    fun getListFacesInFrame(
+        fileId: Long,
+        frameNumber: Int,
+    ): Iterable<Face>
 
-    @Query(value = "select tbl_faces.* from tbl_faces inner join tbl_files as tf on tbl_faces.file_id = tf.id " +
-            "where tf.project_id = ?1 and tbl_faces.person_id = ?2 and " +
-            "(tbl_faces.is_example != ?3 or tbl_faces.is_example = ?4) and  " +
-            "(tbl_faces.is_manual != ?5 or tbl_faces.is_manual = ?6)", nativeQuery = true)
+    @Query(
+        value =
+            "select tbl_faces.* from tbl_faces inner join tbl_files as tf on tbl_faces.file_id = tf.id " +
+                "where tf.project_id = ?1 and tbl_faces.person_id = ?2 and " +
+                "(tbl_faces.is_example != ?3 or tbl_faces.is_example = ?4) and  " +
+                "(tbl_faces.is_manual != ?5 or tbl_faces.is_manual = ?6)",
+        nativeQuery = true,
+    )
     fun findByProjectIdAndPersonId(
         projectId: Long,
         personId: Long,
         loadNotExample: Boolean,
         loadExample: Boolean,
         loadNotManual: Boolean,
-        loadManual: Boolean
+        loadManual: Boolean,
     ): Iterable<Face>
 
-    @Query(value = "select tbl_faces.* from tbl_faces " +
-            "where tbl_faces.file_id = ?1 and tbl_faces.person_id = ?2 and " +
-            "(tbl_faces.is_example != ?3 or tbl_faces.is_example = ?4) and " +
-            "(tbl_faces.is_manual != ?5 or tbl_faces.is_manual = ?6)", nativeQuery = true)
+    @Query(
+        value =
+            "select tbl_faces.* from tbl_faces " +
+                "where tbl_faces.file_id = ?1 and tbl_faces.person_id = ?2 and " +
+                "(tbl_faces.is_example != ?3 or tbl_faces.is_example = ?4) and " +
+                "(tbl_faces.is_manual != ?5 or tbl_faces.is_manual = ?6)",
+        nativeQuery = true,
+    )
     fun findByFileIdAndPersonId(
         fileId: Long,
         personId: Long,
         loadNotExample: Boolean,
         loadExample: Boolean,
         loadNotManual: Boolean,
-        loadManual: Boolean
+        loadManual: Boolean,
     ): Iterable<Face>
 
-    @Query(value = "select tbl_faces.* from tbl_faces inner join tbl_files as tf on tbl_faces.file_id = tf.id " +
-            "inner join tbl_shots ts on tf.id = ts.file_id " +
-            "where ts.id = ?1 and tbl_faces.person_id = ?2 and " +
-            "(tbl_faces.is_example != ?3 or tbl_faces.is_example = ?4) and " +
-            "(tbl_faces.is_manual != ?5 or tbl_faces.is_manual = ?6) and " +
-            "(tbl_faces.frame_number >= ts.first_frame_number and " +
-            "tbl_faces.frame_number <= ts.last_frame_number)", nativeQuery = true)
+    @Query(
+        value =
+            "select tbl_faces.* from tbl_faces inner join tbl_files as tf on tbl_faces.file_id = tf.id " +
+                "inner join tbl_shots ts on tf.id = ts.file_id " +
+                "where ts.id = ?1 and tbl_faces.person_id = ?2 and " +
+                "(tbl_faces.is_example != ?3 or tbl_faces.is_example = ?4) and " +
+                "(tbl_faces.is_manual != ?5 or tbl_faces.is_manual = ?6) and " +
+                "(tbl_faces.frame_number >= ts.first_frame_number and " +
+                "tbl_faces.frame_number <= ts.last_frame_number)",
+        nativeQuery = true,
+    )
     fun findByShotIdAndPersonId(
         shotId: Long,
         personId: Long,
         loadNotExample: Boolean,
         loadExample: Boolean,
         loadNotManual: Boolean,
-        loadManual: Boolean
+        loadManual: Boolean,
     ): Iterable<Face>
-
-
 }

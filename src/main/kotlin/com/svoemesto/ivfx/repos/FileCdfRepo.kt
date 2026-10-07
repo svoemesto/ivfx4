@@ -10,17 +10,19 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 interface FileCdfRepo : CrudRepository<FileCdf, Long> {
     fun findByFileId(fileId: Long): Iterable<FileCdf>
-    fun findByFileIdAndComputerId(projectId: Long, computerId: Int): Iterable<FileCdf>
 
+    fun findByFileIdAndComputerId(
+        projectId: Long,
+        computerId: Int,
+    ): Iterable<FileCdf>
 
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_files_cdf WHERE file_id = ?", nativeQuery = true)
-    fun deleteAll(fileId:Long)
+    fun deleteAll(fileId: Long)
 
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM tbl_files_cdf WHERE id = ?", nativeQuery = true)
-    fun delete(fileCdfId:Long)
-
+    fun delete(fileCdfId: Long)
 }
