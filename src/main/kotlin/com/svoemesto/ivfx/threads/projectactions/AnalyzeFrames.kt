@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.threads.projectactions
 
+import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.controllers.ShotController
@@ -34,10 +35,26 @@ class AnalyzeFrames(var fileExt: FileExt,
 
         val mediaFile: String = fileExt.file.path
         val fps: Double = fileExt.fps
-        val framesCount: Int = fileExt.framesCount
+
+        // Число кадров берём из папки полных кадров, а не из метаданных.
+        //
+        // Метаданные дают на единицу больше написанного: длительность,
+        // делённая на частоту, прибавляет лишний кадр на склейке. Шаг создавал
+        // записи кадров по метаданным, и последний кадр уезжал в базу без
+        // файла. Дальше детектор читал этот кадр, падал на FileNotFoundError,
+        // и серия оставалась совсем без лиц — на всех восьми новых сериях так
+        // и вышло: в базе 82 337 кадров, на диске 82 336.
+        val existing = FileController.getExistingFramesCount(fileExt)
+        val framesCount: Int = if (existing > 0 && existing < fileExt.framesCount) {
+            println("[AF] в метаданных ${fileExt.framesCount} кадров, на диске $existing — " +
+                    "в базу идут $existing")
+            existing
+        } else {
+            fileExt.framesCount
+        }
 
         // создаем новые фреймы
-        FrameController.createFrames(fileExt)
+        FrameController.createFrames(fileExt, framesCount)
 
         Settings.MinSimilarity = 0.0
         var simScore: Double
@@ -145,7 +162,10 @@ class AnalyzeFrames(var fileExt: FileExt,
                 this.diffNext1 = if (frameNextExt1 != null) abs(this.simScoreNext1 - frameNextExt1.frame.simScoreNext1) else 0.0
                 this.diffNext2 = if (frameNextExt1 != null && frameNextExt2 != null) abs(frameNextExt1.frame.simScoreNext1 - frameNextExt2.frame.simScoreNext1) else 0.0
                 this.diffPrev1 = if (framePrevExt1 != null) abs(framePrevExt1.frame.simScoreNext1 - this.simScoreNext1) else 0.0
-                this.diffPrev1 = if (framePrevExt1 != null && framePrevExt2 != null) abs(framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1) else 0.0
+                // Раньше здесь стояло `this.diffPrev1 = ...` вторым присваиванием
+                // подряд: оно затирало прямое сравнение, и в базе diff_prev_2 был
+                // равен нулю у всех кадров.
+                this.diffPrev2 = if (framePrevExt1 != null && framePrevExt2 != null) abs(framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1) else 0.0
             }
 
 //            currentFrameExt.frame.diffNext1 = if (frameNextExt1 != null) abs(currentFrameExt.frame.simScoreNext1 - frameNextExt1.frame.simScoreNext1) else 0.0

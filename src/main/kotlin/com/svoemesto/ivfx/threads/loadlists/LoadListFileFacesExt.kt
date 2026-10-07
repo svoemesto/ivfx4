@@ -20,7 +20,6 @@ class LoadListFileFacesExt(
     override fun run() {
         this.name = "LoadListFileFacesExt"
         loadList()
-        flagIsDone.set(true)
     }
 
     private fun loadList() {
@@ -37,24 +36,29 @@ class LoadListFileFacesExt(
         }
 
         val sourceIterable = FaceController.getListFacesExt(fileExt)
-        list.clear()
+        val sourceCount = sourceIterable.count()
+        // Список для интерфейса меняется только из потока интерфейса: раньше
+        // clear() и add() выполнялись здесь, из фонового потока, и перебор
+        // списка в это время падал с ConcurrentModificationException.
+        val loaded: MutableList<FaceExt> = mutableListOf()
 
         for ((i, faceExt) in sourceIterable.withIndex()) {
-            if (!currentThread().isInterrupted) {
-                Platform.runLater {
-                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, face ($i/${sourceIterable.count()})"
-                }
-
-                list.add(faceExt)
-            } else {
-                return
+            if (currentThread().isInterrupted) {
+                break
+            }
+            Platform.runLater {
+                if (pb!=null) pb!!.progress = i.toDouble()/sourceCount
+                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceCount.toDouble())} Loading: ${fileExt.file.name}, face ($i/$sourceCount)"
             }
 
+            loaded.add(faceExt)
         }
         Platform.runLater {
+            list.clear()
+            list.addAll(loaded)
             if (pb!=null) pb!!.isVisible = false
             if (lbl!=null) lbl!!.isVisible = false
+            flagIsDone.set(true)
         }
     }
 }

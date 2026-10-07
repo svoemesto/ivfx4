@@ -2,6 +2,7 @@ package com.svoemesto.ivfx
 
 import com.svoemesto.ivfx.repos.EventRepo
 import com.svoemesto.ivfx.repos.FaceRepo
+import com.svoemesto.ivfx.repos.FaceTrackRepo
 import com.svoemesto.ivfx.repos.FileCdfRepo
 import com.svoemesto.ivfx.repos.FileRepo
 import com.svoemesto.ivfx.repos.FilterConditionRepo
@@ -38,6 +39,7 @@ class Main {
         val frameRepo = context.getBean("frameRepo", FrameRepo::class.java)
         val shotRepo = context.getBean("shotRepo", ShotRepo::class.java)
         val faceRepo = context.getBean("faceRepo", FaceRepo::class.java)
+        val faceTrackRepo = context.getBean("faceTrackRepo", FaceTrackRepo::class.java)
         val sceneRepo = context.getBean("sceneRepo", SceneRepo::class.java)
         val eventRepo = context.getBean("eventRepo", EventRepo::class.java)
         val personRepo = context.getBean("personRepo", PersonRepo::class.java)

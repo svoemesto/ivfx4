@@ -35,8 +35,7 @@ class Property {
     @Column(name = "property_key", columnDefinition = "varchar(255) default ''")
     var key: String = ""
 
-    @Lob
-    @Column(name = "property_value")
+    @Column(name = "property_value", columnDefinition = "text")
     var value: String = ""
 
 }

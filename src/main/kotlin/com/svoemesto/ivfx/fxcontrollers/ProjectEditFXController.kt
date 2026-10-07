@@ -423,7 +423,9 @@ class ProjectEditFXController {
         mainStage = Stage()
 
         try {
-            val root = FXMLLoader.load<Parent>(ProjectEditFXController::class.java.getResource("project-edit-view.fxml"))
+            val loader = FXMLLoader(ProjectEditFXController::class.java.getResource("project-edit-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage?.scene = Scene(root)
 
             hostServices = incomingHostServices
@@ -761,6 +763,31 @@ class ProjectEditFXController {
         fldProjectName?.focusedProperty()?.addListener { _, _, newPropertyValue ->
             if (!newPropertyValue) {
                 saveCurrentProject()
+            }
+        }
+
+        // Остальные поля проекта: обработчика потери фокуса не имели, и
+        // правка в них сохранялась только если затем увести фокус с поля
+        // "Имя". Поле "Short" из-за этого не сохранялось вовсе. Функции
+        // saveCurrentProject() и saveCurrentFile() эти поля уже читают,
+        // не хватало только вызова.
+        listOf(
+            fldProjectShortName, fldProjectFolder, fldProjectWidth, fldProjectHeight,
+            fldProjectFps, fldProjectAudioBitrate, fldProjectAudioFrequency,
+            fldProjectVideoBitrate
+        ).forEach { field ->
+            field?.focusedProperty()?.addListener { _, _, focused ->
+                if (!focused) {
+                    saveCurrentProject()
+                }
+            }
+        }
+
+        listOf(fldFilePath, fldFileShortName).forEach { field ->
+            field?.focusedProperty()?.addListener { _, _, focused ->
+                if (!focused) {
+                    saveCurrentFile()
+                }
             }
         }
 
@@ -1239,7 +1266,16 @@ class ProjectEditFXController {
     fun doMenuOpen(event: ActionEvent?) {
         saveCurrentFile()
         saveCurrentProject()
-        currentProjectExt = ProjectExt(ProjectSelectFXController().getProject(currentProjectExt!!.project)!!)
+        // Раньше здесь стояло currentProjectExt!!.project, и пункт «Open»
+        // требовал уже открытого проекта. На пустой базе проекта нет, и
+        // двойное восклицание роняло действие с NullPointerException — то
+        // есть первый проект было невозможно открыть. Теперь выбор проекта
+        // показывается всегда, а отмена окна оставляет текущий проект.
+        val chosen = ProjectSelectFXController().getProject(currentProjectExt?.project)
+        if (chosen == null) {
+            return
+        }
+        currentProjectExt = ProjectExt(chosen)
         initialize()
     }
 

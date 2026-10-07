@@ -22,6 +22,8 @@ import com.svoemesto.ivfx.threads.projectactions.CreateShotsLosslessWithAudio
 import com.svoemesto.ivfx.threads.projectactions.CreateShotsLosslessWithoutAudio
 import com.svoemesto.ivfx.threads.projectactions.DetectFaces
 import com.svoemesto.ivfx.threads.projectactions.RecognizeFaces
+import com.svoemesto.ivfx.threads.projectactions.TrackFaces
+import com.svoemesto.ivfx.threads.projectactions.RecheckFaces
 import com.svoemesto.ivfx.utils.FaceDetection
 import javafx.application.HostServices
 import javafx.collections.FXCollections
@@ -140,6 +142,12 @@ class ProjectActionsFXController {
     private var checkRecognizeFaces: CheckBox? = null
 
     @FXML
+    private var checkTrackFaces: CheckBox? = null
+
+    @FXML
+    private var checkRecheckFaces: CheckBox? = null
+
+    @FXML
     private var checkCreateShotsCompressedWithAudio: CheckBox? = null
 
     @FXML
@@ -150,9 +158,6 @@ class ProjectActionsFXController {
 
     @FXML
     private var checkCreateConcat: CheckBox? = null
-
-    @FXML
-    private var btnTrainFaceModel: Button? = null
 
     @FXML
     private var pb1: ProgressBar? = null
@@ -183,7 +188,9 @@ class ProjectActionsFXController {
         ProjectActionsFXController.listFilesExt = listFilesExt
         mainStage = Stage()
         try {
-            val root = FXMLLoader.load<Parent>(ProjectEditFXController::class.java.getResource("project-actions-view.fxml"))
+            val loader = FXMLLoader(ProjectEditFXController::class.java.getResource("project-actions-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage?.setScene(Scene(root))
             ProjectActionsFXController.hostServices = hostServices
             mainStage?.initModality(Modality.NONE)
@@ -229,12 +236,83 @@ class ProjectActionsFXController {
         colFileExtCC?.cellValueFactory = PropertyValueFactory("hasConcatString")
         tblFilesExt?.items = listFilesExt
 
-        pb1?.isVisible = false
-        pb2?.isVisible = false
-        lblPb1?.isVisible = false
-        lblPb2?.isVisible = false
+        // Полосы и подписи показываются всегда, в том числе когда ничего не
+        // выполняется. Раньше все четыре элемента скрывались при старте, и в
+        // покое их не было видно совсем: из-за этого нельзя было понять, что
+        // прогресс здесь вообще есть. В покое подписи показывают состояние,
+        // полосы пустые.
+        pb1?.isVisible = true
+        pb2?.isVisible = true
+        lblPb1?.isVisible = true
+        lblPb2?.isVisible = true
+        pb1?.progress = 0.0
+        pb2?.progress = 0.0
+        lblPb1?.text = ""
+        lblPb2?.text = "Ready"
 
+        watchForDoActionsAvailability()
 
+        // Раскладку смотрим не сразу, а через секунду: на момент initialize()
+        // окно ещё не прошло первый расчёт размеров, и все поля нулевые.
+        // Именно нулевые размеры у детей VBox уже сжимали полосы прогресса,
+        // поэтому галочки проверяем фактической геометрией, а не догадкой.
+        javafx.animation.Timeline(javafx.animation.KeyFrame(
+            javafx.util.Duration.seconds(1.5),
+            javafx.event.EventHandler { _ ->
+            val parts = mutableListOf<String>()
+            for (cb in actionCheckBoxes()) {
+                parts.add("${cb.text}=h${cb.height.toInt()}/v${if (cb.isVisible) 1 else 0}")
+            }
+            println("[TR-раскладка] галочек ${actionCheckBoxes().size}: ${parts.joinToString(" ")}")
+            println("[TR-раскладка] кнопка h=${btnDoActions?.height?.toInt()} " +
+                    "включена=${if (btnDoActions?.isDisable == true) "нет" else "да"}")
+        })).apply { cycleCount = 1 }.let { it.playFromStart() }
+
+    }
+
+    /**
+     * Все галочки-действия: их состояние определяет, можно ли запускать.
+     */
+    private fun actionCheckBoxes(): List<CheckBox> = listOfNotNull(
+        checkCreatePreview, checkCreateLossless, checkCreateFramesSmall, checkCreateFramesMedium,
+        checkCreateFramesFull, checkAnalyzeFrames, checkCreateShots, checkDetectFaces,
+        checkCreateFaces, checkCreateFacesPreview, checkRecognizeFaces, checkTrackFaces, checkRecheckFaces,
+        checkCreateShotsCompressedWithAudio, checkCreateShotsLosslessWithAudio,
+        checkCreateShotsLosslessWithoutAudio, checkCreateConcat
+    )
+
+    /**
+     * Кнопка «Do actions» доступна, только когда выделена хотя бы одна строка
+     * таблицы и отмечено хотя бы одно действие.
+     *
+     * Раньше это не проверялось: если строка не выделена, цикл по действиям
+     * проходил пустым, кнопка нажималась, и ничего не происходило — ни ошибки,
+     * ни записи в журнале. Приходилось гадать, что нажатие не сработало.
+     */
+    private fun updateDoActionsAvailability() {
+        val anyRowSelected = (tblFilesExt?.selectionModel?.selectedItems?.size ?: 0) > 0
+        val checked = actionCheckBoxes().filter { it.isSelected }.map { it.text }
+        val anyActionChecked = checked.isNotEmpty()
+        btnDoActions?.isDisable = !(anyRowSelected && anyActionChecked)
+        // Диагностика: по одному клику видно, что именно помешало кнопке.
+        // Без неё приходится гадать — выделена ли строка и отмечена ли хоть
+        // одна галочка, из формы это не различить.
+        println("[TR-диагностика] строк выделено: ${tblFilesExt?.selectionModel?.selectedItems?.size ?: 0}, " +
+                "отмечено: ${checked.size} ${checked}, кнопка " +
+                "${if (btnDoActions?.isDisable == true) "выключена" else "включена"}")
+    }
+
+    private fun watchForDoActionsAvailability() {
+        updateDoActionsAvailability()
+        // Слушатель вешаем на сам список выделения: selectedItemsProperty()
+        // в Kotlin не синтезируется как свойство, а список выделения —
+        // обычный ObservableList, на который подписаться можно.
+        tblFilesExt?.selectionModel?.selectedItems?.addListener(
+            javafx.collections.ListChangeListener { updateDoActionsAvailability() }
+        )
+        actionCheckBoxes().forEach { it.selectedProperty().addListener { _, _, _ ->
+            updateDoActionsAvailability()
+        } }
     }
 
     @FXML
@@ -254,6 +332,9 @@ class ProjectActionsFXController {
             if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateFacesPreview?.isSelected == true && (!fileExt.hasCreatedFacesPreview!! || (fileExt.hasCreatedFacesPreview!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkRecognizeFaces?.isSelected == true && (!fileExt.hasRecognizedFaces!! || (fileExt.hasRecognizedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkTrackFaces?.isSelected == true) countActions++
+            if (checkRecheckFaces?.isSelected == true) countActions++
+
             if (checkCreateShotsCompressedWithAudio?.isSelected == true && (!fileExt.hasShotsCompressedWithAudio!! || (fileExt.hasShotsCompressedWithAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateShotsLosslessWithAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithAudio!! || (fileExt.hasShotsLosslessWithAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
             if (checkCreateShotsLosslessWithoutAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithoutAudio!! || (fileExt.hasShotsLosslessWithoutAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
@@ -319,6 +400,7 @@ class ProjectActionsFXController {
                 )
             }
 
+
             if (checkCreateShots?.isSelected == true && (!fileExt.hasCreatedShots!! || (fileExt.hasCreatedShots!! && checkReCreateIfExists?.isSelected!!))) {
                 counterPb1++
                 listThreads.add(
@@ -360,6 +442,24 @@ class ProjectActionsFXController {
                 listThreads.add(
                     RecognizeFaces(fileExt!!, tblFilesExt!!,
                         "File: ${fileExt.file.name}, Action: Recognize Faces, Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkTrackFaces?.isSelected == true) {
+                counterPb1++
+                listThreads.add(
+                    TrackFaces(fileExt!!,
+                        "File: ${fileExt.file.name}, Action: Track Faces, Issue: [${counterPb1}/${countActions}]",
+                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                )
+            }
+
+            if (checkRecheckFaces?.isSelected == true) {
+                counterPb1++
+                listThreads.add(
+                    RecheckFaces(fileExt!!,
+                        "File: ${fileExt.file.name}, Action: Recheck Faces, Issue: [${counterPb1}/${countActions}]",
                         counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
                 )
             }
@@ -411,48 +511,20 @@ class ProjectActionsFXController {
         @SerializedName("names") var tags: Array<String?>
     )
 
-    @FXML
-    fun doTrainFaceModel(event: ActionEvent?) {
-
-        val listFacesToTrain = FaceController.getListFacesToTrain(currentProject)
-        val embeddings = Embeddings( arrayOfNulls(listFacesToTrain.size), arrayOfNulls(listFacesToTrain.size))
-        for ((i, face) in listFacesToTrain.withIndex()) {
-            embeddings.vectors[i] = face.vector
-            embeddings.tags[i] = face.personRecognizedName
-        }
-
-        val builder = GsonBuilder()
-        var gson = builder.create()
-        val pathToFileJSON: String = currentProject.folder + IOFile.separator + "embeddings.json"
-
-        try {
-            FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(embeddings, fileWriter) }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        val faceDetectorPath = FaceDetection.FACE_DETECTOR_PATH
-
-        val param: MutableList<String> = mutableListOf()
-
-        param.add("${faceDetectorPath.first()}:\n")
-        param.add("cd \"${faceDetectorPath}\"\n")
-        param.add("py")
-        param.add("\"${faceDetectorPath}/train_model_json.py\"")
-        param.add("-e")
-        param.add("\"${pathToFileJSON}\"")
-        param.add("-r")
-        param.add("\"${currentProject.folder}${IOFile.separator}recognizer.pickle\"")
-        param.add("-l")
-        param.add("\"${currentProject.folder}${IOFile.separator}le.pickle\"")
-
-        val cmdText = param.joinToString(separator=" ").replace("/","\\")
-
-        println(cmdText)
-
-        val runCmd = RunCmd(cmdText)
-        runCmd.run()
-
-    }
+    // Шаг обучения модели распознавания удалён вместе с кнопкой
+    // «Train face model» и скриптом train_model_json.py.
+    //
+    // Раньше отмеченные лица превращались в обучающую выборку, по ней
+    // подгонялся линейный SVM, он вместе с кодировщиком меток сохранялся
+    // в два файла, а при распознавании для каждого лица вызывался
+    // predict_proba.
+    //
+    // Сейчас распознавание идёт сравнением с отмеченными лицами напрямую:
+    // вектор признаков у лица уже посчитан при поиске лиц и лежит в базе,
+    // достаточно взять косинус угла с векторами отмеченных лиц. Ни модель
+    // обучать, ни файлы её хранить не нужно.
+    //
+    // Отметка лиц в интерфейсе при этом остаётся: галерея строится из
+    // отмеченных лиц, и без них распознавать нечего.
 
 }

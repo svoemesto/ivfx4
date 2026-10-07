@@ -16,9 +16,9 @@ data class FrameExt(val frame: Frame,
                val fileExt: FileExt) {
 
     companion object {
-        val pathToStubSmall: String = FrameExt::class.java.getResource("blank_frame_small.jpg")!!.toString()
-        val pathToStubMedium: String = FrameExt::class.java.getResource("blank_frame_medium.jpg")!!.toString()
-        val pathToStubFull: String = FrameExt::class.java.getResource("blank_frame_full.jpg")!!.toString()
+        val pathToStubSmall: String = FrameExt::class.java.getResource("blank_frame_small.jpg")!!.toURI().path
+        val pathToStubMedium: String = FrameExt::class.java.getResource("blank_frame_medium.jpg")!!.toURI().path
+        val pathToStubFull: String = FrameExt::class.java.getResource("blank_frame_full.jpg")!!.toURI().path
     }
 
     val pathToSmall: String get() = "${fileExt.folderFramesSmall}${IOFile.separator}${fileExt.file.shortName}_frame_${String.format("%06d", frame.frameNumber)}.jpg"
@@ -108,19 +108,25 @@ data class FrameExt(val frame: Frame,
             return _labelFull!!
         }
 
+    // Метки тоже держат картинку: у Label поле graphic ссылается на ImageView,
+    // а в нём лежит сама картинка. Поэтому обнуления двух полей выше
+    // недостаточно — без сброса метки память не освобождалась ничего.
     fun resetPreviewSmall() {
         _biSmall = null
         _previewSmall = null
+        _labelSmall = null
     }
 
     fun resetPreviewMedium() {
         _biMedium = null
         _previewMedium = null
+        _labelMedium = null
     }
 
     fun resetPreviewFull() {
         _biFull = null
         _previewFull = null
+        _labelFull = null
     }
 
     fun facesExt() : MutableList<FaceExt> {

@@ -74,7 +74,9 @@ class PersonSelectFXController {
         currentPersonExt = personExt
 
         try {
-            val root = FXMLLoader.load<Parent>(PersonSelectFXController::class.java.getResource("person-select-view.fxml"))
+            val loader = FXMLLoader(PersonSelectFXController::class.java.getResource("person-select-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage?.scene = Scene(root)
             mainStage?.initModality(Modality.APPLICATION_MODAL)
             mainStage?.showAndWait()

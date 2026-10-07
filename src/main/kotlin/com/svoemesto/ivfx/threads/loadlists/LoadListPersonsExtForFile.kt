@@ -38,7 +38,11 @@ class LoadListPersonsExtForFile(
             }
         }
 
-        val sourceIterable = Main.personRepo.findByFileId(fileExt.file.id)
+        // Персоны — по проекту, а не по файлу. Серии одного сериала показывают
+        // одних и тех же людей, и персонаж, отмеченный в первой серии, должен
+        // быть в списке и во второй: иначе назначить его нельзя даже вручную,
+        // не только автоматически.
+        val sourceIterable = Main.personRepo.findByProjectId(fileExt.projectExt.project.id)
         list.clear()
 
         for ((i, person) in sourceIterable.withIndex()) {

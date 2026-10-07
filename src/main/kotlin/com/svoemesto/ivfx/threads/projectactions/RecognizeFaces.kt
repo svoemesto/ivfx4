@@ -7,6 +7,7 @@ import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.modelsext.FaceExt
+import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunCmd
@@ -30,10 +31,12 @@ class RecognizeFaces(var fileExt: FileExt,
 
     override fun run() {
 
-        lbl1.isVisible = true
-        pb1.isVisible = true
-        lbl2.isVisible = true
-        pb2.isVisible = true
+        Platform.runLater {
+            lbl1.isVisible = true
+            pb1.isVisible = true
+            lbl2.isVisible = true
+            pb2.isVisible = true
+        }
 
         Platform.runLater {
             lbl1.text = textLbl1
@@ -54,8 +57,83 @@ class RecognizeFaces(var fileExt: FileExt,
             it.personRecognizedName = ""
         }
 
+        // В json добавляются уже отмеченные лица — они и есть галерея.
+        //
+        // Раньше распознавание обучалось моделью, и обучающая выборка
+        // собиралась отдельным шагом, поэтому сюда попадали только
+        // неопределённые лица. Теперь сравнение идёт напрямую с отмеченными,
+        // и без них у скрипта не с чем сравнивать: галерея выходит пустой,
+        // скрипт пишет об этом и заканчивает работу, не найдя никого.
+        //
+        // Отмеченные кладём с типом PERSON и с именем — по ним скрипт и
+        // строит галерею. При чтении результата они пропускаются, чтобы
+        // уже сделанные назначения не перетирались (см. ниже).
+        val undefinded = PersonController.getUndefinded(fileExt.projectExt.project)
+        // Отбор по ТИПУ персоны, а не по «не тот неопределённый».
+        //
+        // Прежний отбор брал всё, что не является неопределённым, и в галерею
+        // попадали лица типа NONPERSON — то есть вырезы, которые приложение
+        // само отметило как «не персонаж». Сравнивать новые лица с ними
+        // бессмысленно: это как раз тот мусор, который распознавание должно
+        // отбрасывать, а не искать в нём похожих.
+        //
+        // Галерея берётся ПО ПРОЕКТУ, а не по файлу. Серии одного сериала
+        // показывают одних и тех же людей, и отмеченные лица первой серии —
+        // образцы для второй. По файлу у новой серии своих отмеченных лиц
+        // нет: галерея выходит пустой, шаг останавливается, и все лица
+        // остаются неопределёнными, хотя их сколько угодно много.
+        //
+        // Обход идёт парами «серия + персона», и это не удобство, а
+        // необходимость: конструктор FaceExt читает file.shortName, а связь
+        // file отложенная, и вне сессии её чтение падает. Отсюда две ошибки
+        // подряд, обе в этом шаге: сперва personType, потом shortName.
+        // Чтобы их больше не было, отложенные связи подменяются настоящими
+        // объектами до создания FaceExt, а нужные значения (personType у
+        // персоны, personRecognizedName у лица) — обычные колонки, читаются
+        // без сессии.
+        //
+        // У каждой серии своя папка кадров, поэтому у лица галереи должен
+        // быть И ЕГО FileExt, а не тот, на котором идёт распознавание: иначе
+        // пути в json указывали бы на чужую серию.
+        val projectId = fileExt.projectExt.project.id
+        val galleryPersons = Main.personRepo.findByProjectId(projectId)
+            .filter { it.personType == PersonType.PERSON && it.id != undefinded.id }
+        val galleryFaces = mutableListOf<FaceExt>()
+        for (galleryFile in Main.fileRepo.findByProjectId(projectId)) {
+            val galleryFileExt = FileExt(galleryFile, fileExt.projectExt)
+            for (person in galleryPersons) {
+                for (face in Main.faceRepo.findAllByFileIdAndPersonId(galleryFile.id, person.id)) {
+                    face.file = galleryFile
+                    face.person = person
+                    if (face.personRecognizedName == "") continue
+                    galleryFaces.add(FaceExt(face, galleryFileExt, PersonExt(person, fileExt.projectExt)))
+                }
+            }
+        }
+        galleryFaces.forEach {
+            it.personType = PersonType.PERSON.name
+            it.personRecognizedName = it.face.personRecognizedName
+        }
+        println("[RecognizeFaces] неопределённых лиц: ${arrFrameFaces.size}, " +
+                "отмеченных для галереи: ${galleryFaces.size}")
+
+        // Галерея пуста — сравнивать не с чем. Действие не запускаем: иначе
+        // приложение двадцать минут перебирает все неопределённые лица, ни
+        // разу ничего не находя, и всё это время надпись сообщает, что идёт
+        // распознавание. Похоже на работу, результата ноль.
+        if (galleryFaces.isEmpty()) {
+            println("[RecognizeFaces] ОСТАНОВ: нет ни одного отмеченного лица, " +
+                    "галерея пуста. Распознавать нечего.")
+            Platform.runLater {
+                lbl1.isVisible = false
+                lbl2.text = "Нечего распознавать: не отмечено ни одного лица"
+                table.refresh()
+            }
+            return
+        }
+
         try {
-            FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(arrFrameFaces, fileWriter) }
+            FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(arrFrameFaces + galleryFaces, fileWriter) }
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -64,45 +142,70 @@ class RecognizeFaces(var fileExt: FileExt,
 
         val param: MutableList<String> = mutableListOf()
 
-        param.add("${faceDetectorPath.first()}:\n")
         param.add("cd \"${faceDetectorPath}\"\n")
-        param.add("py")
-        param.add("\"${faceDetectorPath}/recognize_faces.py\"")
+        param.add(FaceDetection.PYTHON_PATH)
+        param.add("${faceDetectorPath}/recognize_faces.py")
         param.add("-i")
-        param.add("\"${pathToFileJSON}\"")
-        param.add("-d")
-        param.add("\"${faceDetectorPath}/face_detection_model\"")
-        param.add("-m")
-        param.add("\"${faceDetectorPath}/openface_nn4.small2.v1.t7\"")
-        param.add("-r")
-        param.add("\"${fileExt.projectExt.project.folder}/recognizer.pickle\"")
-        param.add("-l")
-        param.add("\"${fileExt.projectExt.project.folder}/le.pickle\"")
+        param.add("${pathToFileJSON}")
+        // Модели больше не передаются: распознавание идёт сравнением векторов
+        // уже найденных лиц с отмеченными, обучать модель не нужно, поэтому
+        // ни детектор, ни эмбеддер, ни pickle с SVM в команде не участвуют.
         param.add("-c")
-        param.add(0.3.toString())
+        // Порог косинусного сходства. Прежние 0,3 относились к вероятности
+        // SVM, здесь шкала другая: значение — насколько лицо похоже на
+        // отмеченное. 0,45 — осторожная отметка, её нужно откалибровать на
+        // реальных лицах серии.
+        param.add(FaceDetection.RECOGNIZE_THRESHOLD.toString())
+        param.add("-m")
+        param.add(FaceDetection.RECOGNIZE_MARGIN.toString())
 
-        val cmdText = param.joinToString(separator=" ").replace("/","\\")
+        val cmdText = param.joinToString(separator = " ")
 
         println(cmdText)
 
         val runCmd = RunCmd(cmdText)
         runCmd.run()
 
+        // Приложение не читает вывод скрипта, поэтому результат
+        // распознавания без этого остаётся невидимым: ни в журнале, ни в
+        // форме. Скрипт пишет итог в файл, здесь он подхватывается и
+        // показывается в надписи и в журнал.
+        val resultFile = IOFile(fileExt.folderFramesFull + IOFile.separator + "recognize_faces_result.txt")
+        val scriptFailed = !resultFile.exists()
+        val resultText = if (scriptFailed) "РАСПОЗНАВАНИЕ НЕ СОСТОЯЛОСЬ: скрипт не дал результата" else resultFile.readText().trim()
+        println("[RecognizeFaces] $resultText")
+        Platform.runLater { lbl2.text = resultText }
+        resultFile.delete()
+
+        // Дальше json читается и лица перезаписываются ВСЕГДА, даже если
+        // скрипт упал. При провале в нём лежат те же неопределённые лица, и
+        // приложение двадцать минут перезаписывает их вхолостую, показывая
+        // растущий счётчик, — выглядит как работа, а результата ноль. Поэтому
+        // при провале останавливаемся здесь, а не идём по кругу.
+        if (scriptFailed) {
+            Platform.runLater {
+                lbl1.isVisible = false
+                lbl2.text = resultText
+            }
+            return
+        }
+
         try {
             FileReader(pathToFileJSON).use { fileReader ->
                 val facesExtJsonArray: Array<FaceExtJson> = gson.fromJson(fileReader, Array<FaceExtJson>::class.java)
                 val nonPerson = PersonController.getNonpersonExt(fileExt.projectExt)
                 val undefindedPerson = PersonController.getUndefindedExt(fileExt.projectExt)
-                for ((i, faceExtJson) in facesExtJsonArray.withIndex()) {
+                val facesToUpdate = facesExtJsonArray.filter { it.personType == PersonType.UNDEFINDED.name }
+                for ((i, faceExtJson) in facesToUpdate.withIndex()) {
 
                     val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
                     val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-                    val percentage2: Double = (i+1)/facesExtJsonArray.size.toDouble()
+                    val percentage2: Double = (i+1)/facesToUpdate.size.toDouble()
                     val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
                     Platform.runLater {
                         lbl1.text = textLbl1
                         pb1.progress = percentage1
-                        lbl2.text = "Recognize face [$i/${facesExtJsonArray.size}]"
+                        lbl2.text = "Recognize face [$i/${facesToUpdate.size}]"
                         pb2.progress = percentage2
                     }
 
@@ -115,12 +218,12 @@ class RecognizeFaces(var fileExt: FileExt,
         }
 
         fileExt.hasRecognizedFaces = true
-        table.refresh()
 
-        lbl1.isVisible = false
-        lbl2.isVisible = false
-        pb1.isVisible = false
-        pb2.isVisible = false
+        Platform.runLater {
+            table.refresh()
+            lbl1.isVisible = false
+            lbl2.text = "Done"
+        }
 
     }
 }

@@ -45,12 +45,12 @@ class PersonExt(val person: Person, val projectExt: ProjectExt) : Comparable<Per
                                 ImageIO.write(bi, "jpg", outputfile)
                             }
                         } else {
-                            val fileName = PersonExt::class.java.getResource("blank_person_small.jpg")!!.file.substring(1)
+                            val fileName = PersonExt::class.java.getResource("blank_person_small.jpg")!!.toURI().path
                             println(fileName)
                             bi = ImageIO.read(IOFile(fileName))
                         }
                     } else {
-                        val fileName = PersonExt::class.java.getResource("blank_person_small.jpg")!!.file.substring(1)
+                        val fileName = PersonExt::class.java.getResource("blank_person_small.jpg")!!.toURI().path
                         println(fileName)
                         bi = ImageIO.read(IOFile(fileName))
                     }
@@ -87,12 +87,12 @@ class PersonExt(val person: Person, val projectExt: ProjectExt) : Comparable<Per
                                 ImageIO.write(bi, "jpg", outputfile)
                             }
                         } else {
-                            val fileName = PersonExt::class.java.getResource("blank_person_medium.jpg")!!.file.substring(1)
+                            val fileName = PersonExt::class.java.getResource("blank_person_medium.jpg")!!.toURI().path
                             println(fileName)
                             bi = ImageIO.read(IOFile(fileName))
                         }
                     } else {
-                        val fileName = PersonExt::class.java.getResource("blank_person_medium.jpg")!!.file.substring(1)
+                        val fileName = PersonExt::class.java.getResource("blank_person_medium.jpg")!!.toURI().path
                         println(fileName)
                         bi = ImageIO.read(IOFile(fileName))
                     }
@@ -102,6 +102,15 @@ class PersonExt(val person: Person, val projectExt: ProjectExt) : Comparable<Per
             }
             return _previewMedium!!
         }
+
+    /**
+     * Сколько лиц этого персонажа состоят в треках.
+     *
+     * Нужно, чтобы видеть разрывы в разметке: если персона определён в одной
+     * сцене и не определён в десяти соседних, это видно сразу по таблице, а
+     * иначе приходится искать глазами по кадрам.
+     */
+    var trackFacesCount: Int = 0
 
     private var _labelSmall: Label? = null
     val labelSmall: Label

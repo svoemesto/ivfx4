@@ -229,7 +229,9 @@ class FilterEditFXController {
         currentProjectExt = projectExt
         mainStage = Stage()
         try {
-            val root = FXMLLoader.load<Parent>(ShotsEditFXController::class.java.getResource("filter-edit-view.fxml"))
+            val loader = FXMLLoader(ShotsEditFXController::class.java.getResource("filter-edit-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage?.scene = Scene(root)
             FilterEditFXController.hostServices = hostServices
             mainStage?.initModality(Modality.WINDOW_MODAL)

@@ -35,10 +35,16 @@ class CreateFacesPreview(var fileExt: FileExt,
 
     override fun run() {
 
-        lbl1.isVisible = true
-        pb1.isVisible = true
-        lbl2.isVisible = true
-        pb2.isVisible = true
+        // Видимость элементов формы меняется только из потока интерфейса:
+        // этот класс работает в отдельном потоке, и прямое присваивание
+        // isVisible из него JavaFX не применяет — форма остаётся пустой,
+        // хотя работа идёт. То же было в DetectFaces, там исправлено.
+        Platform.runLater {
+            lbl1.isVisible = true
+            pb1.isVisible = true
+            lbl2.isVisible = true
+            pb2.isVisible = true
+        }
 
         val builder = GsonBuilder()
         val gson = builder.create()
@@ -66,6 +72,15 @@ class CreateFacesPreview(var fileExt: FileExt,
 
         val facesExt = FaceController.getListFacesExt(fileExt)
 
+        // Кадр декодируется один раз на кадр, а не на каждое лицо. Лица
+        // перебираются подряд, и у соседних кадр обычно один и тот же, а
+        // ImageIO.read полного кадра 1920x1080 стоит десятки миллисекунд.
+        // На 12548 лицах при 5482 уникальных кадрах это примерно вдвое
+        // меньше декодирований. Результат не меняется: extractRegion
+        // исходный кадр не изменяет, он рисует его на подложку.
+        var lastFrameKey: String? = null
+        var lastFrameImage: BufferedImage? = null
+
         for ((i, faceExt) in facesExt.withIndex()) {
             val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
@@ -82,11 +97,18 @@ class CreateFacesPreview(var fileExt: FileExt,
 
             if (!IOFile(faceExt.pathToPreviewFile).exists()) {
                 if (!IOFile(faceExt.pathToPreviewFile).parentFile.exists()) IOFile(faceExt.pathToPreviewFile).parentFile.mkdir()
-                var frameExt = listFramesExt.firstOrNull { it.fileExt.file.id == faceExt.fileId &&
-                                                           it.frame.frameNumber == faceExt.frameNumber }
-                if (frameExt == null) frameExt = FrameController.getFrameExt(faceExt.fileId, faceExt.frameNumber, fileExt.projectExt.project)
-                val biSource = ImageIO.read(IOFile(frameExt.pathToFull))
-                var bi = OverlayImage.extractRegion(biSource, faceExt.startX, faceExt.startY, faceExt.endX, faceExt.endY, Main.PREVIEW_FACE_W.toInt(), Main.PREVIEW_FACE_H.toInt(), Main.PREVIEW_FACE_EXPAND_FACTOR, Main.PREVIEW_FACE_CROPPING)
+                val frameKey = "${faceExt.fileId}_${faceExt.frameNumber}"
+                var biSource: BufferedImage? = lastFrameImage
+                if (biSource == null || frameKey != lastFrameKey) {
+                    var frameExt = listFramesExt.firstOrNull { it.fileExt.file.id == faceExt.fileId &&
+                                                               it.frame.frameNumber == faceExt.frameNumber }
+                    if (frameExt == null) frameExt = FrameController.getFrameExt(faceExt.fileId, faceExt.frameNumber, fileExt.projectExt.project)
+                    biSource = ImageIO.read(IOFile(frameExt.pathToFull))
+                    lastFrameKey = frameKey
+                    lastFrameImage = biSource
+                }
+                var bi = OverlayImage.extractRegion(biSource!!, faceExt.startX, faceExt.startY, faceExt.endX, faceExt.endY, Main.PREVIEW_FACE_W.toInt(), Main.PREVIEW_FACE_H.toInt(), Main.PREVIEW_FACE_EXPAND_FACTOR, Main.PREVIEW_FACE_CROPPING)
+
                 if (faceExt.face.isExample) bi = OverlayImage.setOverlayTriangle(bi,3,0.2, Color.GREEN, 1.0F)
                 if (faceExt.face.isManual) bi = OverlayImage.setOverlayTriangle(bi,3,0.2, Color.RED, 1.0F)
                 val outputfile = IOFile(faceExt.pathToPreviewFile)
@@ -98,12 +120,15 @@ class CreateFacesPreview(var fileExt: FileExt,
         }
 
         fileExt.hasCreatedFacesPreview = true
-        table.refresh()
 
-        lbl1.isVisible = false
-        lbl2.isVisible = false
-        pb1.isVisible = false
-        pb2.isVisible = false
+        Platform.runLater {
+            table.refresh()
+            // Прячем только текущий файл, полосы остаются на месте: иначе
+            // после завершения их снова не видно и непонятно, отработало
+            // действие или нет. Оставляем надпись с результатом.
+            lbl1.isVisible = false
+            lbl2.text = "Done"
+        }
 
     }
 }

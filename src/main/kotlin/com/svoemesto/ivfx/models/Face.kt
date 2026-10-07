@@ -40,6 +40,13 @@ class Face: Comparable<Face> {
     @JoinColumn(name = "person_id")
     lateinit var person: Person
 
+    /** Трек, в который входит это лицо: один и тот же человек в пределах
+     *  одной сцены. Заполняется шагом отслеживания и необязателен: лицо может
+     *  остаться вне трека, если оно ни с кем не сошлось. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "track_id")
+    var track: FaceTrack? = null
+
     @Column(name = "face_number_in_frame", nullable = false, columnDefinition = "int default 0")
     var faceNumberInFrame: Int = 0
 
@@ -70,8 +77,7 @@ class Face: Comparable<Face> {
     @Column(name = "is_manual", columnDefinition = "boolean default false")
     var isManual: Boolean = false
 
-    @Lob
-    @Column(name = "vector")
+    @Column(name = "vector", columnDefinition = "text")
     var vectorText: String = "0.0"
 
     var vector: DoubleArray

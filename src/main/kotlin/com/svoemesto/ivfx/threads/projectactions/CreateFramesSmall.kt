@@ -12,6 +12,7 @@ import net.bramp.ffmpeg.FFmpegUtils
 import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
+import net.bramp.ffmpeg.shared.CodecType
 import net.bramp.ffmpeg.probe.FFmpegStream
 import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
@@ -43,18 +44,23 @@ class CreateFramesSmall(var fileExt: FileExt,
 
         val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(fileInput)
 
-        val countFrames = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
+        val countFrames = fFmpegProbeResult.streams.firstOrNull { it.codec_type == CodecType.VIDEO }?.tags?.get("NUMBER_OF_FRAMES-eng")?.toInt()
 
         val w = 135
         val h = 75
 
         val builder = FFmpegBuilder()
-            .setInput(fileInput)
-            .overrideOutputFiles(true)
-            .addOutput(fileOutput)
-            .setFrames(countFrames?:1)
-            .addExtraArgs("-qscale:v","1")
-            .setVideoResolution(w,h)
+        builder.setInput(fileInput)
+        builder.overrideOutputFiles(true)
+        val builderOutput = builder.addOutput(fileOutput)
+        builderOutput.setFrames(countFrames?:1)
+        builderOutput.addExtraArgs("-qscale:v","1")
+        builderOutput.setVideoResolution(w,h)
+                    // Обёртка добавляет -vframes 1, увидев расширение .jpg на
+                    // выходе, и последовательность %06d схлопывается в один файл.
+                    // Последний -vframes в команде выигрывает, поэтому свой
+                    // добавляем после обёртки, с числом кадров файла.
+                    .addExtraArgs("-vframes", MAX_FRAMES_TO_WRITE)
             .done()
 
         val executor = FFmpegExecutor(ffmpeg, ffprobe)
@@ -98,4 +104,36 @@ class CreateFramesSmall(var fileExt: FileExt,
         pb2.isVisible = false
 
     }
+
+    /**
+     * Число кадров для записи.
+     *
+     * Поле `framesCount` у файла на этом шаге ещё не заполнено, оно
+     * равно нулю, а ноль в -vframes означает «не писать ничего». Число
+     * берётся из результата ffprobe: длительность в микросекундах,
+     * делённая на частоту кадров, с запасом в пять процентов — чтобы
+     * обрезка не отсекла последний кадр из-за округления.
+     *
+     * @param durationMicros длительность файла в микросекундах
+     * @param fps частота кадров
+     * @return сколько кадров записывать
+     */
+
+
+    companion object {
+        /**
+         * Потолок числа записываемых кадров.
+         *
+         * Обёртка bramp добавляет `-vframes 1`, увидев расширение .jpg на
+         * выходе, и последовательность с шаблоном %06d схлопывается в один
+         * файл. Свой `-vframes` добавляется после обёртки, и последний
+         * выигрывает. Точное число кадров считать не от чего: у файла поле
+         * framesCount на этом шаге ещё не заполнено, а единицы длительности
+         * у ffprobe и у обёртки разные. Поэтому ограничение просто снимается.
+         * Сто миллионов кадров с запасом перекрывают любой реальный файл,
+         * а при обрыве по диску или по кнопке «Стоп» ffmpeg остановится сам.
+         */
+        const val MAX_FRAMES_TO_WRITE = "100000000"
+    }
+
 }

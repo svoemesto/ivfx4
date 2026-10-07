@@ -20,7 +20,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1100.0" prefWidth="1502.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.ProjectEditFXController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1100.0" prefWidth="1502.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="2.0">
         <menus>
@@ -55,6 +55,17 @@
                      <children>
                         <VBox prefHeight="600.0" prefWidth="300.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
+                               <!-- Поле-перехватчик фокуса. Без него при
+                                    открытии приложения фокус доставался
+                                    первому полю формы, и любая нажатая клавиша
+                                    затирала его. Поле пустое и невидимое:
+                                    ширина и высота ноль, а у VBox spacing не
+                                    задан, то есть тоже ноль, поэтому форму оно
+                                    не сдвигает. Исключать его из обхода клавишей
+                                    нельзя: тогда фокус просто переедет на
+                                    следующее поле и затирать станет оно — так
+                                    уже было. -->
+                               <TextField maxHeight="0.0" maxWidth="0.0" minHeight="0.0" minWidth="0.0" prefHeight="0.0" prefWidth="0.0" />
                               <HBox>
                                  <children>
                                     <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="50.0" text="Name:" textAlignment="RIGHT">

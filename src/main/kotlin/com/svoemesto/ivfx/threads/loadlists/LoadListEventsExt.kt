@@ -21,7 +21,6 @@ class LoadListEventsExt(
     override fun run() {
         this.name = "LoadListEventsExt"
         loadList()
-        flagIsDone.set(true)
     }
 
     private fun loadList() {
@@ -40,30 +39,35 @@ class LoadListEventsExt(
 //        val sourceIterable = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(fileExt.file.id, 0)
         val sourceIterable = EventController.getSetEvents(fileExt.file).toMutableList()
         sourceIterable.sort()
-        list.clear()
+        val sourceCount = sourceIterable.count()
+        // Список для интерфейса меняется только из потока интерфейса: раньше
+        // clear() и add() выполнялись здесь, из фонового потока, и перебор
+        // списка в это время падал с ConcurrentModificationException.
+        val loaded: MutableList<EventExt> = mutableListOf()
 
         for ((i, shot) in sourceIterable.withIndex()) {
-            if (!currentThread().isInterrupted) {
-                Platform.runLater {
-                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, event ($i/${sourceIterable.count()})"
-                }
-
-                val eventExt = EventExt(shot, fileExt,
-                    fileExt.framesExt.first { it.frame.frameNumber == shot.firstFrameNumber },
-                    fileExt.framesExt.first { it.frame.frameNumber == shot.lastFrameNumber })
-                eventExt.previewsFirst
-                eventExt.previewsLast
-
-                list.add(eventExt)
-            } else {
-                return
+            if (currentThread().isInterrupted) {
+                break
+            }
+            Platform.runLater {
+                if (pb!=null) pb!!.progress = i.toDouble()/sourceCount
+                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceCount.toDouble())} Loading: ${fileExt.file.name}, event ($i/$sourceCount)"
             }
 
+            val eventExt = EventExt(shot, fileExt,
+                fileExt.framesExt.first { it.frame.frameNumber == shot.firstFrameNumber },
+                fileExt.framesExt.first { it.frame.frameNumber == shot.lastFrameNumber })
+            eventExt.previewsFirst
+            eventExt.previewsLast
+
+            loaded.add(eventExt)
         }
         Platform.runLater {
+            list.clear()
+            list.addAll(loaded)
             if (pb!=null) pb!!.isVisible = false
             if (lbl!=null) lbl!!.isVisible = false
+            flagIsDone.set(true)
         }
     }
 }

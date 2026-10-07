@@ -1,0 +1,47 @@
+# Окружение Python для детекции и распознавания лиц.
+#
+# Создаётся один раз:
+#   python3.12 -m venv ~/.local/ivfx-venv-opencv4
+#   ~/.local/ivfx-venv-opencv4/bin/python -m pip install -r requirements.txt
+#
+# OpenCV в этой цепочке не участвует: чтение кадров делает imageio,
+# модели считает onnxruntime.
+#
+# ВИДЕОКАРТА
+# Детектор и распознаватель считаются на GPU, если он есть. Скорость на
+# серии из 88643 кадров: 43 мс на кадр против 132 на процессоре, то есть
+# 1,06 часа против 3,25. Без карты результат тот же, только медленнее.
+#
+# Библиотеки CUDA ставятся ОТДЕЛЬНО, пакет за пакетом и без разбора
+# зависимостей: `pip install` всех сразу уходит в перебор версий и
+# виснет на нём по десять минут, а с -cu13 в именах — вообще пытается
+# собрать из исходников. Имена нужны именно такие, без суффикса -cu13:
+#
+#   pip install --no-deps nvidia-cublas nvidia-cudnn-cu13 nvidia-cufft \
+#       nvidia-curand nvidia-cuda-nvrtc nvidia-cuda-runtime
+#
+# Две тонкости, из-за которых это выглядит как «ускорили, но чуть-чуть»:
+#   1. Библиотеки лежат в site-packages/nvidia/*/lib и в путь поиска не
+#      входят. Без них onnxruntime не находит libcublas и молча уходит на
+#      процессор — ошибка есть, а прогоны выглядят как успешные. Скрипт
+#      дописывает путь сам, до импорта onnxruntime.
+#   2. get_model(..., session=...) переданную сессию игнорирует, а
+#      prepare(ctx_id=-1) сбрасывает модель на процессор. Свою сессию с
+#      CUDA надо подставлять ПОСЛЕ prepare.
+
+insightface==2.1
+onnxruntime-gpu==1.30.0
+onnx==1.23.1
+pillow==12.3.0
+pillow==12.3.0
+numpy==2.5.3
+scikit-learn==1.9.1
+scikit-image==0.26.0
+imutils==0.5.4
+
+nvidia-cublas==13.8.1.7
+nvidia-cudnn-cu13==9.27.0.42
+nvidia-cufft==12.4.0.43
+nvidia-curand==10.4.4.72
+nvidia-cuda-nvrtc==13.4.92
+nvidia-cuda-runtime==13.4.92

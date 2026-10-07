@@ -110,7 +110,9 @@ class FilterConditionCreateFXController {
         mainStage = Stage()
         try {
             FilterConditionCreateFXController.initFilterConditionExt = initFilterConditionExt
-            val root = FXMLLoader.load<Parent>(ShotsEditFXController::class.java.getResource("filter-condition-create-view.fxml"))
+            val loader = FXMLLoader(ShotsEditFXController::class.java.getResource("filter-condition-create-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage?.scene = Scene(root)
             mainStage?.initModality(Modality.WINDOW_MODAL)
             mainStage?.showAndWait()

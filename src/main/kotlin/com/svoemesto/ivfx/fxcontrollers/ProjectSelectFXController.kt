@@ -68,7 +68,9 @@ class ProjectSelectFXController {
         incomingProject = project
         mainStage = Stage()
         try {
-            val root = FXMLLoader.load<Parent>(ProjectSelectFXController::class.java.getResource("project-select-view.fxml"))
+            val loader = FXMLLoader(ProjectSelectFXController::class.java.getResource("project-select-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage?.setTitle("Выбор проекта.")
             mainStage?.setScene(Scene(root))
             mainStage?.initModality(Modality.WINDOW_MODAL)

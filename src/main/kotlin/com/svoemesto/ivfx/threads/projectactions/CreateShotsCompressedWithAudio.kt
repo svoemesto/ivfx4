@@ -22,6 +22,7 @@ import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.bramp.ffmpeg.builder.FFmpegOutputBuilder
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
+import net.bramp.ffmpeg.shared.CodecType
 import net.bramp.ffmpeg.probe.FFmpegStream
 import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
@@ -58,17 +59,17 @@ class CreateShotsCompressedWithAudio(var fileExt: FileExt,
         val h = fileExt.file.project.height
 
         val fFmpegProbeResult: FFmpegProbeResult = ffprobe.probe(fileInput)
-        val fileWidth: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.width!!
-        val fileHeight: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.height!!
+        val fileWidth: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == CodecType.VIDEO }?.width!!
+        val fileHeight: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == CodecType.VIDEO }?.height!!
         val fileAspect = fileWidth.toDouble() / fileHeight.toDouble()
         val frameAspect = w.toDouble() / h.toDouble()
 
         val filter: String = if (fileAspect > frameAspect) {
-            val frameHeight = (w.toDouble() / fileAspect).toInt()
-            "\"scale=" + w + ":" + frameHeight + ",pad=" + w + ":" + h + ":0:" + ((h - frameHeight) / 2.0).toInt() + ":black\""
+            val frameHeight = ((w.toDouble() / fileAspect).toInt() / 2) * 2
+            "scale=" + w + ":" + frameHeight + ",pad=" + w + ":" + h + ":0:" + ((h - frameHeight) / 2.0).toInt() + ":black"
         } else {
-            val frameWidth = (h.toDouble() * fileAspect).toInt()
-            "\"scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black\""
+            val frameWidth = ((h.toDouble() * fileAspect).toInt() / 2) * 2
+            "scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black"
         }
         for ((i, shotExt) in fileExt.shotsExt.withIndex()) {
 

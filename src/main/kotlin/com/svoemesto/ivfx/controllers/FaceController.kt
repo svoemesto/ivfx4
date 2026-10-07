@@ -5,6 +5,7 @@ import com.svoemesto.ivfx.models.Face
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Shot
+import com.svoemesto.ivfx.utils.FaceDetection
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -49,7 +50,7 @@ class FaceController {
                     face.person = nonPerson.person
                 } else {
                     if (faceExtJson.personRecognizedName != "") {
-                        if (faceExtJson.recognizeProbability > 0.3) {
+                        if (faceExtJson.recognizeProbability > FaceDetection.RECOGNIZE_THRESHOLD) {
                             face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
                                 faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
                         } else {
@@ -68,7 +69,7 @@ class FaceController {
 
                     if (faceExtJson.personRecognizedName != "") {
                         face.personRecognizedName = faceExtJson.personRecognizedName
-                        if (faceExtJson.recognizeProbability > 0.3) {
+                        if (faceExtJson.recognizeProbability > FaceDetection.RECOGNIZE_THRESHOLD) {
                             face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
                                 faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
                         } else {
@@ -119,7 +120,7 @@ class FaceController {
                 face.person = nonPerson.person
             } else {
                 if (faceExtJson.personRecognizedName != "") {
-                    if (faceExtJson.recognizeProbability > 0.3) {
+                    if (faceExtJson.recognizeProbability > FaceDetection.RECOGNIZE_THRESHOLD) {
                         face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
                             faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
                     } else {
@@ -347,8 +348,16 @@ class FaceController {
                                       val pathToFrameFile: String) {
         }
 
-        fun getArrayFramesToDetectFaces(fileExt: FileExt): Array<FrameToDetectFaces> {
-            val listFrameNumbers: List<Int> = getFramesToRecognize(fileExt)
+        fun getArrayFramesToDetectFaces(fileExt: FileExt): Array<FrameToDetectFaces> =
+            getArrayFramesToDetectFaces(fileExt, getFramesToRecognize(fileExt))
+
+        /**
+         * Записи кадров для произвольного списка номеров — того же формата,
+         * что и у frames.json. Нужен шагу перепроверки: детектор читает из
+         * записи не только номер кадра, но и проект, файл и путь к
+         * изображению, поэтому списка из одних номеров ему не хватает.
+         */
+        fun getArrayFramesToDetectFaces(fileExt: FileExt, listFrameNumbers: List<Int>): Array<FrameToDetectFaces> {
             val list: MutableList<FrameToDetectFaces> = mutableListOf() //<Frame>(listFrameNumbers.size)
             for (i in listFrameNumbers.indices) {
                 list.add(FrameToDetectFaces(fileExt.projectExt.project.id,
@@ -359,12 +368,31 @@ class FaceController {
             return list.toTypedArray()
         }
 
-        fun getFramesToRecognize(fileExt: FileExt): List<Int> {
+        fun getFramesToRecognize(fileExt: FileExt): List<Int> =
+            getFramesToRecognize(fileExt.file.shots, fileExt.framesCount)
+
+        /**
+         * Правило шага выборки отдельно от файла.
+         *
+         * Отдельная версия нужна шагу отслеживания: он работает в фоновом
+         * потоке, где сессии Hibernate нет, а file.shots подгружается
+         * отложенно, и обращение к нему падает с LazyInitializationException.
+         * Правило при этом должно быть одно и то же у обоих шагов, иначе
+         * трекинг будет считать кандидатами кадры, которые детектор уже смотрел.
+         */
+        fun getFramesToRecognize(shotsIn: Collection<Shot>, countFrames: Int): List<Int> {
             var curr = 0
             val listFrames: MutableList<Int> = mutableListOf()
-            val listShots: MutableList<Shot> = fileExt.file.shots.toMutableList()
-            listShots.sort()
-            val countFrames = fileExt.framesCount
+            val listShots: MutableList<Shot> = shotsIn.toMutableList()
+            // По номеру кадра, а не штатным compareTo: те сравнивают по
+            // file.order, а file подгружается отложенно. В вызывающем фоне
+            // сессии Hibernate нет, и обращение к отложенному полю падает с
+            // LazyInitializationException. Порядок по номеру кадра вдобавок
+            // совпадает с прежним: сортировка сцен штатным compareTo тоже
+            // идёт по file.order, а он задаёт порядок файла, а внутри файла
+            // сцены идут по возрастанию номера кадра.
+            listShots.sortBy { it.firstFrameNumber }
+
             for (shot in listShots) {
                 val stepFrames = if (shot.lastFrameNumber - shot.firstFrameNumber < 15) 3
                                  else if (shot.lastFrameNumber - shot.firstFrameNumber < 30) 5

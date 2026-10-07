@@ -138,7 +138,9 @@ class PersonEditFXController {
         mainStage = Stage()
 
         try {
-            val root = FXMLLoader.load<Parent>(PersonEditFXController::class.java.getResource("person-edit-view.fxml"))
+            val loader = FXMLLoader(PersonEditFXController::class.java.getResource("person-edit-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage?.scene = Scene(root)
             hostServices = incomingHostServices
             mainStage?.initModality(Modality.WINDOW_MODAL)

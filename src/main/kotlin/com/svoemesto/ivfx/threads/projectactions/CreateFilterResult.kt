@@ -59,11 +59,11 @@ class CreateFilterResult(var filterExt: FilterExt, var projectExt: ProjectExt, v
         builderOutput.setFilename(fileOutput)
 
         val builder = FFmpegBuilder()
-            .setInput(fileInput)
-            .addExtraArgs("-f", "concat")
-            .addExtraArgs("-safe", "0")
-            .overrideOutputFiles(true)
-            .addOutput(builderOutput)
+        builder.setInput(fileInput)
+        builder.addExtraArgs("-f", "concat")
+        builder.addExtraArgs("-safe", "0")
+        builder.overrideOutputFiles(true)
+        builder.addOutput(builderOutput)
 
         builderOutput.addExtraArgs("-map", "0:v:0")
         fileExt.file.tracks.filter { it.type == "Audio" && it.use }.forEach { track ->

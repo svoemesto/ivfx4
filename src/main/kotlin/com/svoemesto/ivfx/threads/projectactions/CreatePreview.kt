@@ -12,6 +12,7 @@ import net.bramp.ffmpeg.FFmpegUtils
 import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
+import net.bramp.ffmpeg.shared.CodecType
 import net.bramp.ffmpeg.probe.FFmpegStream
 import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
@@ -45,32 +46,32 @@ class CreatePreview(var fileExt: FileExt,
         val w = 720
         val h = 400
 
-        val fileWidth: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.width!!
-        val fileHeight: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == FFmpegStream.CodecType.VIDEO }?.height!!
+        val fileWidth: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == CodecType.VIDEO }?.width!!
+        val fileHeight: Int = fFmpegProbeResult.streams.firstOrNull { it.codec_type == CodecType.VIDEO }?.height!!
         val fileAspect = fileWidth.toDouble() / fileHeight.toDouble()
         val frameAspect = w.toDouble() / h.toDouble()
 
         val filter: String = if (fileAspect > frameAspect) {
-            val frameHeight = (w.toDouble() / fileAspect).toInt()
-            "\"scale=" + w + ":" + frameHeight + ",pad=" + w + ":" + h + ":0:" + ((h - frameHeight) / 2.0).toInt() + ":black\""
+            val frameHeight = ((w.toDouble() / fileAspect).toInt() / 2) * 2
+            "scale=" + w + ":" + frameHeight + ",pad=" + w + ":" + h + ":0:" + ((h - frameHeight) / 2.0).toInt() + ":black"
         } else {
-            val frameWidth = (h.toDouble() * fileAspect).toInt()
-            "\"scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black\""
+            val frameWidth = ((h.toDouble() * fileAspect).toInt() / 2) * 2
+            "scale=" + frameWidth + ":" + h + ",pad=" + w + ":" + h + ":" + ((w - frameWidth) / 2.0).toInt() + ":0:black"
         }
 
         val builder = FFmpegBuilder()
-            .setInput(fileInput)
-            .overrideOutputFiles(true)
-            .addOutput(fileOutput)
-            .setVideoResolution(w,h)
-            .setVideoBitRate(500000)
-            .setVideoCodec("libx264")
-            .setAudioCodec("aac")
-            .setAudioBitRate(196608)
-            .setAudioSampleRate(48000)
-            .setAudioChannels(2)
-            .setVideoFilter(filter)
-            .done()
+        builder.setInput(fileInput)
+        builder.overrideOutputFiles(true)
+        val builderOutput = builder.addOutput(fileOutput)
+        builderOutput.setVideoResolution(w,h)
+        builderOutput.setVideoBitRate(500000)
+        builderOutput.setVideoCodec("libx264")
+        builderOutput.setAudioCodec("aac")
+        builderOutput.setAudioBitRate(196608)
+        builderOutput.setAudioSampleRate(48000)
+        builderOutput.setAudioChannels(2)
+        builderOutput.setVideoFilter(filter)
+        builderOutput.done()
 
         val executor = FFmpegExecutor(ffmpeg, ffprobe)
 

@@ -163,8 +163,13 @@ class ProjectController() {
             entity.order = if (lastEntity != null) lastEntity.order + 1 else 1
             entity.name = "New order ${entity.order}"
             entity.cdfs = mutableSetOf()
-            entity.cdfs.add(ProjectCdfController.create(entity))
+            // Проект сохраняется раньше, чем создаётся запись о папке на его
+            // компьютере. Раньше порядок был обратным, и создание падало с
+            // TransientPropertyValueException: запись о папке ссылается на
+            // проект, который к этому моменту ещё не сохранён, а каскада
+            // сохранения от записи к проекту в маппинге нет.
             save(entity)
+            entity.cdfs.add(ProjectCdfController.create(entity))
             Folders.values().filter{it.forProject}.forEach {
                 PropertyCdfController.editOrCreate(entity::class.java.simpleName, entity.id, it.propertyCdfKey)
             }

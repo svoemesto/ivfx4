@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Логирование приложения.
+
+  Без этого файла Logback поднимает свой BasicConfigurator, который
+  включает DEBUG на корневом логгере. При обработке одного файла
+  Hibernate пишет по две строки на каждое поле каждой из ~89 тысяч
+  сущностей кадров: за один прогон анализа кадров накапливалось
+  439 МБ отладочного вывода, и сам разбор базы заметно замедлялся.
+-->
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Корневой уровень: сообщения приложения видны, но отладки Hibernate нет. -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.hibernate.orm" level="WARN"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="bramp" level="WARN"/>
+
+</configuration>

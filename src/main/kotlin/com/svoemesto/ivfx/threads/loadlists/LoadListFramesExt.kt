@@ -20,7 +20,6 @@ class LoadListFramesExt(
     override fun run() {
         this.name = "LoadListFramesExt"
         loadList()
-        flagIsDone.set(true)
     }
 
     private fun loadList() {
@@ -37,27 +36,33 @@ class LoadListFramesExt(
         }
 
         val sourceIterable = Main.frameRepo.findByFileIdAndFrameNumberGreaterThanOrderByFrameNumber(fileExt.file.id, 0)
-        list.clear()
+        val sourceCount = sourceIterable.count()
+        // Список, на который ссылаются элементы интерфейса, раньше чистился и
+        // пополнялся прямо здесь, из фонового потока. Перебор этого списка в это
+        // время падал с ConcurrentModificationException. Поэтому собираем
+        // отдельно, а список для интерфейса меняем одним действием и уже из
+        // потока интерфейса.
+        val loaded: MutableList<FrameExt> = mutableListOf()
 
         for ((i, frame) in sourceIterable.withIndex()) {
-            if (!currentThread().isInterrupted) {
-                Platform.runLater {
-                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, frame ($i/${sourceIterable.count()})"
-                }
-
-                frame.file = fileExt.file
-
-                val frameExt = FrameExt(frame, fileExt)
-                list.add(frameExt)
-            } else {
-                return
+            if (currentThread().isInterrupted) {
+                break
+            }
+            Platform.runLater {
+                if (pb!=null) pb!!.progress = i.toDouble()/sourceCount
+                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceCount.toDouble())} Loading: ${fileExt.file.name}, frame ($i/$sourceCount)"
             }
 
+            frame.file = fileExt.file
+
+            loaded.add(FrameExt(frame, fileExt))
         }
         Platform.runLater {
+            list.clear()
+            list.addAll(loaded)
             if (pb!=null) pb!!.isVisible = false
             if (lbl!=null) lbl!!.isVisible = false
+            flagIsDone.set(true)
         }
     }
 }

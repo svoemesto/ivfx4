@@ -24,6 +24,52 @@ interface FaceRepo : CrudRepository<Face, Long> {
     @Query(value = "DELETE FROM tbl_faces WHERE id = ?", nativeQuery = true)
     fun delete(frameId:Long)
 
+    /** Лица одного трека — нужно таблице треков и разделению трека. */
+    fun findByTrackId(trackId: Long): Iterable<Face>
+
+    @Transactional
+    /**
+     * Привязка лиц к треку одним UPDATE.
+     *
+     * Раньше связь ставилась через save трека: Hibernate в тот же момент
+     * переписывал изменённые лица ЦЕЛИКОМ, вместе с вектором признаков —
+     * десять килобайт текстом на лицо. Лиц в серии девять тысяч, треков
+     * четыре тысячи, и на каждом сохранении вся эта масса пересматривалась
+     * заново: шаг шёл со скоростью два лица в секунду.
+     *
+     * Здесь меняется только колонка track_id, вектор не трогается и лицо
+     * не попадает в сессию как изменённое.
+     */
+    @Modifying
+    @Query(value = "UPDATE tbl_faces SET track_id = ?1 WHERE id IN (?2)", nativeQuery = true)
+    fun linkFacesToTrack(trackId: Long, faceIds: Collection<Long>): Int
+
+    @Transactional
+    /**
+     * Назначение персоны лицу одним UPDATE — по той же причине, что и
+     * linkFacesToTrack: лицо не должно переписываться целиком.
+     */
+    @Modifying
+    @Query(value = "UPDATE tbl_faces SET person_id = ?1, person_recognized_name = ?2 WHERE id = ?3",
+        nativeQuery = true)
+    fun assignPersonToFace(personId: Long, personRecognizedName: String, faceId: Long): Int
+
+    /**
+     * Лица указанных треков одним запросом.
+     *
+     * Нужно для списка треков плана: у лица лежит вектор признаков, около
+     * десяти килобайт текстом, и чтение лиц ВСЕЙ серии ради одного плана
+     * тянуло 86 МБ — на переходе между планами это и было задержкой.
+     * Лица одного плана — это десятки записей вместо десяти тысяч.
+     */
+    @Query("select f from Face f where f.track is not null and f.track.id in :ids")
+    fun findByTrackIds(ids: Collection<Long>): Iterable<Face>
+
+    /** Сколько лиц каждого персонажа файла состоят в треках: пара «идентификатор персоны, число». */
+    @Query(value = "select f.person.id, count(f) from Face f " +
+            "where f.track is not null and f.file.id = ?1 group by f.person.id")
+    fun getTrackFacesCountByPerson(fileId: Long): List<Array<Any>>
+
     fun findByFileIdAndFrameNumber(fileId: Long, frameNumber: Int): Iterable<Face>
     fun findByFileIdAndFrameNumberAndFaceNumberInFrame(fileId: Long, frameNumber: Int, faceNumberInFrame: Int): Iterable<Face>
 
@@ -35,6 +81,32 @@ interface FaceRepo : CrudRepository<Face, Long> {
 
     @Query(value = "SELECT * FROM tbl_faces WHERE file_id = ?1 AND person_id = ?2", nativeQuery = true)
     fun findFacesToRecognize(fileId: Long, idPersonUnrecognized: Long): Iterable<Face>
+
+    /**
+     * Все лица проекта, а не одного файла.
+     *
+     * Галерея распознавания собирается по проекту: серии одного сериала
+     * показывают одних и тех же людей, и отмеченные лица первой серии —
+     * образцы для второй. Если брать только файл, на котором идёт
+     * распознавание, то у новой серии своих отмеченных лиц нет, галерея
+     * выходит пустой, и шаг завершается, не найдя никого.
+     *
+     * Запрос по одной персоне, а не сразу по проекту, — намеренно: список
+     * лиц по проекту возвращает лица с отложенной связью person, и чтение
+     * её вне сессии падает. Обход по персонам позволяет собрать галерею, не
+     * касаясь отложенных связей вовсе.
+     */
+    fun findByPersonId(personId: Long): Iterable<Face>
+
+    /**
+     * Лица одной персоны в одной серии.
+     *
+     * Обход идёт парами «серия + персона» намеренно: так у каждого лица
+     * известен его файл, и отложенную связь file можно заменить настоящим
+     * объектом. Без этого конструктор FaceExt читает file.shortName и
+     * падает с LazyInitializationException.
+     */
+    fun findAllByFileIdAndPersonId(fileId: Long, personId: Long): Iterable<Face>
 
     @Query(value = "SELECT * FROM tbl_faces INNER JOIN tbl_files ON tbl_faces.file_id = tbl_files.id WHERE tbl_files.project_id = ?1 AND tbl_faces.is_example = true", nativeQuery = true)
     fun getListFacesToTrain(projectId: Long): Iterable<Face>

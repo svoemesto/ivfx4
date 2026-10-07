@@ -53,7 +53,9 @@ class DatabaseSelectFXController {
         currentDatabase = h2database
         incomingDatabase = h2database
         try {
-            val root = FXMLLoader.load<Parent>(DatabaseSelectFXController::class.java.getResource("database-select-view.fxml"))
+            val loader = FXMLLoader(DatabaseSelectFXController::class.java.getResource("database-select-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage?.setTitle("Выбор базы данных")
             mainStage?.setScene(Scene(root))
             mainStage?.initModality(Modality.WINDOW_MODAL)

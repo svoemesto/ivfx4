@@ -21,7 +21,6 @@ class LoadListShotsExt(
     override fun run() {
         this.name = "LoadListShotsExt"
         loadList()
-        flagIsDone.set(true)
     }
 
     private fun loadList() {
@@ -40,32 +39,39 @@ class LoadListShotsExt(
 //        val sourceIterable = Main.shotRepo.findByFileIdAndFirstFrameNumberGreaterThanOrderByFirstFrameNumber(fileExt.file.id, 0)
         val sourceIterable = ShotController.getSetShots(fileExt.file).toMutableList()
         sourceIterable.sort()
-        list.clear()
+        val sourceCount = sourceIterable.count()
+        // Список, на который ссылаются элементы интерфейса, раньше чистился и
+        // пополнялся прямо здесь, из фонового потока. Перебор этого списка в это
+        // время падал с ConcurrentModificationException. Поэтому собираем
+        // отдельно, а список для интерфейса меняем одним действием и уже из
+        // потока интерфейса.
+        val loaded: MutableList<ShotExt> = mutableListOf()
 
         for ((i, shot) in sourceIterable.withIndex()) {
-            if (!currentThread().isInterrupted) {
-                Platform.runLater {
-                    if (pb!=null) pb!!.progress = i.toDouble()/sourceIterable.count()
-                    if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceIterable.count().toDouble())} Loading: ${fileExt.file.name}, shot ($i/${sourceIterable.count()})"
-                }
+            if (currentThread().isInterrupted) {
+                break
+            }
+            Platform.runLater {
+                if (pb!=null) pb!!.progress = i.toDouble()/sourceCount
+                if (lbl!=null) lbl!!.text = "${java.lang.String.format("[%.0f%%]", 100*i/sourceCount.toDouble())} Loading: ${fileExt.file.name}, shot ($i/$sourceCount)"
+            }
 
 //            shot.file = fileExt.file
 
-                val shotExt = ShotExt(shot, fileExt,
-                    fileExt.framesExt.first { it.frame.frameNumber == shot.firstFrameNumber },
-                    fileExt.framesExt.first { it.frame.frameNumber == shot.lastFrameNumber })
-                shotExt.previewsFirst
-                shotExt.previewsLast
+            val shotExt = ShotExt(shot, fileExt,
+                fileExt.framesExt.first { it.frame.frameNumber == shot.firstFrameNumber },
+                fileExt.framesExt.first { it.frame.frameNumber == shot.lastFrameNumber })
+            shotExt.previewsFirst
+            shotExt.previewsLast
 
-                list.add(shotExt)
-            } else {
-                return
-            }
-
+            loaded.add(shotExt)
         }
         Platform.runLater {
+            list.clear()
+            list.addAll(loaded)
             if (pb!=null) pb!!.isVisible = false
             if (lbl!=null) lbl!!.isVisible = false
+            flagIsDone.set(true)
         }
     }
 }

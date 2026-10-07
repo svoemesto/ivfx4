@@ -17,7 +17,11 @@ class RunCmd(private val cmdText: String): Thread(), Runnable {
         writer.flush()
         writer.close()
 
-        exec(cmdFile.absolutePath)
+        val isWindows = System.getProperty("os.name").orEmpty().lowercase().contains("win")
+        val shell = if (isWindows) listOf("cmd", "/c", cmdFile.absolutePath)
+        else listOf("/bin/sh", cmdFile.absolutePath)
+
+        exec(shell)
 
 //        val process = Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler $cmdFile")
 //        process.outputStream
@@ -31,15 +35,15 @@ class RunCmd(private val cmdText: String): Thread(), Runnable {
     }
 
     @Throws(InterruptedException::class, IOException::class)
-    private fun exec(cmd: String): Int {
-        val pb = ProcessBuilder(cmd)
+    private fun exec(command: List<String>): Int {
+        val pb = ProcessBuilder(command)
         pb.redirectErrorStream(true)
         val p = pb.start()
         p.outputStream.close()
         val baos = ByteArrayOutputStream()
         copy(p.inputStream, baos)
         val r = p.waitFor()
-        if (r != 0) println(cmd + " cmd: output:\n" + baos)
+        if (r != 0) println(command.joinToString(" ") + " cmd: output:\n" + baos)
         return r
     }
 }

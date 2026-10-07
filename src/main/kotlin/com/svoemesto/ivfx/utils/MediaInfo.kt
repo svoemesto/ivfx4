@@ -2,13 +2,57 @@ package com.svoemesto.ivfx.utils
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
 import java.lang.reflect.Type
 
 
 object MediaInfo {
-    private val MEDIA_INFO_CLI_PATH = MediaInfo::class.java.getResource("MediaInfo_CLI/MediaInfo.exe")?.path?:""
+    /**
+     * Путь к утилите MediaInfo.
+     *
+     * Раньше здесь жёстко был прописан `MediaInfo_CLI/MediaInfo.exe` из
+     * ресурсов, причём брался он через `getResource().path`. Это ломалось
+     * дважды: `.exe` — исполняемый файл для Windows, на Linux его не
+     * запустить, а `getResource()` при запуске из jar-а отдаёт не путь к
+     * файлу, а строку вида `file:/...jar!/...`, которую ProcessBuilder
+     * принять не может.
+     *
+     * Теперь сначала ищется системная утилита, затем — исполняемый файл
+     * рядом с приложением, и только потом встроенный ресурс, но уже с
+     * корректным разбором пути. Если утилиты нет, `executeMediaInfo`
+     * сообщает об этом понятной ошибкой, а не падает с IOException.
+     */
+    private val MEDIA_INFO_CLI_PATH: String? = resolveMediaInfoPath()
+
+    /**
+     * Ищет утилиту MediaInfo: системную, затем рядом с приложением.
+     *
+     * @return путь к утилите либо null, если её нет
+     */
+    private fun resolveMediaInfoPath(): String? {
+        val fromPath = System.getenv("PATH").orEmpty()
+            .split(File.pathSeparator)
+            .map { File(it, "mediainfo") }
+            .firstOrNull { it.canExecute() }
+        if (fromPath != null) {
+            return fromPath.absolutePath
+        }
+        val nearby = listOf(
+            File("mediainfo"),
+            File("MediaInfo_CLI/MediaInfo")
+        ).firstOrNull { it.canExecute() }
+        if (nearby != null) {
+            return nearby.absolutePath
+        }
+        val bundled = MediaInfo::class.java.getResource("MediaInfo_CLI/MediaInfo")
+            ?: return null
+        val path = bundled.toURI().path
+        val file = File(path)
+        return if (file.canExecute()) file.absolutePath else null
+    }
+
     @Throws(IOException::class, InterruptedException::class)
     fun getInfo(media: String): String {
         return executeMediaInfo(media)
@@ -43,6 +87,11 @@ object MediaInfo {
     @Throws(IOException::class, InterruptedException::class)
     private fun executeMediaInfo(parameters: List<String?>): String {
         val exePath = MEDIA_INFO_CLI_PATH
+            ?: throw IOException(
+                "Утилита MediaInfo не найдена: нет ни системной mediainfo, " +
+                    "ни файла рядом с приложением. Поставьте mediainfo " +
+                    "через пакетный менеджер или положите рядом файл mediainfo."
+            )
         val param: MutableList<String?> = ArrayList()
         param.add(exePath)
         if (parameters.size > 0) {

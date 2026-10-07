@@ -1,7 +1,10 @@
 package com.svoemesto.ivfx.fxcontrollers
 
-import com.sun.javafx.scene.control.skin.TableViewSkin
-import com.sun.javafx.scene.control.skin.VirtualFlow
+// В JavaFX 11 эти два класса переехали из внутреннего пакета com.sun.javafx
+// в публичный javafx.scene.control.skin. Внутренний пакет модулем не
+// экспортируется, поэтому на 11-й версии старые импорты не разрешаются.
+import javafx.scene.control.skin.TableViewSkin
+import javafx.scene.control.skin.VirtualFlow
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.EventController
 import com.svoemesto.ivfx.controllers.FaceController
@@ -13,10 +16,13 @@ import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.enums.ShotTypePerson
+import com.svoemesto.ivfx.models.Face
 import com.svoemesto.ivfx.models.Event
 import com.svoemesto.ivfx.models.File
+import com.svoemesto.ivfx.models.FaceTrack
 import com.svoemesto.ivfx.models.Property
 import com.svoemesto.ivfx.models.Shot
+import com.svoemesto.ivfx.modelsext.FaceTrackExt
 import com.svoemesto.ivfx.modelsext.EventExt
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FileExt
@@ -52,8 +58,12 @@ import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.geometry.Bounds
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.Cursor
+import javafx.stage.Screen
+import java.util.prefs.Preferences
 import javafx.scene.control.Alert
 import javafx.scene.control.Button
 import javafx.scene.control.ButtonType
@@ -68,9 +78,11 @@ import javafx.scene.control.RadioButton
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.Skin
+import javafx.scene.control.TabPane
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
+import javafx.scene.control.TextInputControl
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
 import javafx.scene.control.TextInputDialog
@@ -80,7 +92,12 @@ import javafx.scene.image.ImageView
 import javafx.scene.input.ClipboardContent
 import javafx.scene.input.Dragboard
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import javafx.scene.input.MouseButton
+import javafx.scene.input.DragEvent
+import javafx.scene.input.MouseEvent
 import javafx.scene.input.ScrollEvent
 import javafx.scene.input.TransferMode
 import javafx.scene.layout.Pane
@@ -232,6 +249,43 @@ class ShotsEditFXController {
 
     // PERSONS / FACES
 
+
+    @FXML
+    private var tblTracks: TableView<FaceTrackExt>? = null
+    @FXML
+    private var btAllToExtras: Button? = null
+
+    @FXML
+    private var colTrackLabel: TableColumn<FaceTrackExt, String>? = null
+
+    @FXML
+    private var colTrackFaces: TableColumn<FaceTrackExt, String>? = null
+
+    @FXML
+    private var paneTrackFaces: Pane? = null
+
+    @FXML
+    private var pbTrackFaces: ProgressBar? = null
+
+    @FXML
+    private var tblTrackPages: TableView<MatrixPageFaces>? = null
+
+    @FXML
+    private var colTrackPagesNumber: TableColumn<MatrixPageFaces, String>? = null
+
+    @FXML
+    private var pbTracks: ProgressBar? = null
+
+    @FXML
+    private var lblTracks: Label? = null
+
+    /**
+     * Панель вкладок редактора плана. Нужна, чтобы знать, открыта ли вкладка
+     * Tracks: пока она закрыта, панель лиц не размечена (ширина 0), раскладка
+     * по страницам не считается, и показывать нечего.
+     */
+    @FXML
+    private var tabpaneShotsEdit: TabPane? = null
 
     @FXML
     private var tblPersonsAllForFile: TableView<PersonExt>? = null
@@ -491,6 +545,15 @@ class ShotsEditFXController {
     private var listShotsExtForScenes: ObservableList<ShotExt> = FXCollections.observableArrayList()
     private var listShotsExtForEvents: ObservableList<ShotExt> = FXCollections.observableArrayList()
     private var listFacesExt: ObservableList<FaceExt> = FXCollections.observableArrayList()
+    private var listTracksExt: ObservableList<FaceTrackExt> = FXCollections.observableArrayList()
+    private var listMatrixPageTrackFaces: ObservableList<MatrixPageFaces> = FXCollections.observableArrayList()
+    private var currentMatrixPageTrackFaces: MatrixPageFaces? = null
+    private var trackExtToShow: FaceTrackExt? = null
+    // Своё выделение для вкладки Tracks. Состояние вкладки Faces используется
+    // в её отрисовке, и если пользовать его здесь, выделение в Persons ломалось
+    // бы: выбор трека сбрасывал бы выбор лиц.
+    private var selectedTrackFaces: MutableList<MatrixFace> = mutableListOf()
+    private var lastClickedTrackFace: MatrixFace? = null
 
     private var countColumnsInPageFrames = 0
     private var countRowsInPageFrames = 0
@@ -530,10 +593,44 @@ class ShotsEditFXController {
     private var wasClickTablePersonsAllForFile = false
     private var wasClickFrameLabel = false
 
+    /**
+     * Кадр, чья картинка сейчас показана в полном превью. Нужна, чтобы
+     * освобождать её при переходе к следующему кадру: картинка кэшируется в
+     * FrameExt навсегда, и без этого листание страниц съедало память.
+     */
+    private var frameExtWithLoadedPreview: FrameExt? = null
+
+    /**
+     * Номер последнего запроса картинки. Пока она считается, пользователь может
+     * листать дальше; устаревший результат отбрасывается по этому номеру.
+     */
+    @Volatile
+    private var lastFullFrameRequest: Int = 0
+
+    /**
+     * Один поток на загрузку картинки вместо своего на каждый вызов.
+     */
+    private val fullFrameExecutor: ExecutorService = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "LoadFullFrame").apply { isDaemon = true }
+    }
+
     private var selectedMatrixFaces: MutableSet<MatrixFace> = mutableSetOf()
     private var lastClickedMatrixFace: MatrixFace? = null
     private var currentPersonExtHovered: PersonExt? = null
     private var isNeedToAddDraggedFacesToPerson: Boolean = false
+    /**
+     * Персона, на строку которой сейчас наведён курсор с перетаскиванием.
+     *
+     * Раньше перетаскивание срабатывало по наведению: строка подходила и
+     * персоны менялась сама, стоило просто навести на строку и отпустить
+     * кнопку где угодно. Теперь наведение только запоминает цель, а
+     * назначение происходит по событию отпускания над строкой.
+     */
+    private var dropTargetPersonExt: PersonExt? = null
+
+    /**
+     */
+
     private var currentMatrixPageFacesPageNumber: Int = 1
 
     var threadOnSelectScene: Thread? = null
@@ -550,16 +647,58 @@ class ShotsEditFXController {
     private var currentEventProperty: Property? = null
     private var listEventProperties: ObservableList<Property> = FXCollections.observableArrayList()
     
+    /**
+     * Размер окна, каким его закрыли в прошлый раз.
+     *
+     * Хранится в системных настройках Java по пути узла приложения, поэтому
+     * переживает перезапуск. Если окно больше экрана — берём размер экрана,
+     * иначе открытое окно было бы не видно.
+     */
+    private val windowPrefs: Preferences = Preferences.userNodeForPackage(ShotsEditFXController::class.java)
+
+    private fun readWindowSize(stage: Stage) {
+        val d = windowPrefs
+        val w = d.getInt("shotsEdit.windowWidth", 0)
+        val h = d.getInt("shotsEdit.windowHeight", 0)
+        if (w > 0 && h > 0) {
+            val screen = Screen.getPrimary().bounds
+            stage.width = minOf(w.toDouble(), screen.width.toDouble() - 40.0)
+            stage.height = minOf(h.toDouble(), screen.height.toDouble() - 40.0)
+        }
+    }
+
+    private fun writeWindowSize(stage: Stage) {
+        try {
+            val d = windowPrefs
+            d.putInt("shotsEdit.windowWidth", stage.width.toInt())
+            d.putInt("shotsEdit.windowHeight", stage.height.toInt())
+            d.flush()
+        } catch (e: Exception) {
+            // размер окна не критичен: при ошибке просто откроем как есть
+            println("Не удалось сохранить размер окна: ${e.message}")
+        }
+    }
+
     fun editShots(fileExt: FileExt, hostServices: HostServices? = null) {
         currentFileExt = fileExt
         mainStage = Stage()
         try {
-            val root = FXMLLoader.load<Parent>(ShotsEditFXController::class.java.getResource("shots-edit-view.fxml"))
+            val loader = FXMLLoader(ShotsEditFXController::class.java.getResource("shots-edit-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage?.scene = Scene(root)
             ShotsEditFXController.hostServices = hostServices
             mainStage?.initModality(Modality.WINDOW_MODAL)
+            // Размер восстанавливаем ДО первого показа: сцена успевает
+            // разложиться под него, и окно открывается сразу нужного размера.
+            readWindowSize(mainStage!!)
             onStart()
+            registerKeyboardNavigation()
+            mainStage?.setOnCloseRequest { writeWindowSize(mainStage!!) }
             mainStage?.showAndWait()
+            // Страховка: если закрытие шло мимо обработчика, размер всё равно
+            // запомним — он нужен к следующему открытию.
+            writeWindowSize(mainStage!!)
 
         } catch (e: IOException) {
             e.printStackTrace()
@@ -567,6 +706,59 @@ class ShotsEditFXController {
         println("Завершение работы ShotsEditFXController.")
         mainStage = null
 
+    }
+
+    /**
+     * Переход между страницами превью кадров.
+     *
+     * Общая часть для колеса мыши над превью и для клавиш PageUp и PageDown,
+     * чтобы листание страниц работало одинаково обоими способами. С Ctrl
+     * переход идёт не по страницам, а к началу либо к концу текущего плана —
+     * так было и на колесе.
+     *
+     * @param delta -1 переход к началу, 1 переход к концу
+     */
+    private fun goToAdjacentPageOfFrames(delta: Int) {
+        wasClickFrameLabel = false
+        wasClickTablePagesFrames = false
+        wasClickTableShots = false
+        if (isPressedControl) {
+            if (currentShotExt != null) {
+                if (delta > 0) {
+                    goToFrame(currentShotExt!!.lastFrameExt.frame.frameNumber + 1)
+                } else {
+                    goToFrame(currentShotExt!!.firstFrameExt.frame.frameNumber - 1)
+                }
+            }
+        } else {
+            if (currentMatrixPageFrames == null) {
+                goToFrame(listMatrixPageFrames.first().matrixFrames.first())
+            } else {
+                val frameToGo = if (delta < 0) getPrevMatrixFrame(currentMatrixPageFrames!!.matrixFrames.first()) else getNextMatrixFrame(currentMatrixPageFrames!!.matrixFrames.last())
+                goToFrame(frameToGo)
+            }
+        }
+    }
+
+    /**
+     * Листание страниц превью клавишами PageUp и PageDown.
+     *
+     * Обработчик вешается фильтром на всю сцену, а не на панель превью: чтобы
+     * клавиши работали, мышь не обязана находиться над превью. В полях ввода эти
+     * же клавиши двигают курсор по тексту, поэтому при фокусе на поле переход не
+     * выполняется.
+     */
+    private fun registerKeyboardNavigation() {
+        mainStage?.scene?.addEventFilter(KeyEvent.KEY_PRESSED) { event ->
+            if (event.code != KeyCode.PAGE_DOWN && event.code != KeyCode.PAGE_UP) {
+                return@addEventFilter
+            }
+            if (mainStage?.scene?.focusOwner is TextInputControl) {
+                return@addEventFilter
+            }
+            event.consume()
+            goToAdjacentPageOfFrames(if (event.code == KeyCode.PAGE_DOWN) 1 else -1)
+        }
     }
 
     @FXML
@@ -640,6 +832,7 @@ class ShotsEditFXController {
         fldEventPropertyKey?.text = ""
         fldEventPropertyValue?.text = ""
 
+        initTracksTab()
         colShotPropertyKey?.cellValueFactory = PropertyValueFactory("key")
         colShotPropertyValue?.cellValueFactory = PropertyValueFactory("value")
 
@@ -663,6 +856,7 @@ class ShotsEditFXController {
         isDoneLoadListPersonsExtForFile.addListener { _, _, newValue ->
             if (newValue == true) {
                 isDoneLoadListPersonsExtForFile.set(false)
+                fillTrackFacesCount()
             }
         }
 
@@ -727,6 +921,17 @@ class ShotsEditFXController {
                 listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.width, paneFaces!!.height, Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
                 tblPagesFaces!!.items = listMatrixPageFaces
 
+                // Персон, у которого в этой серии нет ни одного лица, раньше
+                // был невозможен, и список страниц всегда был непуст. Теперь
+                // персоны общие для проекта, поэтому при выборе такого лица
+                // список пуст, и first() ронял поток загрузки — вкладка
+                // оставалась без лиц, а вместе с ними и без контекстного меню.
+                if (listMatrixPageFaces.isEmpty()) {
+                    currentMatrixFace = null
+                    currentMatrixPageFaces = null
+                    tblPagesFaces!!.selectionModel.clearSelection()
+                    return@addListener
+                }
                 currentMatrixFace = listMatrixPageFaces.first().matrixFaces.first()
                 if (currentMatrixPageFacesPageNumber > listMatrixPageFaces.size) currentMatrixPageFacesPageNumber = 1
                 currentMatrixPageFaces = listMatrixPageFaces[currentMatrixPageFacesPageNumber-1]
@@ -1311,59 +1516,31 @@ class ShotsEditFXController {
         tblPersonsAllForFile!!.onMouseEntered = EventHandler { wasClickTablePersonsAllForFile = true }
         tblPersonsAllForFile!!.onMouseExited = EventHandler { wasClickTablePersonsAllForFile = false }
 
-        // onDragOver
-        tblPersonsAllForFile!!.onDragOver = EventHandler { mouseEvent ->
-            if (mouseEvent.dragboard.string == "labelFace") {
-                mouseEvent.acceptTransferModes(*TransferMode.COPY_OR_MOVE)
-            }
-            mouseEvent.consume()
-        }
-
-        // onDragDropped
-        tblPersonsAllForFile!!.onDragDropped = EventHandler { mouseEvent ->
-            var success = false
-            if (mouseEvent.dragboard.string == "labelFace") {
-                isNeedToAddDraggedFacesToPerson = true
-                success = true
-            }
-            mouseEvent.isDropCompleted = success
-            mouseEvent.consume()
-        }
+        // Перетаскивание лиц на строку персоны: назначение по отпусканию над
+        // строкой, строка ищется по координатам, а не по наведению.
+        setupFaceDropOnRows(tblPersonsAllForFile!!,
+            { it },
+            { selectedMatrixFaces },
+            { reorganizeMatrixFaces(); reloadPersonsForShot() })
 
         // setRowFactory
         tblPersonsAllForFile!!.setRowFactory {
             val row: TableRow<PersonExt> = TableRow()
-            row.hoverProperty().addListener { observable ->
-                val personExt = row.item
-                currentPersonExtHovered = if (row.isHover && personExt != null) personExt else null
-
-                if (isNeedToAddDraggedFacesToPerson && currentPersonExtHovered != null) {
-                    isNeedToAddDraggedFacesToPerson = false
-                    if (!(listPersonsExtForFile.any { it.person == currentPersonExtHovered!!.person })) {
-                        listPersonsExtForFile.add(currentPersonExtHovered)
-                        listPersonsExtForFile.sort()
-                    }
-                    selectedMatrixFaces.forEach { mf->
-
-                        mf.faceExt!!.personExt = currentPersonExtHovered as PersonExt
-                        mf.faceExt.face.person = currentPersonExtHovered!!.person
-                        mf.faceExt.face.personRecognizedName = if (currentPersonExtHovered!!.person.personType == PersonType.UNDEFINDED) "" else  currentPersonExtHovered!!.person.nameInRecognizer
-                        FaceController.save(mf.faceExt.face)
-                        listFacesExt.remove(mf.faceExt)
-                        mf.faceExt.labelSmall.graphic = null
-                        mf.faceExt.labelSmall.style = fxBorderDefault
-                        currentMatrixPageFaces?.matrixFaces?.remove(mf)
-                    }
-                    selectedMatrixFaces.clear()
-                    reorganizeMatrixFaces()
-                }
+            row.hoverProperty().addListener { _ ->
+                currentPersonExtHovered = if (row.isHover) row.item else null
             }
-            return@setRowFactory row
+            row
         }
 
         /**
          * tblPersonsAllForShot events
          */
+
+        // Перетаскивание лиц на строку персоны плана.
+        setupFaceDropOnRows(tblPersonsAllForShot!!,
+            { it },
+            { selectedMatrixFaces },
+            { reorganizeMatrixFaces(); reloadPersonsForShot() })
 
         // placeholder
         tblPersonsAllForShot?.placeholder = Label("Shot not selected or don't have any persons.")
@@ -1394,26 +1571,7 @@ class ShotsEditFXController {
 
         // прокрутка колеса мыши над CenterPane
         paneFrames!!.setOnScroll { e: ScrollEvent ->
-            wasClickFrameLabel = false
-            wasClickTablePagesFrames = false
-            wasClickTableShots = false
-            val delta = if (e.deltaY > 0) -1 else 1
-            if (isPressedControl) {
-                if (currentShotExt != null) {
-                    if (delta > 0) {
-                        goToFrame(currentShotExt!!.lastFrameExt.frame.frameNumber + 1)
-                    } else {
-                        goToFrame(currentShotExt!!.firstFrameExt.frame.frameNumber - 1)
-                    }
-                }
-            } else {
-                if (currentMatrixPageFrames == null) {
-                    goToFrame(listMatrixPageFrames.first().matrixFrames.first())
-                } else {
-                    val frameToGo = if (delta < 0) getPrevMatrixFrame(currentMatrixPageFrames!!.matrixFrames.first()) else getNextMatrixFrame(currentMatrixPageFrames!!.matrixFrames.last())
-                    goToFrame(frameToGo)
-                }
-            }
+            goToAdjacentPageOfFrames(if (e.deltaY > 0) -1 else 1)
         }
 
         /**
@@ -1728,20 +1886,43 @@ class ShotsEditFXController {
 
     fun loadPictureToFullFrameLabelForFrame(matrixFrame: MatrixFrame?) {
 
-        if (matrixFrame != null) {
+        if (matrixFrame == null) {
+            return
+        }
+        val frameExt = matrixFrame.frameExt ?: return
 
-            Thread {
-                try {
-                    val bufferedImage = FaceController.getOverlayedFrame(matrixFrame.frameExt!!, null)
-                    val imageView = ImageView(ConvertToFxImage.convertToFxImage(bufferedImage))
-                    Platform.runLater {
+        // Картинка кадра кэшируется в FrameExt навсегда, а раньше сброса у
+        // FrameExt вообще не было: при листании страниц превью память росла до
+        // десятков гигабайт. На экране всё равно остаётся только один кадр,
+        // значит предыдущий можно освободить сразу.
+        val previous = frameExtWithLoadedPreview
+        if (previous != null && previous !== frameExt) {
+            previous.resetPreviewMedium()
+            previous.resetPreviewFull()
+        }
+        frameExtWithLoadedPreview = frameExt
+
+        // Раньше на каждый вызов создавался свой поток, и они никогда не
+        // присоединялись: при быстром листании их накапливались десятки, и
+        // каждый заново читал и переносил картинку. Теперь работает один поток,
+        // а номер запроса отсекает устаревшие результаты — иначе на экране
+        // мог бы появиться кадр, который уже пролистан.
+        val request = ++lastFullFrameRequest
+        fullFrameExecutor.execute {
+            try {
+                val bufferedImage = FaceController.getOverlayedFrame(frameExt, null)
+                if (lastFullFrameRequest != request) {
+                    return@execute
+                }
+                val imageView = ImageView(ConvertToFxImage.convertToFxImage(bufferedImage))
+                Platform.runLater {
+                    if (lastFullFrameRequest == request) {
                         lblFrameFull?.graphic = imageView
                     }
-                } catch (exception: IOException) {
-                    exception.printStackTrace()
                 }
-            }.start()
-
+            } catch (exception: IOException) {
+                exception.printStackTrace()
+            }
         }
     }
 
@@ -2113,32 +2294,51 @@ class ShotsEditFXController {
 //        }
 //    }
 
-    fun showMatrixPageFaces(matrixPageFaces: MatrixPageFaces) {
-        val heightPadding = 10 // по высоте двойной отступ
-        val widthPadding = 10 // по ширине двойной отступ
-        val pane: Pane = paneFaces!!
-        pane.children.clear() // очищаем пэйн от старых лейблов
-        for (matrixFace in matrixPageFaces.matrixFaces) {
-            val lbl: Label = matrixFace.faceExt?.labelSmall!!
-            val x: Double = widthPadding + matrixFace.column * (Main.PREVIEW_FACE_W + 2) // X = отступ по ширине + столбец*ширину картинки
-            val y: Double = heightPadding + matrixFace.row * (Main.PREVIEW_FACE_H + 2) //Y = отступ по высоте + строка*высоту картинки
-            lbl.translateX = x
-            lbl.translateY = y
-            lbl.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H) //устанавливаем ширину и высоту лейбла
-            lbl.style = fxBorderDefault //устанавливаем стиль бордюра по-дефолту
-            lbl.alignment = Pos.CENTER //устанавливаем позиционирование по центру
+    /**
+     * Контекстное меню лица — то самое, что и у лиц в Persons: безымянный,
+     * не человек, массовка, выбор персоны, создание персоны, картинка
+     * персоны и отметки образцов. Для лиц трека добавляется первым пункт
+     * разделения трека, остальное совпадает дословно.
+     *
+     * Различие одно и оно в намерении: назначение применяется либо к
+     * выделенным лицам, либо, если передан трек, ко всему треку. Иначе
+     * трек рассыпался бы — назвали одно лицо, а остальные остались
+     * безымянными, и называть человека по треку перестало бы работать.
+     */
+    private fun faceContextMenu(matrixFace: MatrixFace,
+                                 matrixPageFaces: MatrixPageFaces?,
+                                 trackExt: FaceTrackExt?): ContextMenu {
+        // Лица, к которым применяется выбор из меню. В Persons выделенные лица
+        // лежат в selectedMatrixFaces, в Tracks — в selectedTrackFaces, и это
+        // РАЗНЫЕ списки. Меню работало только с первым, поэтому в треках оно
+        // действовало на одно лицо под курсором, а выделенные молча
+        // игнорировались: человек отмечал пять лиц, назначал персону — и
+        // менялся один. Тип общий — MutableCollection, чтобы не копировать
+        // список: копия очищала бы сама себя, а не источник, и выделение
+        // осталось бы висеть на экране.
+        val menuFaces: MutableCollection<MatrixFace> =
+            if (trackExt != null) selectedTrackFaces else selectedMatrixFaces
+        val refreshFaces: () -> Unit = if (trackExt != null) {
+            {
+                reloadTracks(currentShotExt)
+                // Список персон плана пересобирался только при выборе плана и
+                // при правке во вкладке Persons. Назначение из треков его не
+                // трогало, и новые персоны в списке плана не появлялись:
+                // в треках они были, а рядом в Persons — нет. Список берётся
+                // из базы, поэтому пересобирается на каждый такой пункт меню.
+                reloadPersonsForShot()
+            }
+        } else {
+            { reorganizeMatrixFaces() }
+        }
+        // faceExt у MatrixFace объявлен как nullable, а внутри тела метода
+        // умное приведение типа не работает, поэтому берём его один раз.
+        val mfFaceExt = matrixFace.faceExt
+        if (mfFaceExt == null) return ContextMenu()
+        val contextMenu = ContextMenu()
 
-
-            val screenImageView = matrixFace.faceExt.previewSmall
-            screenImageView.fitWidth = Main.PREVIEW_FACE_W // устанавливаем ширину вьювера
-            screenImageView.fitHeight = Main.PREVIEW_FACE_H // устанавливаем высоту вьювера
-            lbl.graphic = null //сбрасываем графику лейбла
-            lbl.graphic = screenImageView // устанавливаем вьювер источником графики для лейбла
-            pane.children.add(lbl)
-
-            if (matrixFace.column == 0 || matrixFace.column == currentMatrixPageFaces!!.countColumns + 1) continue
-
-            val contextMenu = ContextMenu()
+        // Строки ниже взяты из меню вкладки Persons без изменений — чтобы
+        // треки пользовались ровно тем же меню, а не похожим.
 
             var menuItem = MenuItem("UNDEFINDED")
             menuItem.setOnAction {
@@ -2150,8 +2350,8 @@ class ShotsEditFXController {
                     listPersonsExtForFile.sort()
                 }
 
-                selectedMatrixFaces.add(matrixFace)
-                selectedMatrixFaces.forEach { mf->
+                menuFaces.add(matrixFace)
+                menuFaces.forEach { mf->
 
                     if (mf.faceExt!!.personExt.person.personType != PersonType.UNDEFINDED) {
                         mf.faceExt.personExt = personExtUndefinded!!
@@ -2159,16 +2359,17 @@ class ShotsEditFXController {
                         mf.faceExt.face.personRecognizedName = if (personExtUndefinded.person.personType == PersonType.UNDEFINDED) "" else personExtUndefinded.person.nameInRecognizer
                         FaceController.save(mf.faceExt.face)
                         listFacesExt.remove(mf.faceExt)
-                        if (matrixPageFaces.matrixFaces.size > 0) {
-                            matrixPageFaces.matrixFaces.remove(mf)
+                        val page = matrixPageFaces
+                        if (page != null && page.matrixFaces.size > 0) {
+                            page.matrixFaces.remove(mf)
                             mf.faceExt.labelSmall.graphic = null
                             mf.faceExt.labelSmall.style = fxBorderDefault
                         }
                     }
 
                 }
-                selectedMatrixFaces.clear()
-                reorganizeMatrixFaces()
+                menuFaces.clear()
+                refreshFaces()
             }
             contextMenu.items.add(menuItem)
 
@@ -2182,8 +2383,8 @@ class ShotsEditFXController {
                     listPersonsExtForFile.sort()
                 }
 
-                selectedMatrixFaces.add(matrixFace)
-                selectedMatrixFaces.forEach { mf->
+                menuFaces.add(matrixFace)
+                menuFaces.forEach { mf->
 
                     if (mf.faceExt!!.personExt.person.personType != PersonType.NONPERSON) {
                         mf.faceExt.personExt = personExtNonperson!!
@@ -2191,48 +2392,42 @@ class ShotsEditFXController {
                         mf.faceExt.face.personRecognizedName = if (personExtNonperson.person.personType == PersonType.UNDEFINDED) "" else personExtNonperson.person.nameInRecognizer
                         FaceController.save(mf.faceExt.face)
                         listFacesExt.remove(mf.faceExt)
-                        if (matrixPageFaces.matrixFaces.size > 0) {
-                            matrixPageFaces.matrixFaces.remove(mf)
+                        val page2 = matrixPageFaces
+                        if (page2 != null && page2.matrixFaces.size > 0) {
+                            page2.matrixFaces.remove(mf)
                             mf.faceExt.labelSmall.graphic = null
                             mf.faceExt.labelSmall.style = fxBorderDefault
                         }
                     }
 
                 }
-                selectedMatrixFaces.clear()
-                reorganizeMatrixFaces()
+                menuFaces.clear()
+                refreshFaces()
             }
             contextMenu.items.add(menuItem)
 
             menuItem = MenuItem("EXTRAS")
             menuItem.setOnAction {
 
-                var personExtExtras = listPersonsExtForFile.firstOrNull{it.person.personType == PersonType.EXTRAS}
-                if (personExtExtras == null) {
-                    personExtExtras = projectPersonExtExtras
-                    listPersonsExtForFile.add(personExtExtras)
-                    listPersonsExtForFile.sort()
-                }
+                val personExtExtras = extrasPersonExt()
 
-                selectedMatrixFaces.add(matrixFace)
-                selectedMatrixFaces.forEach { mf->
+                menuFaces.add(matrixFace)
+                menuFaces.forEach { mf->
 
-                    if (mf.faceExt!!.personExt.person.personType != PersonType.EXTRAS) {
-                        mf.faceExt.personExt = personExtExtras!!
-                        mf.faceExt.face.person = personExtExtras.person
-                        mf.faceExt.face.personRecognizedName = if (personExtExtras.person.personType == PersonType.UNDEFINDED) "" else personExtExtras.person.nameInRecognizer
-                        FaceController.save(mf.faceExt.face)
-                        listFacesExt.remove(mf.faceExt)
-                        if (matrixPageFaces.matrixFaces.size > 0) {
-                            matrixPageFaces.matrixFaces.remove(mf)
+                    // Ядро то же, что у кнопки «All to EXTRAS»: различается
+                    // только набор лиц.
+                    if (markFaceAsExtras(mf.faceExt!!, personExtExtras)) {
+                        val page2 = matrixPageFaces
+                        if (page2 != null && page2.matrixFaces.size > 0) {
+                            page2.matrixFaces.remove(mf)
                             mf.faceExt.labelSmall.graphic = null
                             mf.faceExt.labelSmall.style = fxBorderDefault
                         }
                     }
 
                 }
-                selectedMatrixFaces.clear()
-                reorganizeMatrixFaces()
+                menuFaces.clear()
+                refreshFaces()
 
             }
 
@@ -2241,7 +2436,7 @@ class ShotsEditFXController {
             menuItem = MenuItem("SELECT PERSON")
             menuItem.setOnAction {
 
-                selectedMatrixFaces.add(matrixFace)
+                menuFaces.add(matrixFace)
                 val selectedPerson = PersonSelectFXController().getPersonExt(currentFileExt!!.projectExt)
 
                 if (selectedPerson != null) {
@@ -2249,15 +2444,16 @@ class ShotsEditFXController {
                         listPersonsExtForFile.add(selectedPerson)
                         listPersonsExtForFile.sort()
                     }
-                    selectedMatrixFaces.forEach { mf->
+                    menuFaces.forEach { mf->
 
                         mf.faceExt!!.personExt = selectedPerson
                         mf.faceExt.face.person = selectedPerson.person
                         mf.faceExt.face.personRecognizedName = if (selectedPerson.person.personType == PersonType.UNDEFINDED) "" else selectedPerson.person.nameInRecognizer
                         FaceController.save(mf.faceExt.face)
                         listFacesExt.remove(mf.faceExt)
-                        if (matrixPageFaces.matrixFaces.size > 0) {
-                            matrixPageFaces.matrixFaces.remove(mf)
+                        val page2 = matrixPageFaces
+                        if (page2 != null && page2.matrixFaces.size > 0) {
+                            page2.matrixFaces.remove(mf)
                             mf.faceExt.labelSmall.graphic = null
                             mf.faceExt.labelSmall.style = fxBorderDefault
                         }
@@ -2266,8 +2462,8 @@ class ShotsEditFXController {
 
                 }
 
-                selectedMatrixFaces.clear()
-                reorganizeMatrixFaces()
+                menuFaces.clear()
+                refreshFaces()
 
             }
 
@@ -2276,7 +2472,7 @@ class ShotsEditFXController {
             menuItem = MenuItem("CREATE NEW PERSON")
             menuItem.setOnAction {
 
-                selectedMatrixFaces.add(matrixFace)
+                menuFaces.add(matrixFace)
 
                 val dialog = TextInputDialog("New person")
 
@@ -2290,15 +2486,15 @@ class ShotsEditFXController {
 
                 if (personName != null) {
                     val newPerson = PersonController.create(currentFileExt!!.projectExt.project, personName!!,
-                        PersonType.PERSON,"", currentFileExt!!.file.id, matrixFace.faceExt.frameNumber,
-                        matrixFace.faceExt.faceNumberInFrame)
+                        PersonType.PERSON,"", currentFileExt!!.file.id, mfFaceExt.frameNumber,
+                        mfFaceExt.faceNumberInFrame)
                     val selectedPerson = PersonExt(newPerson, currentFileExt!!.projectExt)
                     if (!listPersonsExtForFile.contains(selectedPerson)) {
                         listPersonsExtForFile.add(selectedPerson)
                         listPersonsExtForFile.sort()
                     }
 
-                    selectedMatrixFaces.forEach { mf ->
+                    menuFaces.forEach { mf ->
                         mf.faceExt!!.personExt = selectedPerson
                         mf.faceExt.face.person = selectedPerson.person
                         mf.faceExt.face.personRecognizedName = if (selectedPerson.person.personType == PersonType.UNDEFINDED) "" else selectedPerson.person.nameInRecognizer
@@ -2306,8 +2502,9 @@ class ShotsEditFXController {
 
                         FaceController.save(mf.faceExt.face)
                         listFacesExt.remove(mf.faceExt)
-                        if (matrixPageFaces.matrixFaces.size > 0) {
-                            matrixPageFaces.matrixFaces.remove(mf)
+                        val page2 = matrixPageFaces
+                        if (page2 != null && page2.matrixFaces.size > 0) {
+                            page2.matrixFaces.remove(mf)
                             mf.faceExt.labelSmall.graphic = null
                             mf.faceExt.labelSmall.style = fxBorderDefault
                         }
@@ -2316,45 +2513,76 @@ class ShotsEditFXController {
 
                 }
 
-                selectedMatrixFaces.clear()
-                reorganizeMatrixFaces()
+                menuFaces.clear()
+                refreshFaces()
             }
 
             contextMenu.items.add(menuItem)
 
-            menuItem = MenuItem("Set as person picture")
-            menuItem.setOnAction {
+            // Персонаж, к которому относятся пункты меню. Во вкладке Persons это
+        // выбранный в таблице, там лицо и его персонаж всегда совпадают. В
+        // Tracks лицо принадлежит строке трека, и брать надо именно его.
+        // Раньше здесь стоял currentPersonExt всегда, и в треках картинка лица
+        // Чхику становилась картинкой Арьи: подставлялся тот персонаж,
+        // который был выбран во вкладке Persons последним, а вовсе не тот,
+        // кому принадлежит лицо под курсором.
+        val menuPersonExt: PersonExt? =
+            if (trackExt != null) mfFaceExt.personExt else currentPersonExt
 
-                val selectedPerson = listPersonsExtForFile.firstOrNull { it.person.id == currentPersonExt!!.person.id }
+        // Служебным персонам портрет не назначается: у «неопределённого»,
+        // «массовки» и «не персонаж» нет личности, и картинка реального
+        // человека на их строке только путает. Пункт оставлен на месте, но
+        // выключен, чтобы привычное место в меню не исчезло из-под руки.
+        val isServicePerson = menuPersonExt != null &&
+                menuPersonExt.person.personType != PersonType.PERSON
+
+        menuItem = MenuItem("Set as person picture")
+            menuItem.isDisable = isServicePerson
+            menuItem.setOnAction {
+                if (isServicePerson) return@setOnAction
+
+                val basePerson = menuPersonExt
+                val selectedPerson = basePerson?.let { bp -> listPersonsExtForFile.firstOrNull { it.person.id == bp.person.id } }
                 if (selectedPerson != null) {
 
                     try {
-                        IOFile(currentPersonExt!!.pathToSmall).delete()
-                        IOFile(currentPersonExt!!.pathToMedium).delete()
+                        IOFile(selectedPerson.pathToSmall).delete()
+                        IOFile(selectedPerson.pathToMedium).delete()
                     } catch (_: IOException) {
                     }
 
                     selectedPerson.person.fileIdForPreview = currentFileExt!!.file.id
-                    selectedPerson.person.faceNumberForPreview = matrixFace.faceExt.face.faceNumberInFrame
-                    selectedPerson.person.frameNumberForPreview = matrixFace.faceExt.face.frameNumber
+                    selectedPerson.person.faceNumberForPreview = mfFaceExt.face.faceNumberInFrame
+                    selectedPerson.person.frameNumberForPreview = mfFaceExt.face.frameNumber
                     PersonController.save(selectedPerson.person)
                     selectedPerson.resetPreview()
                     selectedPerson.labelSmall
-                    selectedMatrixFaces.clear()
+                    menuFaces.clear()
                     tblPersonsAllForFile!!.refresh()
-                    currentPersonExt = selectedPerson
+                    if (trackExt == null) {
+                        currentPersonExt = selectedPerson
+                    } else {
+                        // В треках картинка в строке не берётся из того же
+                        // объекта персоны, что обновился во вкладке Persons:
+                        // строка трека держит свой портрет, прочитанный из
+                        // файла. Обновления таблицы Persons здесь ничего не
+                        // дают — трбовалось перерисовать строку трека, и
+                        // без этого старая картинка держалась до перезагрузки
+                        // страницы.
+                        reloadTracks(currentShotExt)
+                    }
                 }
 
             }
             contextMenu.items.add(menuItem)
 
-            if (!matrixFace.faceExt.face.isManual && !matrixFace.faceExt.face.isExample) {
+            if (!mfFaceExt.face.isManual && !mfFaceExt.face.isExample) {
                 menuItem = MenuItem("Set as EXAMPLE")
                 menuItem.setOnAction {
-                    selectedMatrixFaces.add(matrixFace)
-                    val selectedPerson = listPersonsExtForFile.firstOrNull { it.person.id == currentPersonExt!!.person.id }
+                    menuFaces.add(matrixFace)
+                    val selectedPerson = menuPersonExt?.let { bp -> listPersonsExtForFile.firstOrNull { it.person.id == bp.person.id } }
                     if (selectedPerson != null) {
-                        selectedMatrixFaces.forEach { mf ->
+                        menuFaces.forEach { mf ->
                             if (!mf.faceExt!!.face.isManual && !mf.faceExt.face.isExample) {
                                 mf.faceExt.face.isExample = true
                                 FaceController.save(mf.faceExt.face)
@@ -2380,19 +2608,19 @@ class ShotsEditFXController {
                             }
                         }
                     }
-                    selectedMatrixFaces.clear()
-                    reorganizeMatrixFaces()
+                    menuFaces.clear()
+                    refreshFaces()
                 }
                 contextMenu.items.add(menuItem)
             }
 
-            if (!matrixFace.faceExt.face.isManual && matrixFace.faceExt.face.isExample) {
+            if (!mfFaceExt.face.isManual && mfFaceExt.face.isExample) {
                 menuItem = MenuItem("Remove from EXAMPLE")
                 menuItem.setOnAction {
-                    selectedMatrixFaces.add(matrixFace)
-                    val selectedPerson = listPersonsExtForFile.firstOrNull { it.person.id == currentPersonExt!!.person.id }
+                    menuFaces.add(matrixFace)
+                    val selectedPerson = menuPersonExt?.let { bp -> listPersonsExtForFile.firstOrNull { it.person.id == bp.person.id } }
                     if (selectedPerson != null) {
-                        selectedMatrixFaces.forEach { mf ->
+                        menuFaces.forEach { mf ->
                             if (!mf.faceExt!!.face.isManual && mf.faceExt.face.isExample) {
                                 mf.faceExt.face.isExample = false
                                 FaceController.save(mf.faceExt.face)
@@ -2418,14 +2646,48 @@ class ShotsEditFXController {
                             }
                         }
                     }
-                    selectedMatrixFaces.clear()
-                    reorganizeMatrixFaces()
+                    menuFaces.clear()
+                    refreshFaces()
                 }
                 contextMenu.items.add(menuItem)
             }
+        return contextMenu
+    }
 
 
+    fun showMatrixPageFaces(matrixPageFaces: MatrixPageFaces) {
+        val heightPadding = 10 // по высоте двойной отступ
+        val widthPadding = 10 // по ширине двойной отступ
+        val pane: Pane = paneFaces!!
+        pane.children.clear() // очищаем пэйн от старых лейблов
+        for (matrixFace in matrixPageFaces.matrixFaces) {
+            val lbl: Label = matrixFace.faceExt?.labelSmall!!
+            val x: Double = widthPadding + matrixFace.column * (Main.PREVIEW_FACE_W + 2) // X = отступ по ширине + столбец*ширину картинки
+            val y: Double = heightPadding + matrixFace.row * (Main.PREVIEW_FACE_H + 2) //Y = отступ по высоте + строка*высоту картинки
+            lbl.translateX = x
+            lbl.translateY = y
+            lbl.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H) //устанавливаем ширину и высоту лейбла
+            lbl.style = fxBorderDefault //устанавливаем стиль бордюра по-дефолту
+            lbl.alignment = Pos.CENTER //устанавливаем позиционирование по центру
+
+
+            val screenImageView = matrixFace.faceExt.previewSmall
+            screenImageView.fitWidth = Main.PREVIEW_FACE_W // устанавливаем ширину вьювера
+            screenImageView.fitHeight = Main.PREVIEW_FACE_H // устанавливаем высоту вьювера
+            lbl.graphic = null //сбрасываем графику лейбла
+            lbl.graphic = screenImageView // устанавливаем вьювер источником графики для лейбла
+            pane.children.add(lbl)
+
+            if (matrixFace.column == 0 || matrixFace.column == currentMatrixPageFaces!!.countColumns + 1) continue
+
+            val contextMenu = faceContextMenu(matrixFace, currentMatrixPageFaces, null)
+            // Меню обязано быть привязано к картинке: без этой строки объект
+            // создавался и сразу забывался, и правой кнопкой по лицу в Persons
+            // не открывалось ничего. При выносе меню в общий метод строка
+            // потерялась, а меню в треках привязывалось отдельной строкой —
+            // поэтому там всё работало, а в Persons нет.
             lbl.contextMenu = contextMenu
+
 
             //событие "наведение мыши"
             lbl.onMouseEntered = EventHandler {
@@ -2439,6 +2701,7 @@ class ShotsEditFXController {
             }
 
             lbl.onMouseClicked = EventHandler { mouseEvent ->
+                if (consumeDragHandled()) return@EventHandler
 
                 if (mouseEvent.button == MouseButton.PRIMARY) {
                     if (mouseEvent.clickCount == 1) {
@@ -2457,6 +2720,25 @@ class ShotsEditFXController {
                                     mf.faceExt?.labelSmall?.style = fxBorderSelected
                                 }
                             }
+                        } else if (selectedMatrixFaces.contains(matrixFace)) {
+                            // Ctrl по уже выделенному лицу снимает выбор.
+                            //
+                            // Раньше такой возможности не было: с Ctrl лицо
+                            // просто добавлялось в выделение повторно, то
+                            // есть выбор не менялся. Снять одно лицо, не
+                            // разрушая остальные, было нечем — только
+                            // сбросить всё целиком обычным щелчком.
+                            //
+                            // Возврат здесь обязателен: ниже стоит безусловное
+                            // добавление нажатого лица в выделение, и без
+                            // возврата оно тут же добавилось бы обратно.
+                            //
+                            // Превью и текущее лицо не трогаем — по решению
+                            // владельца картинка остаётся, гаснет только рамка.
+                            selectedMatrixFaces.remove(matrixFace)
+                            matrixFace.faceExt?.labelSmall?.style = fxBorderDefault
+                            lbl.style = fxBorderDefault
+                            return@EventHandler
                         }
                         lastClickedMatrixFace = matrixFace
                         selectedMatrixFaces.add(matrixFace)
@@ -2470,13 +2752,16 @@ class ShotsEditFXController {
                 }
             }
 
-            lbl.onDragDetected = EventHandler { mouseEvent ->
-                selectedMatrixFaces.add(matrixFace)
-                val db: Dragboard = lbl.startDragAndDrop(*TransferMode.ANY)
-                val content = ClipboardContent()
-                content.putString("labelFace")
-                db.setContent(content)
-                mouseEvent.consume()
+            // Перенос — на собственной обработке мыши, как в треках:
+            // средства перетаскивания JavaFX событий о переносе не доставляли.
+            lbl.onMousePressed = EventHandler { mouseEvent ->
+                beginFaceDrag(mouseEvent, matrixFace, selectedMatrixFaces)
+            }
+            lbl.onMouseDragged = EventHandler { mouseEvent ->
+                continueFaceDrag(mouseEvent)
+            }
+            lbl.onMouseReleased = EventHandler { mouseEvent ->
+                if (finishPersonsFaceDrag(mouseEvent)) mouseEvent.consume()
             }
 
 
@@ -2523,12 +2808,19 @@ class ShotsEditFXController {
                     val frameNumber = currentMatrixFrame?.frameNumber ?: 1
                     listMatrixPageFrames = MatrixPageFrames.createPages(currentFileExt!!.framesExt, paneFrames!!.getWidth(), paneFrames!!.getHeight(), Main.PREVIEW_FRAME_W, Main.PREVIEW_FRAME_H)
                     tblPagesFrames!!.items = listMatrixPageFrames
-                    currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber)
-                    currentMatrixPageFrames = getMatrixPageFramesByFrame(frameNumber)
-                    currentShotExt = getShotExtByFrameNumber(frameNumber)
-                    showMatrixPageFrames(currentMatrixPageFrames!!)
-                    tblPagesFrames!!.selectionModel.select(currentMatrixPageFrames)
-                    goToFrame(currentMatrixFrame)
+                    // Пока кадры не загружены, страниц нет, искать нечего:
+                    // без этой проверки showMatrixPageFrames получал null
+                    // и отрисовка падала с NullPointerException.
+                    if (listMatrixPageFrames.isNotEmpty()) {
+                        currentMatrixFrame = getMatrixFrameByFrameNumber(frameNumber)
+                        currentMatrixPageFrames = getMatrixPageFramesByFrame(frameNumber)
+                        currentShotExt = getShotExtByFrameNumber(frameNumber)
+                        if (currentMatrixPageFrames != null) {
+                            showMatrixPageFrames(currentMatrixPageFrames!!)
+                            tblPagesFrames!!.selectionModel.select(currentMatrixPageFrames)
+                            goToFrame(currentMatrixFrame)
+                        }
+                    }
 
                 }
             }
@@ -2552,15 +2844,21 @@ class ShotsEditFXController {
 
                     listMatrixPageFaces = MatrixPageFaces.createPages(listFacesExt, paneFaces!!.getWidth(), paneFaces!!.getHeight(), Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
                     tblPagesFaces!!.items = listMatrixPageFaces
-                    if (currentMatrixFace == null) currentMatrixFace = listMatrixPageFaces.first().matrixFaces.first()
-                    currentMatrixPageFaces = getMatrixPageFacesByMatrixFace(currentMatrixFace!!)
+                    // До детекции лиц список пуст, а .first() на пустом списке
+                    // ронял отрисовку с NoSuchElementException — окно редактора
+                    // планов из-за этого не открывалось вовсе.
+                    val firstFace = listMatrixPageFaces.firstOrNull()?.matrixFaces?.firstOrNull()
+                    if (firstFace != null) {
+                        if (currentMatrixFace == null) currentMatrixFace = firstFace
+                        currentMatrixPageFaces = getMatrixPageFacesByMatrixFace(currentMatrixFace!!)
 
-                    if (currentMatrixPageFaces != null) {
-                        showMatrixPageFaces(currentMatrixPageFaces!!)
-                        tblPagesFaces!!.selectionModel.select(currentMatrixPageFaces)
+                        if (currentMatrixPageFaces != null) {
+                            showMatrixPageFaces(currentMatrixPageFaces!!)
+                            tblPagesFaces!!.selectionModel.select(currentMatrixPageFaces)
+                        }
+
+                        goToFace(currentMatrixFace)
                     }
-
-                    goToFace(currentMatrixFace)
 
                 }
             }
@@ -2629,6 +2927,855 @@ class ShotsEditFXController {
     @FXML
     fun doSelectPersonsRb(event: ActionEvent?) {
     }
+
+
+    /**
+     * Вкладка треков: слева узкий столбец треков текущего монтажного куска,
+     * справа — картинки лиц выбранного трека. Устроена так же, как Persons,
+     * только вместо персоны трек.
+     *
+     * Трек — это один и тот же человек в пределах одного куска. Работать
+     * нужно именно с ним: назвать человека один раз на весь трек вместо
+     * десяти отдельных назначений по кадрам.
+     *
+     * Порядок списка: сперва треки без персона — это очередь работы, потом
+     * названные, а смешанные в самый конец: их нельзя назвать одним именем,
+     * сначала надо разделить.
+     */
+    private fun initTracksTab() {
+
+        colTrackLabel?.cellValueFactory = PropertyValueFactory("labelSmall")
+        colTrackFaces?.cellValueFactory = PropertyValueFactory("faceNumberText")
+        colTrackPagesNumber?.cellValueFactory = PropertyValueFactory("pageNumber")
+
+        tblTracks?.placeholder = Label(FaceTrackExt.EMPTY_TEXT)
+
+        // Замер кнопки «All to EXTRAS»: где она оказалась и какого размера.
+        // Кнопка нарисована в форме, но на экране её не было — нужно понять,
+        // это пустая раскладка, нулевой размер или её вообще перекрыло.
+        paneTrackFaces?.sceneProperty()?.addListener { _, _, scene ->
+            if (scene != null) Platform.runLater {
+                val b = btAllToExtras
+                println("[КНОПКА-EXTRAS] есть=${b != null}, " +
+                        "размер=${b?.width}x${b?.height}, " +
+                        "видима=${b?.isVisible}, " +
+                        "на экране=${b?.localToScreen(b.boundsInLocal)}")
+            }
+        }
+
+        paneTrackFaces?.widthProperty()?.addListener { _, _, newWidth ->
+            if ((newWidth as Number).toDouble() > 100.0 && listMatrixPageTrackFaces.isEmpty()) {
+                val trackExt = trackExtToShow ?: return@addListener
+                Platform.runLater { showTrackFaces(trackExt) }
+            }
+        }
+        tblTracks?.items = listTracksExt
+        tblTrackPages?.placeholder = Label("—")
+        tblTrackPages?.selectionModel?.selectedItemProperty()?.addListener { _, _, newValue ->
+            val page = newValue ?: return@addListener
+            currentMatrixPageTrackFaces = page
+            Platform.runLater { showTrackPageFaces(page) }
+        }
+
+        tblTracks?.selectionModel?.selectedItemProperty()?.addListener { _, _, newValue ->
+            val trackExt = newValue ?: return@addListener
+            showTrackFaces(trackExt)
+        }
+
+        // Треки привязаны к монтажному куску, поэтому список перечитывается
+        // при выборе куска. Эта подписка уже терялась однажды при переписывании
+        // метода целиком, и признаком была пустая таблица при заведомо
+        // работающих треках, — поэтому она отдельным пунктом.
+        tblShots?.selectionModel?.selectedItemProperty()?.addListener { _, _, newValue ->
+            val shotExt = newValue as? ShotExt ?: return@addListener
+            Platform.runLater { reloadTracks(shotExt) }
+        }
+
+        // Перетаскивание выделенных лиц на строку трека работает так же,
+        // как на строку персоны: лицо получает того человека, чья строка
+        // под курсором. Строка «разные люди» и «— не определён —» назначать
+        // некому — там конкретного человека нет.
+        setupFaceDropOnRows(tblTracks!!,
+            { row -> if (row.mixed) null
+                      else listPersonsExtForFile.firstOrNull { it.person.id == row.personId } },
+            { selectedTrackFaces },
+            { reloadTracks(currentShotExt); reloadPersonsForShot() })
+
+        tblTracks?.setOnMouseClicked { event ->
+            if (event.button == javafx.scene.input.MouseButton.SECONDARY && event.target == tblTracks) {
+                val trackExt = tblTracks!!.selectionModel.selectedItem
+                if (trackExt != null) {
+                    val menu = tracksContextMenu(trackExt, trackExtToShow?.let { trackMatrixFaces(it) }?.firstOrNull())
+                    menu.show(tblTracks, event.screenX, event.screenY)
+                }
+            }
+        }
+    }
+
+    /**
+     * Поведение лица трека — то же, что у лица персоны: наведение, уход,
+     * выделение щелчком, Ctrl и Shift, перетаскивание и контекстное меню.
+     * Отличий нет ни одного, и это осознанно: свой список выделенных лиц у
+     * треков свой, но все действия над ним работают так же, как у персон, —
+     * иначе пришлось бы учить одно и то же дважды.
+     */
+    private fun setupTrackFaceHandlers(lbl: Label, matrixFace: MatrixFace, trackExt: FaceTrackExt) {
+
+        lbl.onMouseEntered = EventHandler {
+            lbl.style = if (selectedTrackFaces.contains(matrixFace)) fxBorderSelectedFocused else fxBorderFocused
+            lbl.toFront()
+        }
+
+        lbl.onMouseExited = EventHandler {
+            lbl.style = if (selectedTrackFaces.contains(matrixFace)) fxBorderSelected else fxBorderDefault
+        }
+
+        lbl.onMouseClicked = EventHandler { mouseEvent ->
+            if (consumeDragHandled()) return@EventHandler
+            if (mouseEvent.button == MouseButton.PRIMARY && mouseEvent.clickCount == 1) {
+                val faceExt = matrixFace.faceExt
+                if (faceExt != null) {
+                    val frameExt = currentFileExt!!.framesExt
+                        .firstOrNull { it.frame.frameNumber == faceExt.face.frameNumber }
+                    if (frameExt != null) loadPictureToFullFrameLabelForFace(frameExt, faceExt)
+                }
+
+                if (!isPressedControl && !isPressedShift) {
+                    selectedTrackFaces.forEach { it.faceExt?.labelSmall?.style = fxBorderDefault }
+                    selectedTrackFaces.clear()
+                } else if (isPressedShift) {
+                    val lastIndex = currentMatrixPageTrackFaces?.matrixFaces?.indexOf(lastClickedTrackFace) ?: -1
+                    val currentIndex = currentMatrixPageTrackFaces?.matrixFaces?.indexOf(matrixFace) ?: -1
+                    if (lastIndex >= 0 && currentIndex >= 0 && lastIndex < currentIndex) {
+                        for (i in lastIndex..currentIndex) {
+                            val mf = currentMatrixPageTrackFaces!!.matrixFaces[i]
+                            if (mf.faceExt != null && !selectedTrackFaces.contains(mf)) {
+                                selectedTrackFaces.add(mf)
+                                mf.faceExt!!.labelSmall.style = fxBorderSelected
+                            }
+                        }
+                    }
+                } else if (selectedTrackFaces.contains(matrixFace)) {
+                    // Ctrl по уже выделенному лицу снимает выбор — как в Persons
+                    selectedTrackFaces.remove(matrixFace)
+                    lbl.style = fxBorderDefault
+                    return@EventHandler
+                }
+                lastClickedTrackFace = matrixFace
+                if (!selectedTrackFaces.contains(matrixFace)) selectedTrackFaces.add(matrixFace)
+                lbl.style = fxBorderSelected
+            }
+        }
+
+        // Перенос сделан на собственной обработке мыши, а не средствами
+        // перетаскивания JavaFX. Те отдавали картинку, но ни одного события
+        // о переносе не доставляли — ни строке, ни таблице, ни сцене: схватить
+        // можно было, а положить некуда. Здесь всё под нашим контролем.
+        lbl.onMousePressed = EventHandler { mouseEvent ->
+            beginFaceDrag(mouseEvent, matrixFace, selectedTrackFaces)
+        }
+        lbl.onMouseDragged = EventHandler { mouseEvent ->
+            continueFaceDrag(mouseEvent)
+        }
+        lbl.onMouseReleased = EventHandler { mouseEvent ->
+            if (finishFaceDrag(mouseEvent)) mouseEvent.consume()
+        }
+
+        lbl.contextMenu = tracksContextMenu(trackExt, matrixFace)
+    }
+
+    /**
+     * Отрисовка страницы лиц трека.
+     *
+     * Отдельная функция, а не переиспользование отрисовки вкладки Faces:
+     * та опирается на состояние Faces — выделенные лица и текущую страницу —
+     * и без него падает. Здесь своя панель и своё состояние.
+     */
+    private fun showTrackPageFaces(page: MatrixPageFaces) {
+        val pane = paneTrackFaces ?: return
+        pane.children.clear()
+        println("[TRACKS] страница: лиц ${page.matrixFaces.size}, панель ${pane.width}x${pane.height}, " +
+                "колонок ${page.countColumns}")
+        for (matrixFace in page.matrixFaces) {
+            val faceExt = matrixFace.faceExt ?: continue
+            val lbl = faceExt.labelSmall
+            lbl.translateX = 10 + matrixFace.column * (Main.PREVIEW_FACE_W + 2)
+            lbl.translateY = 10 + matrixFace.row * (Main.PREVIEW_FACE_H + 2)
+            lbl.setPrefSize(Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
+            lbl.style = fxBorderDefault
+            lbl.alignment = Pos.CENTER
+            val image = faceExt.previewSmall
+            image.fitWidth = Main.PREVIEW_FACE_W
+            image.fitHeight = Main.PREVIEW_FACE_H
+            lbl.graphic = image
+            pane.children.add(lbl)
+            val trackExt = trackExtToShow
+            if (trackExt != null) setupTrackFaceHandlers(lbl, matrixFace, trackExt)
+        }
+        // Горизонтальная черта между треками одной персоны: без неё лица
+        // разных треков слипаются, и не видно, где кончается один трек.
+        val faceRowH = Main.PREVIEW_FACE_H + 2
+        for (row in page.separatorRows) {
+            // Лица строки row стоят на 10 + row * faceRowH — значит верх этой
+            // строки там же. Раньше черта бралась на строку выше, и между
+            // чертой и лицами оставалась пустая строка во всю карточку.
+            val line = javafx.scene.shape.Line(10.0, 10 + row * faceRowH - 2,
+                Math.max(0.0, pane.width - 10), 10 + row * faceRowH - 2)
+            line.stroke = javafx.scene.paint.Color.GRAY
+            pane.children.add(line)
+        }
+        pbTrackFaces?.progress = 1.0
+    }
+
+    /** Показывает лица выбранного трека справа, постранично. */
+    private fun showTrackFaces(trackExt: FaceTrackExt) {
+        trackExtToShow = trackExt
+        println("[TRACKS] показ трека ${trackExt.track.id}: лиц в треке ${trackExt.faces.size}, " +
+                "для сетки ${trackExt.facesExtForGrid.size}, панель ${paneTrackFaces!!.width}x${paneTrackFaces!!.height}")
+        // Число колонок считается от ширины панели. Если вкладку выбрали раньше,
+        // чем панель получила размеры, ширина равна нулю, страница выходит пустой
+        // и лица не видны — хотя треки есть. В этом случае ждём размеров и
+        // перерисовываем сами, см. подписку на ширину панели.
+        if (paneTrackFaces!!.width < 100) {
+            println("[TRACKS] панель ещё не размечена, ждём размера")
+            return
+        }
+        listMatrixPageTrackFaces = MatrixPageFaces.createTrackPages(
+            trackExt.facesExtByTrack, paneTrackFaces!!.width, paneTrackFaces!!.height,
+            Main.PREVIEW_FACE_W, Main.PREVIEW_FACE_H)
+        println("[TRACKS] страниц получилось: ${listMatrixPageTrackFaces.size}")
+        if (listMatrixPageTrackFaces.size > 0) {
+            currentMatrixPageTrackFaces = listMatrixPageTrackFaces.first()
+            tblTrackPages?.items = listMatrixPageTrackFaces
+            tblTrackPages?.selectionModel?.select(0)
+        }
+        if (listMatrixPageTrackFaces.size > 0) showTrackPageFaces(listMatrixPageTrackFaces.first())
+        lblTracks?.text = "Трек: ${trackExt.nameText}, кадры ${trackExt.framesText}, лиц ${trackExt.faces.size}"
+    }
+
+    /** Меню трека: назначить персону всем его лицам либо разделить трек. */
+    /**
+     * Меню трека: то же, что у лиц в Persons, и первым пунктом разделение
+     * трека. Само меню собирает общий метод — чтобы пункты не разъехались
+     * с лицовыми при правке одной вкладки.
+     */
+    private fun tracksContextMenu(trackExt: FaceTrackExt, matrixFace: MatrixFace?): ContextMenu {
+        val menu = if (matrixFace != null) faceContextMenu(matrixFace, currentMatrixPageTrackFaces, trackExt) else ContextMenu()
+
+        val itemSplit = MenuItem("Split track by person")
+        itemSplit.setOnAction {
+            splitTrackByPerson(trackExt)
+            reloadTracks(currentShotExt)
+        }
+        menu.items.add(0, itemSplit)
+        return menu
+    }
+
+    /** Лица трека как список для меню: то, что сейчас показано на странице. */
+    private fun trackMatrixFaces(trackExt: FaceTrackExt): MutableSet<MatrixFace> {
+        val result = mutableSetOf<MatrixFace>()
+        val page = currentMatrixPageTrackFaces ?: return result
+        for (mf in page.matrixFaces) {
+            if (mf.faceExt != null && trackExt.faces.any { it.id == mf.faceExt!!.face.id }) result.add(mf)
+        }
+        return result
+    }
+
+    /**
+     * Назначает персону всем лицам трека сразу.
+     *
+     * Лица уходят в неопределённые по одной причине: трек, собранный по
+     * сходству, может объединить двух похожих людей, и тогда ни одна персона
+     * не подходит всем его лицам. В таком треке это видно по пометке
+     * «СМЕШАН», и его сперва разделяют.
+     */
+    private fun assignPersonToTrack(trackExt: FaceTrackExt, personExt: PersonExt) {
+        if (trackExt.mixed) {
+            val text = "Трек смешанный — сначала разделите его по пункту «Split track by person»"
+            lblTracks?.text = text
+            println("[TRACKS] $text")
+            return
+        }
+        for (face in trackExt.faces) {
+            face.person = personExt.person
+            face.personRecognizedName = if (personExt.person.personType == PersonType.UNDEFINDED) ""
+                                      else personExt.person.nameInRecognizer
+            Main.faceRepo.save(face)
+        }
+        trackExt.track.person = personExt.person
+        Main.faceTrackRepo.save(trackExt.track)
+        println("[TRACKS] треку ${trackExt.track.id} назначен персонаж ${personExt.person.name}")
+    }
+
+    /**
+     * Разделяет смешанный трек по уже проставленным персонам: лица одного
+     * человека уходят в отдельный трек, остальные остаются.
+     *
+     * Именно так чинятся пять смешанных треков этой серии — там Визерис с
+     * Дейнерисом и Серсея с Джейме, и назначить им по одному имени нельзя.
+     */
+    private fun splitTrackByPerson(trackExt: FaceTrackExt) {
+        if (!trackExt.mixed) {
+            println("[TRACKS] трек ${trackExt.track.id} не смешанный, разделять нечего")
+            return
+        }
+        val byPerson = mutableMapOf<Long, MutableList<Face>>()
+        for (face in trackExt.faces) {
+            byPerson.getOrPut(face.person.id) { mutableListOf() }.add(face)
+        }
+        // Первую группу оставляем в исходном треке, остальные получают новые.
+        val groups = byPerson.values.toMutableList()
+        var index = 0
+        for (group in groups) {
+            if (index == 0) {
+                for (face in group) face.track = trackExt.track
+                trackExt.track.faceCount = group.size
+                trackExt.track.firstFrameNumber = group.minOf { it.frameNumber }
+                trackExt.track.lastFrameNumber = group.maxOf { it.frameNumber }
+                trackExt.track.person = group.first().person
+                Main.faceTrackRepo.save(trackExt.track)
+            } else {
+                val newTrack = com.svoemesto.ivfx.models.FaceTrack()
+                newTrack.shot = trackExt.track.shot
+                newTrack.firstFrameNumber = group.minOf { it.frameNumber }
+                newTrack.lastFrameNumber = group.maxOf { it.frameNumber }
+                newTrack.faceCount = group.size
+                newTrack.person = group.first().person
+                val saved = Main.faceTrackRepo.save(newTrack)
+                for (face in group) {
+                    face.track = saved
+                    // Привязку лица к новому треку нужно записать: без
+                    // сохранения в базе она останется только в памяти и
+                    // пропадёт при следующем открытии файла.
+                    Main.faceRepo.save(face)
+                }
+            }
+            index++
+        }
+        println("[TRACKS] трек ${trackExt.track.id} разделён на ${groups.size} частей")
+    }
+
+    /**
+     * Проставляет каждой персоне число её лиц, состоящих в треках.
+     *
+     * Нужно, чтобы видеть разрывы в разметке: персона определён в одной сцене
+     * и не определён в соседних — по таблице это видно сразу, иначе пришлось
+     * бы искать глазами по кадрам.
+     */
+    private fun fillTrackFacesCount() {
+        try {
+            for (row in Main.faceRepo.getTrackFacesCountByPerson(currentFileExt!!.file.id)) {
+                val personId = (row[0] as Number).toLong()
+                val count = (row[1] as Number).toInt()
+                listPersonsExtForFile.firstOrNull { it.person.id == personId }?.trackFacesCount = count
+            }
+        } catch (e: Exception) {
+            // Счётчик — справочная величина, его отсутствие работе не мешает
+            println("[TRACKS] счётчик лиц в треках не заполнен: ${e.javaClass.simpleName}")
+        }
+    }
+
+    /**
+     * Перечитывает треки монтажного куска.
+     *
+     * Работа с базой идёт вне потока интерфейса — иначе таблица встанет на
+     * время запроса, — поэтому вызывать нужно уже из потока JavaFX.
+     */
+    private fun reloadTracks(shotExt: ShotExt? = currentShotExt) {
+        // Какой трек показывали до пересборки: строки создаются заново, и без
+        // этой привязки выбор возвращался бы наверх при каждом изменении.
+        val keepTrackId = trackExtToShow?.tracks?.firstOrNull()?.id
+        // Смена плана и пересборка того же плана — разные вещи. При смене
+        // плана выбирается первая строка, как и просили; при пересборке того
+        // же плана остаётся та строка, на которой шла работа, иначе каждое
+        // действие в треках уводило бы наверх.
+        val shotChanged = (shotExt?.shot?.id ?: 0L) != lastLoadedShotId
+        lastLoadedShotId = shotExt?.shot?.id ?: 0L
+        shotExtIdForLog = lastLoadedShotId
+        listTracksExt.clear()
+        if (shotExt == null) {
+            lblTracks?.text = ""
+            clearTrackFaces()
+            return
+        }
+        val tracks = Main.faceTrackRepo.findByShotId(shotExt.shot.id).toMutableList()
+        println("[ПЕРЕЗАГРУЗКА] план=${shotExt.shot.id} треков=${tracks.size} " +
+                "текущийПлан=${currentShotExt?.shot?.id}")
+        tracks.sort()
+
+        // Лица читаются ОДИН раз и раскладываются по трекам. Раньше они
+        // читались по запросу на каждый трек, а потом ещё раз для каждого
+        // лица при раскладке по трекам — на плане с десятками треков это
+        // тысячи обращений к базе, и выбор плана висел на минуту.
+        //
+        // Позже выяснилось, что читались лица ВСЕЙ серии, а не только этого
+        // плана: у лица лежит вектор признаков около десяти килобайт, и для
+        // второй серии это 86 МБ на один переход между планами. Теперь
+        // берутся только лица треков этого плана — десятки записей.
+        val facesByTrack = HashMap<Long, MutableList<Face>>()
+        val trackIds = tracks.map { it.id }
+        val shotFaces = if (trackIds.isEmpty()) emptyList<Face>()
+                        else Main.faceRepo.findByTrackIds(trackIds).toList()
+        for (face in shotFaces) {
+            val tid = face.track?.id ?: continue
+            facesByTrack.getOrPut(tid) { mutableListOf() }.add(face)
+        }
+
+        val byPerson = LinkedHashMap<Long, MutableList<FaceTrack>>()
+        val singleRows = mutableListOf<FaceTrack>()
+        for (track in tracks) {
+            val faces = facesByTrack[track.id] ?: mutableListOf()
+            val personIds = faces.map { it.person.id }.distinct()
+            // Неопознанные треки собираются В ОДНУ строку, как во вкладке Persons:
+            // там у плана тоже одна строка «— не определён —», и разница была
+            // только в треках. В плане после распознавания их доходило до 49,
+            // и все они выглядели одинаково — работать с таким списком
+            // невозможно. Людей там действительно много разных, но пока мы их
+            // не знаем, они для списка неразличимы: отдельной строкей на
+            // каждого нет смысла, работать с ними всё равно одним движением.
+            val isUnknown = personIds.size == 1 &&
+                    personIds[0] == projectPersonExtUndefinded?.person?.id
+            if (personIds.size == 1) {
+                byPerson.getOrPut(personIds[0]) { mutableListOf() }.add(track)
+            } else {
+                singleRows.add(track)
+            }
+        }
+
+        val rows = mutableListOf<FaceTrackExt>()
+        for ((personId, personTracks) in byPerson) {
+            val pExt = listPersonsExtForFile.firstOrNull { it.person.id == personId }
+            // У неопознанного персона имя в базе есть (UNDEFINDED), но в списке
+            // он должен выглядеть как «— не определён —», без портрета:
+            // портрета неопознанного лица не существует.
+            val isUndefinded = personId == projectPersonExtUndefinded?.person?.id
+            rows.add(buildTrackRow(personTracks, facesByTrack,
+                if (isUndefinded) "" else (pExt?.person?.name ?: ""), false,
+                if (isUndefinded) null else pExt?.pathToSmall, personId))
+        }
+        for (track in singleRows) {
+            val faces = facesByTrack[track.id] ?: mutableListOf()
+            val personIds = faces.map { it.person.id }.distinct()
+            if (personIds.size > 1) {
+                rows.add(buildTrackRow(listOf(track), facesByTrack, "разные люди", true, null))
+            } else {
+                val pExt = if (personIds.isEmpty()) null
+                           else listPersonsExtForFile.firstOrNull { it.person.id == personIds[0] }
+                val isUnknown = pExt == null ||
+                        pExt.person.id == projectPersonExtUndefinded?.person?.id
+                rows.add(buildTrackRow(listOf(track), facesByTrack,
+                    if (isUnknown) "" else pExt!!.person.name,
+                    false, if (isUnknown) null else pExt!!.pathToSmall))
+            }
+        }
+
+        // Порядок — как у персон: по имени. Безымянные строки при этом
+        // оказываются в начале, то есть очередь работы сверху.
+        rows.sortWith(Comparator { a, b -> a.nameText.compareTo(b.nameText) })
+        rows.forEach { listTracksExt.add(it) }
+
+        val notNamed = rows.count { !it.isNamed && !it.mixed }
+        lblTracks?.text = "Строк: ${rows.size}, без персона: $notNamed, " +
+                "смешанных: ${rows.count { it.mixed }}"
+
+        showFirstTrackRowOrClear(if (shotChanged) null else keepTrackId)
+    }
+
+    /**
+     * Показывает треки первого персонажа нового плана.
+     *
+     * Без этого после смены плана вкладка продолжала показывать лица
+     * предыдущего, и это читалось как «треки не пересчитались». Если на плане
+     * треков нет, содержимое очищается: лица прошлого плана к новому
+     * отношения не имеют, и оставлять их — враньё на экране.
+     *
+     * Выбор выполняется только при открытой вкладке: пока вкладка закрыта,
+     * панель не размечена (ширина 0), раскладка по страницам не считается и
+     * показывать всё равно нечего. Очистка же нужна всегда — иначе устаревшее
+     * содержимое встретит пользователя, когда он откроет вкладку.
+     */
+    private var shotExtIdForLog: Long = 0L
+    /** План, для которого список строк уже собран. */
+    private var lastLoadedShotId: Long = -1L
+
+    private fun showFirstTrackRowOrClear(keepTrackId: Long? = null) {
+        clearTrackFaces()
+        val tabOpen = tabpaneShotsEdit?.selectionModel?.selectedItem?.text == "Tracks"
+        if (!tabOpen) return
+        // Возвращаемся на прежнюю строку, если она ещё есть. Списки строк
+        // пересобираются целиком при каждом изменении, и без этого любой
+        // повторный показ уводил бы наверх — в том числе после установки
+        // портрета, где это выглядело как «картинка не обновилась».
+        val row = if (keepTrackId != null)
+                      listTracksExt.firstOrNull { r -> r.tracks.any { it.id == keepTrackId } }
+                  else null
+            ?: listTracksExt.firstOrNull()
+        if (row == null) {
+            println("[ВЫБОР] план=$shotExtIdForLog строк нет, вкладка открыта=$tabOpen")
+            return
+        }
+        val t0 = System.currentTimeMillis()
+        tblTracks?.selectionModel?.select(row)
+        tblTracks?.scrollTo(listTracksExt.indexOf(row))
+        println("[ВЫБОР] план=${shotExtIdForLog} строк=${listTracksExt.size} " +
+                "выбрана='${row.nameText}' ширинаПанели=${paneTrackFaces?.width} " +
+                "за=${System.currentTimeMillis() - t0} мс выделено=${tblTracks?.selectionModel?.selectedItem != null}")
+    }
+
+    /**
+     * Приём перетаскивания лиц на строку таблицы персон.
+     *
+     * Строка под курсором ищется по координатам отпускания, а не по
+     * наведению: во время переноса наведение на строку таблицы приходит
+     * не всегда, и перетаскивание просто не срабатывало. Поиск идёт по
+     * реальным границам строк, поэтому работает одинаково и для Persons,
+     * и для треков, и не зависит от того, какая строка последней была
+     * под мышью до начала переноса.
+     *
+     * @param table таблица-приёмник
+     * @param personOfRow из строки таблицы получаем персону; null — строка
+     *        перетаскивание принимает, но назначать некому
+     * @param faces выделенные лица той вкладки, откуда тянут
+     * @param afterAssign что пересчитать после назначения
+     */
+    /**
+     * Перенос выделенных лиц на строку персоны — на собственной обработке
+     * мыши: зажали на лице, повели, отпустили над строкой.
+     *
+     * Почему не средствами перетаскивания JavaFX: они отдавали картинку, но
+     * ни одного события о переносе не доставляли — ни строке таблицы, ни
+     * самой таблице, ни сцене. Проверено замерами на всех трёх уровнях.
+     *
+     * Обычный щелчок при этом не мешается: пока указатель не сдвинулся,
+     * переноса нет, и выделение работает как раньше.
+     */
+    private var dragPressedFace: MatrixFace? = null
+    private var dragPressedX = 0.0
+    private var dragPressedY = 0.0
+    private var dragMoved = false
+    private var dragFaces: MutableList<MatrixFace> = mutableListOf()
+    private var dragHandled = false
+    private var dragScene: Scene? = null
+
+    private fun beginFaceDrag(event: MouseEvent, matrixFace: MatrixFace,
+                               selected: MutableCollection<MatrixFace>) {
+        dragPressedFace = matrixFace
+        dragPressedX = event.sceneX
+        dragPressedY = event.sceneY
+        dragMoved = false
+        dragScene = event.source?.let { src -> (src as? Node)?.scene }
+        dragFaces = selected.toMutableList()
+        if (!dragFaces.contains(matrixFace)) dragFaces.add(matrixFace)
+        // На всё время схватывания курсор сжатой руки: видно, что перенос
+        // начался, даже если указатель ещё не двинулся.
+        dragScene?.cursor = Cursor.CLOSED_HAND
+    }
+
+    /**
+     * Порог в четыре пикселя: столько нужно, чтобы отделить перенос от щелчка.
+     *
+     * Курсор показывает, есть ли куда отпускать: над строкой персоны рука,
+     * над пустым местом — обычная стрелка. Без этого перенос работал, но
+     * выглядел так, будто указатель его не признаёт.
+     *
+     * Констант COPY и NO_DROP у курсора JavaFX нет — проверено javap по
+     * javafx-graphics-11.0.2-linux.jar, там только стрелки и руки.
+     */
+    private fun continueFaceDrag(event: MouseEvent) {
+        if (dragPressedFace == null) return
+        val dx = event.sceneX - dragPressedX
+        val dy = event.sceneY - dragPressedY
+        if (dx * dx + dy * dy > 16.0) dragMoved = true
+        if (!dragMoved) return
+        val scene = dragScene ?: return
+        // Курсор держим на всё время переноса: над строкой — рука, в любом
+        // другом месте — сжатая рука. Раньше указатель оживал только над
+        // строками, и начало переноса не было видно нигде.
+        val target = personRowUnderCursor(event.sceneX, event.sceneY)
+        scene.cursor = if (target != null && dragFaces.isNotEmpty())
+            Cursor.HAND else Cursor.CLOSED_HAND
+    }
+
+    /**
+     * Возвращает true, если перенос состоялся и событие нужно съесть:
+     * иначе после отпускания сработал бы ещё и щелчок.
+     */
+    private fun finishFaceDrag(event: MouseEvent): Boolean {
+        val started = dragPressedFace != null
+        val moved = dragMoved
+        val faces = dragFaces
+        dragPressedFace = null
+        dragFaces = mutableListOf()
+        dragScene?.cursor = Cursor.DEFAULT
+        dragScene = null
+        if (!started || !moved || faces.isEmpty()) return false
+
+        val target = personRowUnderCursor(event.sceneX, event.sceneY)
+        if (target == null) return true
+
+        assignFacesToPerson(target, faces)
+        reloadTracks(currentShotExt)
+        reloadPersonsForShot()
+        dragHandled = true
+        return true
+    }
+
+    /** То же, что finishFaceDrag, но для вкладки Persons. */
+    private fun finishPersonsFaceDrag(event: MouseEvent): Boolean {
+        val started = dragPressedFace != null
+        val moved = dragMoved
+        val faces = dragFaces
+        dragPressedFace = null
+        dragFaces = mutableListOf()
+        dragScene?.cursor = Cursor.DEFAULT
+        dragScene = null
+        if (!started || !moved || faces.isEmpty()) return false
+        val target = personRowUnderCursor(event.sceneX, event.sceneY) ?: return true
+        assignFacesToPerson(target, faces)
+        reorganizeMatrixFaces()
+        reloadPersonsForShot()
+        dragHandled = true
+        return true
+    }
+
+    /**
+     * Персона массовки из списка файла, при необходимости добавленная в него.
+     */
+    private fun extrasPersonExt(): PersonExt {
+        val existing = listPersonsExtForFile.firstOrNull { it.person.personType == PersonType.EXTRAS }
+        if (existing != null) return existing
+        val extras = projectPersonExtExtras
+            ?: throw IllegalStateException("Персона массовки не найдена для проекта")
+        listPersonsExtForFile.add(extras)
+        listPersonsExtForFile.sort()
+        return extras
+    }
+
+    /**
+     * Перевод одного лица в массовку. Возвращает true, если лицо переведено,
+     * и false, если оно уже массовка.
+     *
+     * Общее ядро для пункта меню EXTRAS и для кнопки «All to EXTRAS»: оба
+     * делают ровно одно и то же, различается только набор лиц.
+     */
+    private fun markFaceAsExtras(faceExt: FaceExt, extras: PersonExt): Boolean {
+        if (faceExt.personExt.person.personType == PersonType.EXTRAS) return false
+        faceExt.personExt = extras
+        faceExt.face.person = extras.person
+        faceExt.face.personRecognizedName = ""
+        FaceController.save(faceExt.face)
+        listFacesExt.remove(faceExt)
+        return true
+    }
+
+    /**
+     * Кнопка «All to EXTRAS»: все лица выбранного трека становятся массовкой —
+     * то же, что выбрать их все и вызвать в меню EXTRAS.
+     */
+    @FXML
+    fun onAllToExtras() {
+        val trackExt = trackExtToShow
+        if (trackExt == null) {
+            println("[EXTRAS] трек не выбран")
+            return
+        }
+        val extras = extrasPersonExt()
+        // facesExtByTrack разложен по страницам, поэтому в один список.
+        val all = trackExt.facesExtByTrack.flatten()
+        var changed = 0
+        for (fe in all) if (markFaceAsExtras(fe, extras)) changed++
+
+        // Трек целиком стал массовочным — пересчитываем его персону, иначе в
+        // строке останется прежний человек при уже массовочных лицах.
+        val track = trackExt.tracks.firstOrNull()
+        if (track != null) {
+            track.person = extras.person
+            Main.faceTrackRepo.save(track)
+        }
+        println("[EXTRAS] трек ${track?.id}: в массовку переведено $changed из ${all.size}")
+        // Обновление то же, что у пункта меню в треках: пересобрать строки
+        // треков и список персон плана.
+        reloadTracks(currentShotExt)
+        reloadPersonsForShot()
+    }
+
+    /** True, если только что был обработан перенос: щелчок после него лишний. */
+    private fun consumeDragHandled(): Boolean {
+        if (!dragHandled) return false
+        dragHandled = false
+        return true
+    }
+
+    /**
+     * Персона, строка которой оказалась под указателем: строки треков,
+     * строки персон файла и строки персон плана.
+     */
+    private fun personRowUnderCursor(sceneX: Double, sceneY: Double): PersonExt? {
+        val tbl = tblTracks
+        if (tbl != null && containsScenePoint(tbl, sceneX, sceneY)) {
+            val row = rowUnder(sceneX, sceneY, tbl) ?: return null
+            val item = row.item as? FaceTrackExt ?: return null
+            if (item.mixed || item.personId == 0L) return null
+            return listPersonsExtForFile.firstOrNull { it.person.id == item.personId }
+        }
+        for (t in listOfNotNull(tblPersonsAllForShot, tblPersonsAllForFile)) {
+            if (!containsScenePoint(t, sceneX, sceneY)) continue
+            val row = rowUnder(sceneX, sceneY, t) ?: return null
+            return row.item as? PersonExt
+        }
+        return null
+    }
+
+    private fun containsScenePoint(table: TableView<*>, sceneX: Double, sceneY: Double): Boolean {
+        val p = table.localToScene(table.boundsInLocal)
+        return sceneX >= p.minX && sceneX <= p.maxX && sceneY >= p.minY && sceneY <= p.maxY
+    }
+
+    private fun rowUnder(sceneX: Double, sceneY: Double, table: TableView<*>): TableRow<*>? {
+        val local = table.sceneToLocal(sceneX, sceneY)
+        return table.lookupAll(".table-row-cell")
+            .filterIsInstance<TableRow<*>>()
+            .firstOrNull { it.boundsInParent.contains(local.x, local.y) }
+    }
+
+    private fun <T> setupFaceDropOnRows(table: TableView<T>,
+                                        personOfRow: (T) -> PersonExt?,
+                                        faces: () -> MutableCollection<MatrixFace>,
+                                        afterAssign: () -> Unit) {
+        // Обработчики вешаются на САМИ СТРОКИ, а не на таблицу. События
+        // перетаскивания адресуются внутренним узлам таблицы, и до обработчика
+        // таблицы они не доходили: курсор над строкой оставался обычным,
+        // отпускание ничего не делало. Строка же знает и свой предмет, и
+        // координаты не нужны — цель известна из самой строки.
+        table.setRowFactory {
+            val row: TableRow<T> = TableRow()
+
+            row.onDragOver = EventHandler { mouseEvent ->
+                // Принимаем безусловно: на этом шаге переноса данные ещё не
+                // согласованы, и любая проверка содержимого даёт «не наше».
+                mouseEvent.acceptTransferModes(TransferMode.COPY)
+            }
+
+            row.onDragDropped = EventHandler { mouseEvent ->
+                var success = false
+                val item = row.item
+                val person = if (item != null) personOfRow(item) else null
+                val selected = faces()
+                if (person != null && selected.isNotEmpty()) {
+                    assignFacesToPerson(person, selected)
+                    afterAssign()
+                    success = true
+                }
+                mouseEvent.isDropCompleted = success
+                mouseEvent.consume()
+            }
+            row
+        }
+    }
+
+    /**
+     * Назначает перетащенные лица персонажу — ровно то же, что делает пункт
+     * «SELECT PERSON» в контекстном меню: та же запись в базу, то же имя для
+     * распознавателя, то же обновление экрана. Иначе перетаскивание и меню
+     * расходились бы в деталях, и распознавание потом считало бы не так.
+     *
+     * Список лиц передаётся вызывающим: во вкладке Persons это выделенные
+     * лица её сетки, в Tracks — выделенные лица сетки треков.
+     */
+    private fun assignFacesToPerson(personExt: PersonExt, faces: MutableCollection<MatrixFace>) {
+        if (!(listPersonsExtForFile.any { it.person == personExt.person })) {
+            listPersonsExtForFile.add(personExt)
+            listPersonsExtForFile.sort()
+        }
+        for (mf in faces) {
+            val faceExt = mf.faceExt ?: continue
+            faceExt.personExt = personExt
+            faceExt.face.person = personExt.person
+            faceExt.face.personRecognizedName =
+                    if (personExt.person.personType == PersonType.UNDEFINDED) ""
+                    else personExt.person.nameInRecognizer
+            FaceController.save(faceExt.face)
+            listFacesExt.remove(faceExt)
+            faceExt.labelSmall.graphic = null
+            faceExt.labelSmall.style = fxBorderDefault
+            currentMatrixPageFaces?.matrixFaces?.remove(mf)
+        }
+        faces.clear()
+    }
+
+    /**
+     * Пересобирает список персон монтажного плана.
+     *
+     * Список кэшируется в listPersonsExtForShot и наполняется при выборе
+     * плана. Всё, что меняет персону у лица в обход вкладки Persons — а это
+     * пункты контекстного меню в треках — обязано вызывать и это: иначе
+     * новая персонажа появляется в треках, но в списке плана её нет, и
+     * две вкладки показывают разное.
+     */
+    private fun reloadPersonsForShot() {
+        val shotExt = currentShotExt ?: return
+        listPersonsExtForShot = FXCollections.observableList(
+            shotExt.personsExt.filter { it.person.personType != PersonType.NONPERSON })
+        tblPersonsAllForShot?.items = listPersonsExtForShot
+    }
+
+    /**
+     * Сбрасывает всё, что показывает треки: выделенные трек и лица, лица на
+     * панели, страницы и подпись.
+     */
+    private fun clearTrackFaces() {
+        trackExtToShow = null
+        currentMatrixPageTrackFaces = null
+        selectedTrackFaces.clear()
+        paneTrackFaces?.children?.clear()
+        listMatrixPageTrackFaces.clear()
+        tblTrackPages?.items = FXCollections.observableArrayList()
+        lblTracks?.text = ""
+    }
+
+    /**
+     * Собирает строку списка из одного или нескольких треков.
+     *
+     * Лица берутся из готовой карты по трекам: обращаться к базе отсюда нельзя,
+     * здесь всё уже прочитано — иначе на плане с десятками треков список
+     * собирался бы десятки секунд.
+     */
+    private fun buildTrackRow(rowTracks: List<FaceTrack>,
+                             facesByTrack: Map<Long, List<Face>>,
+                             name: String,
+                             isMixed: Boolean,
+                             personPreview: String?,
+                             personId: Long = 0L): FaceTrackExt {
+        val faces = mutableListOf<Face>()
+        for (t in rowTracks) faces.addAll(facesByTrack[t.id] ?: emptyList())
+        val ext = FaceTrackExt(rowTracks, faces, name, isMixed, personPreview, personId)
+        ext.isNamed = name.isNotEmpty() && !isMixed
+        for (t in rowTracks) {
+            val trackFaces = mutableListOf<FaceExt>()
+            for (face in facesByTrack[t.id] ?: emptyList()) {
+                var pExt = listPersonsExtForFile.firstOrNull { it.person.id == face.person.id }
+                if (pExt == null) pExt = projectPersonExtUndefinded
+                if (pExt != null) {
+                    // Подменяем отложенные связи конкретными объектами: в
+                    // конструкторе FaceExt читается face.file.shortName, а
+                    // формы сессии Hibernate не имеют.
+                    face.file = currentFileExt!!.file
+                    face.person = pExt.person
+                    val fExt = FaceExt(face, currentFileExt!!, pExt)
+                    trackFaces.add(fExt)
+                    ext.facesExtForGrid.add(fExt)
+                }
+            }
+            ext.facesExtByTrack.add(trackFaces)
+        }
+        return ext
+    }
+
+
+
+    /** Собирает строку списка из одного или нескольких треков. */
+
+
 
     @FXML
     fun doCreateNewSceneBySelectedShots(event: ActionEvent?) {

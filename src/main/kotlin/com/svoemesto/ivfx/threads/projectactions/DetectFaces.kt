@@ -6,10 +6,14 @@ import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.utils.FaceDetection
+import javafx.animation.KeyFrame
+import javafx.animation.Timeline
 import javafx.application.Platform
+import javafx.event.EventHandler
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TableView
+import javafx.util.Duration
 import java.io.FileWriter
 import java.io.IOException
 import java.io.File as IOFile
@@ -24,15 +28,19 @@ class DetectFaces(var fileExt: FileExt,
 
     override fun run() {
 
-        lbl1.isVisible = true
-        pb1.isVisible = true
-        lbl2.isVisible = true
-        pb2.isVisible = true
-
+        // Видимость элементов формы меняется только из потока интерфейса.
+        // Этот класс работает в отдельном потоке, и прямое присваивание
+        // isVisible из него JavaFX не применяет: форма остаётся пустой, а
+        // поиск лиц при этом идёт. Поэтому всё, что касается формы, идёт
+        // через Platform.runLater — и в начале, и в конце.
         Platform.runLater {
+            lbl1.isVisible = true
+            pb1.isVisible = true
+            lbl2.isVisible = true
+            pb2.isVisible = true
             lbl1.text = textLbl1
             pb1.progress = (numCurrentThread-1) / countThreads.toDouble()
-            lbl2.text = "Detecting faces..."
+            lbl2.text = "Detecting faces: starting..."
             pb2.progress = ProgressBar.INDETERMINATE_PROGRESS
         }
 
@@ -54,37 +62,83 @@ class DetectFaces(var fileExt: FileExt,
 
         val param: MutableList<String> = mutableListOf()
 
-        param.add("${faceDetectorPath.first()}:\n")
         param.add("cd \"${faceDetectorPath}\"\n")
-        param.add("py")
-        param.add("\"${faceDetectorPath}/detect_faces_in_folder.py\"")
+        param.add(FaceDetection.PYTHON_PATH)
+        param.add("${faceDetectorPath}/detect_faces_in_folder.py")
         param.add("-i")
-        param.add("\"${fileExt.folderFramesFull}\"")
+        param.add("${fileExt.folderFramesFull}")
         param.add("-o")
-        param.add("\"${fileExt.folderFacesFull}\"")
+        param.add("${fileExt.folderFacesFull}")
         param.add("-d")
-        param.add("\"${faceDetectorPath}/face_detection_model\"")
+        param.add("${faceDetectorPath}/face_detection_model")
         param.add("-m")
-        param.add("\"${faceDetectorPath}/openface_nn4.small2.v1.t7\"")
+        // Раньше здесь была модель openface_nn4.small2.v1.t7 в формате
+        // TorchScript: она грузилась только через cv2.dnn.readNetFromTorch,
+        // которого нет в OpenCV 5. Сейчас это ArcFace R50, и она работает
+        // через тот же onnxruntime, что и детектор.
+        param.add("${faceDetectorPath}/w600k_r50.onnx")
         param.add("-c")
-        param.add(0.3.toString())
+        // Порог 0,5 — на нём проводилось сравнение с YuNet: при 0,5 медианная
+        // достоверность находимых лиц 0,79, а ложные срабатывания на
+        // текстурах уходили вниз.
+        param.add(0.5.toString())
 
-        val cmdText = param.joinToString(separator=" ").replace("/","\\")
+        val cmdText = param.joinToString(separator = " ")
 
         println(cmdText)
 
         val runCmd = RunCmd(cmdText)
+
+        // На серии в 88643 кадра поиск лиц идёт около часа, и всё это время
+        // форма показывала безликое «Detecting faces...» с крутящейся
+        // полосой: отличить работу от зависания было нечем. Скрипт пишет
+        // файл прогресса, здесь он опрашивается и показывает настоящие
+        // числа.
+        val progressFile = IOFile(fileExt.folderFramesFull + IOFile.separator + "detect_faces_progress.txt")
+        progressFile.delete()
+
+        val poller = Timeline(KeyFrame(Duration.millis(500.0), EventHandler {
+            try {
+                val parts = progressFile.readText().trim().split(" ")
+                if (parts.size >= 3) {
+                    val done = parts[0].toDouble()
+                    val total = parts[1].toDouble()
+                    val faces = parts[2].toInt()
+                    if (total > 0) {
+                        val percent = (done / total * 100).toInt()
+                        Platform.runLater {
+                            pb2.progress = done / total
+                            lbl2.text = "Detecting faces: ${done.toInt()} / ${total.toInt()} ($percent%), found: $faces"
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // файла ещё нет в первые доли секунды — это нормально,
+                // показывать тогда нечего
+            }
+        }))
+        poller.cycleCount = Timeline.INDEFINITE
+        poller.play()
+
         runCmd.run()
+
+        poller.stop()
+        progressFile.delete()
 
         println("Это должно напечататься после завершения процесса cmd")
 
         fileExt.hasDetectedFaces = true
-        table.refresh()
 
-        lbl1.isVisible = false
-        lbl2.isVisible = false
-        pb1.isVisible = false
-        pb2.isVisible = false
+        // таблица и форма обновляются тоже из потока интерфейса — по той же
+        // причине, что и в начале
+        Platform.runLater {
+            table.refresh()
+            // Прячем только текущий файл, полосы остаются на месте: иначе
+            // после завершения их снова не видно и непонятно, отработало
+            // действие или нет. Оставляем надпись с результатом.
+            lbl1.isVisible = false
+            lbl2.text = "Done"
+        }
 
     }
 }

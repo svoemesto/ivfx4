@@ -48,7 +48,9 @@ class DatabaseEditFXController {
     fun editH2database(h2database: H2database): H2database {
         currentDatabase = h2database
         try {
-            val root = FXMLLoader.load<Parent>(DatabaseEditFXController::class.java.getResource("database-edit-view.fxml"))
+            val loader = FXMLLoader(DatabaseEditFXController::class.java.getResource("database-edit-view.fxml"))
+            loader.setController(this)
+            val root = loader.load<Parent>()
             mainStage = Stage()
             mainStage?.setTitle(if (h2database.id != null) "Редактирование базы данных" else "Добавление базы данных")
             mainStage?.setScene(Scene(root))

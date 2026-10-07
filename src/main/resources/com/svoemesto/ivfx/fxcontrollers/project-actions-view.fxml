@@ -10,15 +10,19 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svoemesto.ivfx.fxcontrollers.ProjectActionsFXController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
+            <ProgressBar fx:id="pb1" maxWidth="1.7976931348623157E308" minHeight="18.0" prefHeight="18.0" maxHeight="18.0" progress="0.0" style="-fx-background-color: #d6d6d6;" />
+            <Label fx:id="lblPb1" maxWidth="1.7976931348623157E308" />
+            <ProgressBar fx:id="pb2" maxWidth="1.7976931348623157E308" minHeight="18.0" prefHeight="18.0" maxHeight="18.0" progress="0.0" style="-fx-background-color: #d6d6d6;" />
+            <Label fx:id="lblPb2" maxWidth="1.7976931348623157E308" />
             <HBox>
                <children>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="10000.0" prefWidth="10000.0">
                      <children>
-                        <TableView fx:id="tblFilesExt" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="800.0" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
+                        <TableView fx:id="tblFilesExt" prefHeight="10000.0" style="-fx-selection-bar: red; -fx-selection-bar-non-focused: red;">
                           <columns>
                             <TableColumn fx:id="colFileExtOrder" minWidth="30.0" prefWidth="30.0" text="#" />
                             <TableColumn fx:id="colFileExtName" prefWidth="200.0" text="Файл" />
@@ -39,7 +43,6 @@
                               <TableColumn fx:id="colFileExtCC" minWidth="30.0" prefWidth="30.0" text="CC" />
                           </columns>
                         </TableView>
-                        <Button fx:id="btnTrainFaceModel" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#doTrainFaceModel" text="Train face model" />
                      </children>
                   </VBox>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="10000.0" prefWidth="10000.0">
@@ -57,6 +60,8 @@
                         <CheckBox fx:id="checkCreateFaces" mnemonicParsing="false" text="[CF] Create faces" />
                         <CheckBox fx:id="checkCreateFacesPreview" mnemonicParsing="false" text="[CFP] Create faces preview" />
                         <CheckBox fx:id="checkRecognizeFaces" mnemonicParsing="false" text="[RF] Recognize faces" />
+                        <CheckBox fx:id="checkTrackFaces" mnemonicParsing="false" text="[TR] Track faces" />
+                        <CheckBox fx:id="checkRecheckFaces" mnemonicParsing="false" text="[RC] Recheck faces" />
                         <CheckBox fx:id="checkCreateShotsCompressedWithAudio" mnemonicParsing="false" text="[SCA] Create shots video files (compressed, with audio) - need LL!!!" />
                         <CheckBox fx:id="checkCreateShotsLosslessWithAudio" mnemonicParsing="false" text="[SLA] Create shots video files (lossless mxf, with audio) - need LL!!!" />
                         <CheckBox fx:id="checkCreateShotsLosslessWithoutAudio" mnemonicParsing="false" text="[SLN] Create shots video files (lossless mxf, without audio) - need LL!!!" />
@@ -65,10 +70,6 @@
                   </VBox>
                </children>
             </HBox>
-            <ProgressBar fx:id="pb1" maxWidth="1.7976931348623157E308" progress="0.0" />
-            <Label fx:id="lblPb1" maxWidth="1.7976931348623157E308" />
-            <ProgressBar fx:id="pb2" maxWidth="1.7976931348623157E308" progress="0.0" />
-            <Label fx:id="lblPb2" maxWidth="1.7976931348623157E308" />
          </children>
       </VBox>
    </children>

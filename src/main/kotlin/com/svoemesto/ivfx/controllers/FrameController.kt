@@ -46,7 +46,13 @@ class FrameController() {
             return result
         }
 
-        fun createFrames(fileExt: FileExt) {
+        /**
+         * @param framesCount сколько кадров записать. Шаг передаёт сюда то
+         * число, которое лежит в папке, а не число из метаданных: те на
+         * единицу больше, и лишний кадр уезжал в базу без файла — детектор
+         * на нём падал и вся серия оставалась без лиц.
+         */
+        fun createFrames(fileExt: FileExt, framesCount: Int = fileExt.framesCount) {
             deleteAll(fileExt.file)
 
             val sql = "insert into tbl_frames (frame_number, file_id, sim_score_next_1, sim_score_next_2, sim_score_next_3, sim_score_prev_1, sim_score_prev_2, sim_score_prev_3, diff_next_1, diff_next_2, diff_prev_1, diff_prev_2) SELECT distinct (a1 + a2*10 + a3*100 + a4*1000 + a5*10000 + a6*100000)+1 as frameNumber, ${fileExt.file.id} as file_id, 0,0,0,0,0,0,0,0,0,0 " +
@@ -63,7 +69,7 @@ class FrameController() {
                     "(SELECT 0 a6 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 " +
                     "UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) t6 " +
                     "order by frameNumber " +
-                    "limit ${fileExt.framesCount}"
+                    "limit $framesCount"
             val st = Main.connection.createStatement()
             st.execute(sql)
 
