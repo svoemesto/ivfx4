@@ -68,10 +68,12 @@
         </dependency>
 
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jdbc</artifactId>
-        </dependency>
+        <!-- spring-boot-starter-data-jdbc убран в задаче #236.
+             Вместе со spring-boot-starter-data-jpa он переводил Spring Data в
+             strict configuration mode («Multiple Spring Data modules found»),
+             где модуль не выбирает хранилище и оставляет репозитории
+             незарегистрированными. Проект написан под JPA: @Table на 20
+             моделях и 89 нативных запросов nativeQuery=true. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>

@@ -22,8 +22,6 @@
     <rule id="standard:final-newline" count="1" />
   </file>
   <file name="src/main/kotlin/com/svoemesto/ivfx/Main.kt">
-    <rule id="standard:annotation-spacing" count="1" />
-    <rule id="standard:comment-spacing" count="1" />
     <rule id="standard:final-newline" count="1" />
     <rule id="standard:no-blank-line-before-rbrace" count="1" />
     <rule id="standard:no-consecutive-blank-lines" count="1" />
@@ -35,13 +33,6 @@
     <rule id="standard:no-blank-line-before-rbrace" count="2" />
     <rule id="standard:no-empty-class-body" count="1" />
     <rule id="standard:no-empty-first-line-in-class-body" count="1" />
-  </file>
-  <file name="src/main/kotlin/com/svoemesto/ivfx/SpringConfig.kt">
-    <rule id="standard:final-newline" count="1" />
-    <rule id="standard:function-expression-body" count="1" />
-    <rule id="standard:no-consecutive-blank-lines" count="2" />
-    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
-    <rule id="standard:no-unused-imports" count="2" />
   </file>
   <file name="src/main/kotlin/com/svoemesto/ivfx/apps/ProjectFXApp.kt">
     <rule id="standard:chain-method-continuation" count="3" />
