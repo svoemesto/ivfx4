@@ -2061,11 +2061,7 @@ class ShotsEditFXController {
             // началом в базе нет. Без проверки на отмену такие кадры
             // выводились каждый на новой строке — матрица рисовала то, чего
             // в разметке нет.
-            val isCancelledBoundary =
-                matrixFrame.frameExt!!.frame.isFinalFind &&
-                    matrixFrame.frameExt!!.frame.isManualCancel
             if (matrixFrame.frameExt!!.frame.isFinalFind &&
-                !isCancelledBoundary &&
                 shotExt.firstFrameExt.frame.frameNumber != matrixFrame.frameNumber
             ) {
                 // split
@@ -2081,7 +2077,6 @@ class ShotsEditFXController {
                 currentFileExt!!.shotsExt.add(addedShotExt)
                 currentFileExt!!.shotsExt.sort()
             } else if (!matrixFrame.frameExt!!.frame.isFinalFind &&
-                !matrixFrame.frameExt!!.frame.isManualCancel &&
                 shotExt.firstFrameExt.frame.frameNumber == matrixFrame.frameNumber
             ) {
                 // union
