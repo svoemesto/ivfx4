@@ -764,6 +764,7 @@ class ShotsEditFXController {
     @FXML
     fun initialize() {
         mainStage?.setOnCloseRequest {
+            Trace.action("закрытие окна редактирования поймано")
             clearOnExit()
             println("Закрытие окна ShotsEditFXController.")
         }
@@ -1935,9 +1936,14 @@ class ShotsEditFXController {
     fun doOK(event: ActionEvent?) {
         Trace.action("doOK")
         isWorking = false
-        // Обработчик закрытия сам зовёт clearOnExit — гасить его здесь
-        // нельзя, иначе память серии не освободится.
+        // Stage.close() НЕ порождает событие закрытия: обработчик
+        // onCloseRequest срабатывает только по крестику или системному
+        // закрытию окна. При закрытии кнопкой «ОК» он не вызывается, и
+        // память серии оставалась в куче — 6 ГБ на одну открытую серию,
+        // 17 ГБ на три. Поэтому здесь освобождение вызывается явно.
+        // Пути не пересекаются: «ОК» ведёт сюда, крестик — в обработчик.
         mainStage?.close()
+        clearOnExit()
     }
 
     fun getNextMatrixFrame(matrixFrame: MatrixFrame): MatrixFrame =
@@ -4355,6 +4361,7 @@ class ShotsEditFXController {
      * несколькими сериями подряд.
      */
     fun clearOnExit() {
+        Trace.action("освобождение началось, кадров: ${currentFileExt?.framesExt?.size ?: 0}")
         currentFileExt?.let { file ->
             // Превью — самая тяжёлая часть, BufferedImage на каждый кадр.
             // Сбрасываем до отпускания списков: иначе сборщик мусора может
