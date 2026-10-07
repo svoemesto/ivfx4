@@ -10,6 +10,13 @@ class RunListThreads(
     Runnable {
     override fun run() {
         this.name = "RunListThreads"
+        // Потоки операций создаются анонимно и по умолчанию зовутся
+        // Thread-4, Thread-6 — в журнале это бессмыслица, операцию не опознать.
+        // Имя ставим по классу: CreateShots.run() сам знает, кто он.
+        // Уже названные потоки (LoadListFilesExt и подобные) не трогаем —
+        // у них имя осмысленнее класса.
+        val autoName = Regex("^Thread-\\d+$")
+        listThreads.forEach { if (autoName.matches(it.name)) it.name = it.javaClass.simpleName }
         Trace.start("цепочка из ${listThreads.size} операций: ${listThreads.map { it.name }}")
         var runningThread: Thread? = null
         var countStartedThreads = 0

@@ -1,14 +1,13 @@
 package com.svoemesto.ivfx.threads.projectactions
 
-import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.Main
+import com.svoemesto.ivfx.controllers.FileController
 import com.svoemesto.ivfx.controllers.FrameController
-import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.models.Frame
-import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.FrameExt
 import com.svoemesto.ivfx.utils.IvfxFFmpegUtils.Companion.getListIFrames
+import com.svoemesto.ivfx.utils.Trace
 import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
@@ -18,16 +17,19 @@ import org.sikuli.script.Finder
 import org.sikuli.script.Pattern
 import kotlin.math.abs
 
-class AnalyzeFrames(var fileExt: FileExt,
-                    val table: TableView<FileExt>,
-                    private val textLbl1: String,
-                    private val numCurrentThread: Int,
-                    private val countThreads: Int,
-                    private var lbl1: Label, private var pb1: ProgressBar,
-                    private var lbl2: Label, private var pb2: ProgressBar): Thread(), Runnable {
-
+class AnalyzeFrames(
+    var fileExt: FileExt,
+    val table: TableView<FileExt>,
+    private val textLbl1: String,
+    private val numCurrentThread: Int,
+    private val countThreads: Int,
+    private var lbl1: Label,
+    private var pb1: ProgressBar,
+    private var lbl2: Label,
+    private var pb2: ProgressBar,
+) : Thread(),
+    Runnable {
     override fun run() {
-
         lbl1.isVisible = true
         lbl2.isVisible = true
         pb1.isVisible = true
@@ -45,13 +47,16 @@ class AnalyzeFrames(var fileExt: FileExt,
         // и серия оставалась совсем без лиц — на всех восьми новых сериях так
         // и вышло: в базе 82 337 кадров, на диске 82 336.
         val existing = FileController.getExistingFramesCount(fileExt)
-        val framesCount: Int = if (existing > 0 && existing < fileExt.framesCount) {
-            println("[AF] в метаданных ${fileExt.framesCount} кадров, на диске $existing — " +
-                    "в базу идут $existing")
-            existing
-        } else {
-            fileExt.framesCount
-        }
+        val framesCount: Int =
+            if (existing > 0 && existing < fileExt.framesCount) {
+                println(
+                    "[AF] в метаданных ${fileExt.framesCount} кадров, на диске $existing — " +
+                        "в базу идут $existing",
+                )
+                existing
+            } else {
+                fileExt.framesCount
+            }
 
         // создаем новые фреймы
         FrameController.createFrames(fileExt, framesCount)
@@ -77,7 +82,7 @@ class AnalyzeFrames(var fileExt: FileExt,
         }
         currentBlock++
         var listFramesExt = FrameController.getListFramesExt(fileExt)
-        listFramesExt.filter{listIFrames.contains(it.frame.frameNumber)}.forEach{it.frame.isIFrame = true}
+        listFramesExt.filter { listIFrames.contains(it.frame.frameNumber) }.forEach { it.frame.isIFrame = true }
 //        for (frameNumber in 1..framesCount) {
 //            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
 //            val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
@@ -97,10 +102,9 @@ class AnalyzeFrames(var fileExt: FileExt,
         // 2. заполняем simScore's
         currentBlock++
         for ((i, currentFrameExt) in listFramesExt.withIndex()) {
-
-            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
+            val initProgress1: Double = (numCurrentThread - 1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-            val percentage2: Double = ((currentBlock-1) + (i+1)/framesCount.toDouble() ) / countBlocks.toDouble()
+            val percentage2: Double = ((currentBlock - 1) + (i + 1) / framesCount.toDouble()) / countBlocks.toDouble()
             val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
             Platform.runLater {
                 lbl1.text = textLbl1
@@ -142,10 +146,9 @@ class AnalyzeFrames(var fileExt: FileExt,
         // 3. заполняем diff's
         currentBlock++
         for ((i, currentFrameExt) in listFramesExt.withIndex()) {
-
-            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
+            val initProgress1: Double = (numCurrentThread - 1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-            val percentage2: Double = ((currentBlock-1) + (i+1)/framesCount.toDouble() ) / countBlocks.toDouble()
+            val percentage2: Double = ((currentBlock - 1) + (i + 1) / framesCount.toDouble()) / countBlocks.toDouble()
             val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
             Platform.runLater {
                 lbl1.text = textLbl1
@@ -160,12 +163,26 @@ class AnalyzeFrames(var fileExt: FileExt,
             val frameNextExt2: FrameExt? = if (i < listFramesExt.size - 2) listFramesExt[i + 2] else null
             with(currentFrameExt.frame) {
                 this.diffNext1 = if (frameNextExt1 != null) abs(this.simScoreNext1 - frameNextExt1.frame.simScoreNext1) else 0.0
-                this.diffNext2 = if (frameNextExt1 != null && frameNextExt2 != null) abs(frameNextExt1.frame.simScoreNext1 - frameNextExt2.frame.simScoreNext1) else 0.0
+                this.diffNext2 =
+                    if (frameNextExt1 != null &&
+                        frameNextExt2 != null
+                    ) {
+                        abs(frameNextExt1.frame.simScoreNext1 - frameNextExt2.frame.simScoreNext1)
+                    } else {
+                        0.0
+                    }
                 this.diffPrev1 = if (framePrevExt1 != null) abs(framePrevExt1.frame.simScoreNext1 - this.simScoreNext1) else 0.0
                 // Раньше здесь стояло `this.diffPrev1 = ...` вторым присваиванием
                 // подряд: оно затирало прямое сравнение, и в базе diff_prev_2 был
                 // равен нулю у всех кадров.
-                this.diffPrev2 = if (framePrevExt1 != null && framePrevExt2 != null) abs(framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1) else 0.0
+                this.diffPrev2 =
+                    if (framePrevExt1 != null &&
+                        framePrevExt2 != null
+                    ) {
+                        abs(framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1)
+                    } else {
+                        0.0
+                    }
             }
 
 //            currentFrameExt.frame.diffNext1 = if (frameNextExt1 != null) abs(currentFrameExt.frame.simScoreNext1 - frameNextExt1.frame.simScoreNext1) else 0.0
@@ -173,7 +190,7 @@ class AnalyzeFrames(var fileExt: FileExt,
 //            currentFrameExt.frame.diffPrev1 = if (framePrevExt1 != null) abs(framePrevExt1.frame.simScoreNext1 - currentFrameExt.frame.simScoreNext1) else 0.0
 //            currentFrameExt.frame.diffPrev1 = if (framePrevExt1 != null && framePrevExt2 != null) abs(framePrevExt2.frame.simScoreNext1 - framePrevExt1.frame.simScoreNext1) else 0.0
 
-        //            var diffNext: Double
+            //            var diffNext: Double
 //            diffNext = 0.0
 //            if (frameNextExt1 != null) {
 //                diffNext = currentFrameExt.frame.simScoreNext1 - frameNextExt1.frame.simScoreNext1
@@ -202,13 +219,26 @@ class AnalyzeFrames(var fileExt: FileExt,
 
         // 4. находим переходы
         currentBlock++
-        val diff1 = 0.4 //Порог обнаружения перехода
-        val diff2 = 0.42 //Вторичный порог
+        val diff1 = 0.4 // Порог обнаружения перехода
+        val diff2 = 0.42 // Вторичный порог
+        var skippedManual = 0
         for ((i, frameExt) in listFramesExt.withIndex()) {
+            Trace.progress("AF", i + 1L, listFramesExt.size.toLong(), "кадр ${frameExt.frame.frameNumber}")
 
-            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
+            // Ручная правка границы имеет приоритет над автоматикой. Раньше
+            // все четыре ветки ниже обнуляли isManualAdd и isManualCancel
+            // безусловно, то есть прогон анализа стирал склейки и разделения,
+            // сделанные пользователем: снятая граница возвращалась, а
+            // поставленная вручную исчезала. Отметка «это поправил человек»
+            // должна означать «не трогай».
+            if (frameExt.frame.isManualAdd || frameExt.frame.isManualCancel) {
+                skippedManual++
+                continue
+            }
+
+            val initProgress1: Double = (numCurrentThread - 1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-            val percentage2: Double = ((currentBlock-1) + (i+1)/framesCount.toDouble() ) / countBlocks.toDouble()
+            val percentage2: Double = ((currentBlock - 1) + (i + 1) / framesCount.toDouble()) / countBlocks.toDouble()
             val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
             Platform.runLater {
                 lbl1.text = textLbl1
@@ -240,7 +270,6 @@ class AnalyzeFrames(var fileExt: FileExt,
                 frameExt.frame.isManualCancel = false
                 frameExt.frame.isFinalFind = false
             }
-
         }
 
         // 5. сохраняем фреймы
@@ -249,8 +278,11 @@ class AnalyzeFrames(var fileExt: FileExt,
             lbl1.text = textLbl1
             lbl2.text = "Saving frames"
         }
+        if (skippedManual > 0) {
+            Trace.done("AF, ручных границ сохранено: $skippedManual из ${listFramesExt.size}")
+        }
         val listFrames: MutableList<Frame> = mutableListOf()
-        listFramesExt.forEach{ listFrames.add(it.frame)}
+        listFramesExt.forEach { listFrames.add(it.frame) }
         Main.frameRepo.saveAll(listFrames)
 
         fileExt.hasAnalyzedFrames = true
@@ -260,7 +292,5 @@ class AnalyzeFrames(var fileExt: FileExt,
         lbl2.isVisible = false
         pb1.isVisible = false
         pb2.isVisible = false
-
     }
-
 }

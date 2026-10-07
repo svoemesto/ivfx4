@@ -20,6 +20,7 @@ import com.svoemesto.ivfx.repos.ShotTmp2CdfRepo
 import com.svoemesto.ivfx.repos.ShotTmpCdfRepo
 import com.svoemesto.ivfx.repos.TrackRepo
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import org.springframework.transaction.support.TransactionTemplate
 
 // @SpringBootApplication здесь стоял и СЛУЧАЛСЯ причиной вечного зависания
 // при поднятии контекста вне GUI.
@@ -48,6 +49,8 @@ class Main {
         val propertyCdfRepo = context.getBean("propertyCdfRepo", PropertyCdfRepo::class.java)
         val projectRepo = context.getBean("projectRepo", ProjectRepo::class.java)
         val projectCdfRepo = context.getBean("projectCdfRepo", ProjectCdfRepo::class.java)
+        val transactionTemplate =
+            context.getBean("transactionTemplate", TransactionTemplate::class.java)
         val fileRepo = context.getBean("fileRepo", FileRepo::class.java)
         val fileCdfRepo = context.getBean("fileCdfRepo", FileCdfRepo::class.java)
         val trackRepo = context.getBean("trackRepo", TrackRepo::class.java)
@@ -76,6 +79,4 @@ class Main {
         const val PREVIEW_FACE_CROPPING = false
         const val PREVIEW_PERSON_CROPPING = false
     }
-
-
 }

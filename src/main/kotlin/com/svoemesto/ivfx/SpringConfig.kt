@@ -13,6 +13,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.EnableTransactionManagement
+import org.springframework.transaction.support.TransactionTemplate
 import java.util.Properties
 import javax.persistence.EntityManagerFactory
 import javax.sql.DataSource
@@ -110,4 +111,15 @@ class SpringConfig {
     @Bean
     fun transactionManager(entityManagerFactory: EntityManagerFactory): PlatformTransactionManager =
         JpaTransactionManager(entityManagerFactory)
+
+    /**
+     * Обёртка для цепочки операций, которая должна быть одной транзакцией.
+     *
+     * Нужна потому, что контроллеры вызываются напрямую, минуя прокси: на
+     * них `@Transactional` не действует, и каждый вызов репозитория коммитится
+     * отдельно. Из-за этого удаление файла падало в середине, оставляя файл
+     * в списке с уже стёртым анализом (#234).
+     */
+    @Bean
+    fun transactionTemplate(transactionManager: PlatformTransactionManager): TransactionTemplate = TransactionTemplate(transactionManager)
 }

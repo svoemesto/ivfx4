@@ -6,6 +6,7 @@ import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.utils.FaceDetection
+import com.svoemesto.ivfx.utils.Trace
 import javafx.animation.KeyFrame
 import javafx.animation.Timeline
 import javafx.application.Platform
@@ -18,16 +19,19 @@ import java.io.FileWriter
 import java.io.IOException
 import java.io.File as IOFile
 
-class DetectFaces(var fileExt: FileExt,
-                  val table: TableView<FileExt>,
-                  val textLbl1: String,
-                  val numCurrentThread: Int,
-                  val countThreads: Int,
-                  var lbl1: Label, var pb1: ProgressBar,
-                  var lbl2: Label, var pb2: ProgressBar): Thread(), Runnable {
-
+class DetectFaces(
+    var fileExt: FileExt,
+    val table: TableView<FileExt>,
+    val textLbl1: String,
+    val numCurrentThread: Int,
+    val countThreads: Int,
+    var lbl1: Label,
+    var pb1: ProgressBar,
+    var lbl2: Label,
+    var pb2: ProgressBar,
+) : Thread(),
+    Runnable {
     override fun run() {
-
         // Видимость элементов формы меняется только из потока интерфейса.
         // Этот класс работает в отдельном потоке, и прямое присваивание
         // isVisible из него JavaFX не применяет: форма остаётся пустой, а
@@ -39,7 +43,7 @@ class DetectFaces(var fileExt: FileExt,
             lbl2.isVisible = true
             pb2.isVisible = true
             lbl1.text = textLbl1
-            pb1.progress = (numCurrentThread-1) / countThreads.toDouble()
+            pb1.progress = (numCurrentThread - 1) / countThreads.toDouble()
             lbl2.text = "Detecting faces: starting..."
             pb2.progress = ProgressBar.INDETERMINATE_PROGRESS
         }
@@ -57,14 +61,13 @@ class DetectFaces(var fileExt: FileExt,
             e.printStackTrace()
         }
 
-
         val faceDetectorPath = FaceDetection.FACE_DETECTOR_PATH
 
         val param: MutableList<String> = mutableListOf()
 
         param.add("cd \"${faceDetectorPath}\"\n")
         param.add(FaceDetection.PYTHON_PATH)
-        param.add("${faceDetectorPath}/detect_faces_in_folder.py")
+        param.add("$faceDetectorPath/detect_faces_in_folder.py")
         param.add("-i")
         param.add("${fileExt.folderFramesFull}")
         param.add("-o")
@@ -100,26 +103,36 @@ class DetectFaces(var fileExt: FileExt,
         val progressFile = IOFile(fileExt.folderFramesFull + IOFile.separator + "detect_faces_progress.txt")
         progressFile.delete()
 
-        val poller = Timeline(KeyFrame(Duration.millis(500.0), EventHandler {
-            try {
-                val parts = progressFile.readText().trim().split(" ")
-                if (parts.size >= 3) {
-                    val done = parts[0].toDouble()
-                    val total = parts[1].toDouble()
-                    val faces = parts[2].toInt()
-                    if (total > 0) {
-                        val percent = (done / total * 100).toInt()
-                        Platform.runLater {
-                            pb2.progress = done / total
-                            lbl2.text = "Detecting faces: ${done.toInt()} / ${total.toInt()} ($percent%), found: $faces"
+        val poller =
+            Timeline(
+                KeyFrame(
+                    Duration.millis(500.0),
+                    EventHandler {
+                        try {
+                            val parts = progressFile.readText().trim().split(" ")
+                            if (parts.size >= 3) {
+                                val done = parts[0].toDouble()
+                                val total = parts[1].toDouble()
+                                val faces = parts[2].toInt()
+                                if (total > 0) {
+                                    // В журнал пишем то же, что в подпись: детектор —
+                                    // внешний процесс, и иначе нельзя отличить работу
+                                    // от зависания по одному факту, что окно открыто.
+                                    Trace.progress("DF", done.toLong(), total.toLong(), "найдено лиц: $faces")
+                                    val percent = (done / total * 100).toInt()
+                                    Platform.runLater {
+                                        pb2.progress = done / total
+                                        lbl2.text = "Detecting faces: ${done.toInt()} / ${total.toInt()} ($percent%), found: $faces"
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            // файла ещё нет в первые доли секунды — это нормально,
+                            // показывать тогда нечего
                         }
-                    }
-                }
-            } catch (e: Exception) {
-                // файла ещё нет в первые доли секунды — это нормально,
-                // показывать тогда нечего
-            }
-        }))
+                    },
+                ),
+            )
         poller.cycleCount = Timeline.INDEFINITE
         poller.play()
 
@@ -142,6 +155,5 @@ class DetectFaces(var fileExt: FileExt,
             lbl1.isVisible = false
             lbl2.text = "Done"
         }
-
     }
 }

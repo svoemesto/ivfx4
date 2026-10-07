@@ -83,6 +83,31 @@ object Trace {
      * Прокрутка и смена выделения сюда намеренно не попадают: они летят
      * десятками в секунду и на флаг трассировки.
      */
+
+    /**
+     * Ход работы операции: сделано из скольки, и что получилось.
+     *
+     * Печатается не каждый шаг, а не чаще раза в 3 секунды на метку. Без
+     * ограничения анализ кадров напечатал бы 82336 строк — тот же расход,
+     * из-за которого трассировка методов вынесена под флаг.
+     */
+    fun progress(
+        tag: String,
+        done: Long,
+        total: Long,
+        note: String = "",
+    ) {
+        val now = System.currentTimeMillis()
+        val last = lastProgress[tag] ?: 0L
+        if (now - last < PROGRESS_INTERVAL_MS) return
+        lastProgress[tag] = now
+        val tail = if (note.isEmpty()) "" else ", $note"
+        println("[$tag] $done/$total$tail")
+    }
+
+    private val lastProgress = mutableMapOf<String, Long>()
+    private const val PROGRESS_INTERVAL_MS = 3000L
+
     fun action(what: String) {
         println("[$ACTION] $what")
     }
