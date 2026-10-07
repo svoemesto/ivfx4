@@ -2056,7 +2056,18 @@ class ShotsEditFXController {
         val shotExt = getShotExtByFrameNumber(matrixFrame.frameNumber!!)
         if (shotExt != null) {
             val frameNumber = matrixFrame.frameNumber
-            if (matrixFrame.frameExt!!.frame.isFinalFind && shotExt.firstFrameExt.frame.frameNumber != matrixFrame.frameNumber) {
+            // Отменённая вручную граница не должна выглядеть как начало
+            // плана: метка is_final_find у неё остаётся, но плана с таким
+            // началом в базе нет. Без проверки на отмену такие кадры
+            // выводились каждый на новой строке — матрица рисовала то, чего
+            // в разметке нет.
+            val isCancelledBoundary =
+                matrixFrame.frameExt!!.frame.isFinalFind &&
+                    matrixFrame.frameExt!!.frame.isManualCancel
+            if (matrixFrame.frameExt!!.frame.isFinalFind &&
+                !isCancelledBoundary &&
+                shotExt.firstFrameExt.frame.frameNumber != matrixFrame.frameNumber
+            ) {
                 // split
                 val lastFrameNumber = shotExt.lastFrameExt.frame.frameNumber
                 val lastFrameExt = currentFileExt!!.framesExt.first { it.frame.frameNumber == lastFrameNumber }
@@ -2069,7 +2080,10 @@ class ShotsEditFXController {
                 addedShotExt.buttonGetType.setOnAction { onActionButtonGetShotType(addedShotExt) }
                 currentFileExt!!.shotsExt.add(addedShotExt)
                 currentFileExt!!.shotsExt.sort()
-            } else if (!matrixFrame.frameExt!!.frame.isFinalFind && shotExt.firstFrameExt.frame.frameNumber == matrixFrame.frameNumber) {
+            } else if (!matrixFrame.frameExt!!.frame.isFinalFind &&
+                !matrixFrame.frameExt!!.frame.isManualCancel &&
+                shotExt.firstFrameExt.frame.frameNumber == matrixFrame.frameNumber
+            ) {
                 // union
                 val unionShot = getShotExtByFrameNumber(matrixFrame.frameNumber!! - 1)
                 if (unionShot != null) {
