@@ -49,3 +49,6 @@ transition-analysis/scores-snapshot.txt
 /*.md.bak
 # --- Логи CLI-трекера (содержат URL и id задач) ---
 logs/
+
+# --- Бинарь линтера: 70 МБ, ставится скриптом ---
+tools/ktlint/ktlint

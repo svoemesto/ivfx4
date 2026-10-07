@@ -1,0 +1,1817 @@
+<?xml version='1.0' encoding='utf-8'?>
+<baseline version="1" mode="count-by-file-rule">
+  <file name="src/main/kotlin/com/svoemesto/ivfx/H2db.kt">
+    <rule id="standard:colon-spacing" count="23" />
+    <rule id="standard:comma-spacing" count="4" />
+    <rule id="standard:curly-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="2" />
+    <rule id="standard:function-return-type-spacing" count="10" />
+    <rule id="standard:function-signature" count="4" />
+    <rule id="standard:function-start-of-body-spacing" count="1" />
+    <rule id="standard:indent" count="30" />
+    <rule id="standard:multiline-expression-wrapping" count="2" />
+    <rule id="standard:no-blank-line-before-rbrace" count="16" />
+    <rule id="standard:no-consecutive-blank-lines" count="3" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="14" />
+    <rule id="standard:parameter-list-spacing" count="13" />
+    <rule id="standard:paren-spacing" count="2" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/HelloController.kt">
+    <rule id="standard:final-newline" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/Main.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/SomeUtils.kt">
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-empty-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/SpringConfig.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/apps/ProjectFXApp.kt">
+    <rule id="standard:chain-method-continuation" count="3" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/EventController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:argument-list-wrapping" count="13" />
+    <rule id="standard:chain-method-continuation" count="6" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:colon-spacing" count="4" />
+    <rule id="standard:comma-spacing" count="5" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="2" />
+    <rule id="standard:function-return-type-spacing" count="3" />
+    <rule id="standard:function-signature" count="11" />
+    <rule id="standard:max-line-length" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:parameter-list-spacing" count="1" />
+    <rule id="standard:property-wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/FaceController.kt">
+    <rule id="standard:argument-list-wrapping" count="70" />
+    <rule id="standard:binary-expression-wrapping" count="3" />
+    <rule id="standard:chain-method-continuation" count="5" />
+    <rule id="standard:class-signature" count="2" />
+    <rule id="standard:comma-spacing" count="2" />
+    <rule id="standard:comment-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="2" />
+    <rule id="standard:function-literal" count="4" />
+    <rule id="standard:function-signature" count="46" />
+    <rule id="standard:if-else-bracing" count="2" />
+    <rule id="standard:if-else-wrapping" count="7" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="20" />
+    <rule id="standard:keyword-spacing" count="1" />
+    <rule id="standard:max-line-length" count="7" />
+    <rule id="standard:multiline-expression-wrapping" count="12" />
+    <rule id="standard:multiline-if-else" count="6" />
+    <rule id="standard:no-blank-line-before-rbrace" count="8" />
+    <rule id="standard:no-consecutive-blank-lines" count="5" />
+    <rule id="standard:no-empty-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="7" />
+    <rule id="standard:op-spacing" count="9" />
+    <rule id="standard:parameter-list-wrapping" count="8" />
+    <rule id="standard:trailing-comma-on-call-site" count="9" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="4" />
+    <rule id="standard:wrapping" count="28" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/FileCdfController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-unused-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/FileController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:argument-list-wrapping" count="79" />
+    <rule id="standard:binary-expression-wrapping" count="1" />
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:chain-method-continuation" count="39" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:colon-spacing" count="5" />
+    <rule id="standard:comma-spacing" count="1" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="18" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="13" />
+    <rule id="standard:function-literal" count="4" />
+    <rule id="standard:function-return-type-spacing" count="5" />
+    <rule id="standard:function-signature" count="52" />
+    <rule id="standard:function-start-of-body-spacing" count="13" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="3" />
+    <rule id="standard:max-line-length" count="20" />
+    <rule id="standard:multiline-expression-wrapping" count="4" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-consecutive-comments" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-multi-spaces" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:string-template" count="2" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:wrapping" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/FilterConditionController.kt">
+    <rule id="standard:argument-list-wrapping" count="12" />
+    <rule id="standard:chain-method-continuation" count="10" />
+    <rule id="standard:curly-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-signature" count="12" />
+    <rule id="standard:max-line-length" count="5" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="5" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="4" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/FilterController.kt">
+    <rule id="standard:argument-list-wrapping" count="9" />
+    <rule id="standard:chain-method-continuation" count="9" />
+    <rule id="standard:comma-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-signature" count="15" />
+    <rule id="standard:max-line-length" count="3" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/FilterGroupController.kt">
+    <rule id="standard:argument-list-wrapping" count="12" />
+    <rule id="standard:chain-method-continuation" count="10" />
+    <rule id="standard:curly-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-signature" count="6" />
+    <rule id="standard:max-line-length" count="4" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="4" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/FrameController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:binary-expression-wrapping" count="1" />
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:comma-spacing" count="1" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-return-type-spacing" count="2" />
+    <rule id="standard:function-signature" count="22" />
+    <rule id="standard:indent" count="14" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/PersonController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:argument-list-wrapping" count="8" />
+    <rule id="standard:chain-method-continuation" count="8" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="4" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="6" />
+    <rule id="standard:function-return-type-spacing" count="1" />
+    <rule id="standard:function-signature" count="17" />
+    <rule id="standard:indent" count="8" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-semi" count="1" />
+    <rule id="standard:no-wildcard-imports" count="1" />
+    <rule id="standard:parameter-list-wrapping" count="6" />
+    <rule id="standard:statement-wrapping" count="3" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="2" />
+    <rule id="standard:wrapping" count="4" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/ProjectCdfController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-unused-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/ProjectController.kt">
+    <rule id="standard:argument-list-wrapping" count="22" />
+    <rule id="standard:chain-method-continuation" count="7" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:colon-spacing" count="5" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="21" />
+    <rule id="standard:function-expression-body" count="3" />
+    <rule id="standard:function-return-type-spacing" count="5" />
+    <rule id="standard:function-signature" count="34" />
+    <rule id="standard:function-start-of-body-spacing" count="15" />
+    <rule id="standard:max-line-length" count="5" />
+    <rule id="standard:multiline-if-else" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/PropertyCdfController.kt">
+    <rule id="standard:argument-list-wrapping" count="35" />
+    <rule id="standard:chain-method-continuation" count="12" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:comma-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="2" />
+    <rule id="standard:function-signature" count="21" />
+    <rule id="standard:max-line-length" count="7" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-unused-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/PropertyController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:argument-list-wrapping" count="16" />
+    <rule id="standard:chain-method-continuation" count="9" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="2" />
+    <rule id="standard:function-literal" count="1" />
+    <rule id="standard:function-signature" count="18" />
+    <rule id="standard:max-line-length" count="4" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/SceneController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:argument-list-wrapping" count="12" />
+    <rule id="standard:chain-method-continuation" count="6" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:colon-spacing" count="3" />
+    <rule id="standard:comma-spacing" count="3" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="2" />
+    <rule id="standard:function-return-type-spacing" count="3" />
+    <rule id="standard:function-signature" count="10" />
+    <rule id="standard:max-line-length" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:property-wrapping" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/ShotController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:argument-list-wrapping" count="21" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:chain-method-continuation" count="6" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:colon-spacing" count="3" />
+    <rule id="standard:comma-spacing" count="3" />
+    <rule id="standard:comment-spacing" count="2" />
+    <rule id="standard:curly-spacing" count="6" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="2" />
+    <rule id="standard:function-literal" count="3" />
+    <rule id="standard:function-return-type-spacing" count="3" />
+    <rule id="standard:function-signature" count="14" />
+    <rule id="standard:max-line-length" count="4" />
+    <rule id="standard:multiline-expression-wrapping" count="2" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:op-spacing" count="4" />
+    <rule id="standard:wrapping" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/ShotTmp2CdfController.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/ShotTmpCdfController.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/controllers/TrackController.kt">
+    <rule id="standard:annotation-spacing" count="1" />
+    <rule id="standard:argument-list-wrapping" count="11" />
+    <rule id="standard:chain-method-continuation" count="3" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:colon-spacing" count="3" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="3" />
+    <rule id="standard:function-return-type-spacing" count="3" />
+    <rule id="standard:function-signature" count="9" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="4" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-multi-spaces" count="2" />
+    <rule id="standard:no-unused-imports" count="10" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:statement-wrapping" count="3" />
+    <rule id="standard:trailing-comma-on-call-site" count="2" />
+    <rule id="standard:wrapping" count="4" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/enums/Folders.kt">
+    <rule id="standard:class-signature" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/enums/PersonType.kt">
+    <rule id="standard:class-signature" count="4" />
+    <rule id="standard:comma-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/enums/ReorderTypes.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/enums/ShotTypePerson.kt">
+    <rule id="standard:class-signature" count="5" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/enums/ShotTypeSize.kt">
+    <rule id="standard:class-signature" count="5" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/enums/VideoContainers.kt">
+    <rule id="standard:class-signature" count="15" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="5" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/DatabaseEditFXController.kt">
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-trailing-spaces" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/DatabaseSelectFXController.kt">
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/FilterConditionCreateFXController.kt">
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:comma-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="2" />
+    <rule id="standard:function-signature" count="4" />
+    <rule id="standard:if-else-wrapping" count="25" />
+    <rule id="standard:keyword-spacing" count="13" />
+    <rule id="standard:max-line-length" count="5" />
+    <rule id="standard:multiline-expression-wrapping" count="5" />
+    <rule id="standard:multiline-if-else" count="25" />
+    <rule id="standard:no-blank-line-before-rbrace" count="4" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="5" />
+    <rule id="standard:op-spacing" count="2" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:string-template" count="1" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/FilterEditFXController.kt">
+    <rule id="standard:argument-list-wrapping" count="16" />
+    <rule id="standard:binary-expression-wrapping" count="24" />
+    <rule id="standard:chain-method-continuation" count="13" />
+    <rule id="standard:comma-spacing" count="8" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-literal" count="2" />
+    <rule id="standard:function-signature" count="3" />
+    <rule id="standard:max-line-length" count="11" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="11" />
+    <rule id="standard:no-consecutive-blank-lines" count="11" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="7" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/FrameFacesEditFXController.kt">
+    <rule id="standard:argument-list-wrapping" count="10" />
+    <rule id="standard:chain-method-continuation" count="4" />
+    <rule id="standard:comma-spacing" count="4" />
+    <rule id="standard:indent" count="2" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="8" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="5" />
+    <rule id="standard:no-wildcard-imports" count="1" />
+    <rule id="standard:op-spacing" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/PersonEditFXController.kt">
+    <rule id="standard:argument-list-wrapping" count="36" />
+    <rule id="standard:binary-expression-wrapping" count="4" />
+    <rule id="standard:chain-method-continuation" count="15" />
+    <rule id="standard:curly-spacing" count="2" />
+    <rule id="standard:function-signature" count="4" />
+    <rule id="standard:max-line-length" count="7" />
+    <rule id="standard:multiline-expression-wrapping" count="24" />
+    <rule id="standard:no-blank-line-before-rbrace" count="12" />
+    <rule id="standard:no-consecutive-blank-lines" count="7" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="8" />
+    <rule id="standard:no-multi-spaces" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:no-wildcard-imports" count="1" />
+    <rule id="standard:op-spacing" count="3" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:wrapping" count="28" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/PersonSelectFXController.kt">
+    <rule id="standard:argument-list-wrapping" count="11" />
+    <rule id="standard:binary-expression-wrapping" count="1" />
+    <rule id="standard:chain-method-continuation" count="8" />
+    <rule id="standard:function-literal" count="2" />
+    <rule id="standard:function-signature" count="3" />
+    <rule id="standard:max-line-length" count="2" />
+    <rule id="standard:multiline-expression-wrapping" count="7" />
+    <rule id="standard:no-blank-line-before-rbrace" count="4" />
+    <rule id="standard:no-consecutive-blank-lines" count="5" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-wildcard-imports" count="1" />
+    <rule id="standard:wrapping" count="7" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/ProjectActionsFXController.kt">
+    <rule id="standard:argument-list-wrapping" count="151" />
+    <rule id="standard:binary-expression-wrapping" count="90" />
+    <rule id="standard:chain-method-continuation" count="31" />
+    <rule id="standard:function-literal" count="2" />
+    <rule id="standard:function-signature" count="5" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="10" />
+    <rule id="standard:max-line-length" count="30" />
+    <rule id="standard:multiline-expression-wrapping" count="5" />
+    <rule id="standard:no-blank-line-before-rbrace" count="6" />
+    <rule id="standard:no-consecutive-blank-lines" count="4" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-unused-imports" count="6" />
+    <rule id="standard:statement-wrapping" count="2" />
+    <rule id="standard:string-template" count="35" />
+    <rule id="standard:trailing-comma-on-call-site" count="37" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="43" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/ProjectEditFXController.kt">
+    <rule id="standard:argument-list-wrapping" count="180" />
+    <rule id="standard:binary-expression-wrapping" count="74" />
+    <rule id="standard:blank-line-before-declaration" count="5" />
+    <rule id="standard:chain-method-continuation" count="86" />
+    <rule id="standard:comma-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-literal" count="4" />
+    <rule id="standard:function-signature" count="3" />
+    <rule id="standard:if-else-bracing" count="2" />
+    <rule id="standard:if-else-wrapping" count="2" />
+    <rule id="standard:keyword-spacing" count="1" />
+    <rule id="standard:max-line-length" count="58" />
+    <rule id="standard:multiline-expression-wrapping" count="12" />
+    <rule id="standard:multiline-if-else" count="2" />
+    <rule id="standard:no-blank-line-before-rbrace" count="29" />
+    <rule id="standard:no-consecutive-blank-lines" count="6" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="14" />
+    <rule id="standard:no-trailing-spaces" count="20" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="20" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:statement-wrapping" count="9" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:wrapping" count="11" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/ProjectSelectFXController.kt">
+    <rule id="standard:blank-line-before-declaration" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-trailing-spaces" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:spacing-between-declarations-with-annotations" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/fxcontrollers/ShotsEditFXController.kt">
+    <rule id="standard:argument-list-wrapping" count="282" />
+    <rule id="standard:binary-expression-wrapping" count="66" />
+    <rule id="standard:blank-line-before-declaration" count="4" />
+    <rule id="standard:chain-method-continuation" count="110" />
+    <rule id="standard:comma-spacing" count="11" />
+    <rule id="standard:comment-spacing" count="17" />
+    <rule id="standard:condition-wrapping" count="8" />
+    <rule id="standard:curly-spacing" count="39" />
+    <rule id="standard:function-expression-body" count="6" />
+    <rule id="standard:function-literal" count="29" />
+    <rule id="standard:function-signature" count="56" />
+    <rule id="standard:if-else-wrapping" count="22" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="391" />
+    <rule id="standard:keyword-spacing" count="2" />
+    <rule id="standard:max-line-length" count="68" />
+    <rule id="standard:multiline-expression-wrapping" count="63" />
+    <rule id="standard:multiline-if-else" count="25" />
+    <rule id="standard:no-blank-line-before-rbrace" count="57" />
+    <rule id="standard:no-consecutive-blank-lines" count="37" />
+    <rule id="standard:no-consecutive-comments" count="13" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="34" />
+    <rule id="standard:no-line-break-after-else" count="1" />
+    <rule id="standard:no-multi-spaces" count="1" />
+    <rule id="standard:no-trailing-spaces" count="17" />
+    <rule id="standard:no-unused-imports" count="4" />
+    <rule id="standard:no-wildcard-imports" count="1" />
+    <rule id="standard:op-spacing" count="42" />
+    <rule id="standard:parameter-list-wrapping" count="15" />
+    <rule id="standard:spacing-between-declarations-with-annotations" count="1" />
+    <rule id="standard:spacing-between-declarations-with-comments" count="3" />
+    <rule id="standard:statement-wrapping" count="15" />
+    <rule id="standard:string-template" count="1" />
+    <rule id="standard:trailing-comma-on-call-site" count="11" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="4" />
+    <rule id="standard:wrapping" count="64" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Event.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="6" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Face.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/FaceTrack.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/File.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/FileCdf.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Filter.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/FilterCondition.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="5" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/FilterGroup.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Frame.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Person.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-wildcard-imports" count="1" />
+    <rule id="standard:paren-spacing" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Project.kt">
+    <rule id="standard:curly-spacing" count="10" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/ProjectCdf.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Property.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/PropertyCdf.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Scene.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="6" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Shot.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="8" />
+    <rule id="standard:no-wildcard-imports" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/ShotTmp2Cdf.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/ShotTmpCdf.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/models/Track.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/EventExt.kt">
+    <rule id="standard:argument-list-wrapping" count="12" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:chain-method-continuation" count="4" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="6" />
+    <rule id="standard:curly-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-literal" count="2" />
+    <rule id="standard:max-line-length" count="3" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:no-wildcard-imports" count="1" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/FaceExt.kt">
+    <rule id="standard:argument-list-wrapping" count="33" />
+    <rule id="standard:binary-expression-wrapping" count="1" />
+    <rule id="standard:chain-method-continuation" count="4" />
+    <rule id="standard:class-signature" count="4" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:max-line-length" count="5" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-multi-spaces" count="1" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:spacing-between-declarations-with-annotations" count="13" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/FaceExtJson.kt">
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/FaceTrackExt.kt">
+    <rule id="standard:argument-list-wrapping" count="10" />
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:chain-method-continuation" count="3" />
+    <rule id="standard:class-signature" count="2" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="10" />
+    <rule id="standard:multiline-expression-wrapping" count="3" />
+    <rule id="standard:no-consecutive-comments" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:parameter-list-wrapping" count="2" />
+    <rule id="standard:trailing-comma-on-call-site" count="2" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="6" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/FileExt.kt">
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:class-signature" count="3" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:spacing-between-declarations-with-annotations" count="6" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/FilterConditionExt.kt">
+    <rule id="standard:argument-list-wrapping" count="78" />
+    <rule id="standard:chain-method-continuation" count="48" />
+    <rule id="standard:class-signature" count="2" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="9" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-literal" count="28" />
+    <rule id="standard:indent" count="86" />
+    <rule id="standard:keyword-spacing" count="3" />
+    <rule id="standard:max-line-length" count="14" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="5" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:wrapping" count="8" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/FilterExt.kt">
+    <rule id="standard:class-signature" count="2" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-literal" count="4" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:op-spacing" count="4" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/FilterGroupExt.kt">
+    <rule id="standard:class-signature" count="2" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-literal" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:op-spacing" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/FrameExt.kt">
+    <rule id="standard:argument-list-wrapping" count="9" />
+    <rule id="standard:chain-method-continuation" count="9" />
+    <rule id="standard:class-signature" count="2" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="3" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:parameter-list-wrapping" count="2" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/MatrixFace.kt">
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:curly-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/MatrixFrame.kt">
+    <rule id="standard:final-newline" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/MatrixPageFaces.kt">
+    <rule id="standard:argument-list-wrapping" count="7" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:chain-method-continuation" count="11" />
+    <rule id="standard:curly-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="12" />
+    <rule id="standard:indent" count="2" />
+    <rule id="standard:max-line-length" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="5" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:spacing-between-declarations-with-comments" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="2" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/MatrixPageFrames.kt">
+    <rule id="standard:argument-list-wrapping" count="10" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:chain-method-continuation" count="16" />
+    <rule id="standard:curly-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="6" />
+    <rule id="standard:max-line-length" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="4" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/PersonExt.kt">
+    <rule id="standard:argument-list-wrapping" count="52" />
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:chain-method-continuation" count="22" />
+    <rule id="standard:class-signature" count="3" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:max-line-length" count="8" />
+    <rule id="standard:multiline-expression-wrapping" count="2" />
+    <rule id="standard:trailing-comma-on-call-site" count="2" />
+    <rule id="standard:wrapping" count="4" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/ProjectExt.kt">
+    <rule id="standard:class-signature" count="2" />
+    <rule id="standard:final-newline" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/SceneExt.kt">
+    <rule id="standard:argument-list-wrapping" count="12" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:chain-method-continuation" count="4" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="6" />
+    <rule id="standard:curly-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-literal" count="2" />
+    <rule id="standard:max-line-length" count="3" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="3" />
+    <rule id="standard:no-wildcard-imports" count="1" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/modelsext/ShotExt.kt">
+    <rule id="standard:argument-list-wrapping" count="22" />
+    <rule id="standard:binary-expression-wrapping" count="10" />
+    <rule id="standard:chain-method-continuation" count="2" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="6" />
+    <rule id="standard:curly-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-expression-body" count="1" />
+    <rule id="standard:function-literal" count="4" />
+    <rule id="standard:indent" count="3" />
+    <rule id="standard:max-line-length" count="7" />
+    <rule id="standard:multiline-expression-wrapping" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-multi-spaces" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:statement-wrapping" count="4" />
+    <rule id="standard:string-template" count="3" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/EventRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="3" />
+    <rule id="standard:indent" count="2" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-unused-imports" count="3" />
+    <rule id="standard:parameter-list-spacing" count="2" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/FaceRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="16" />
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="29" />
+    <rule id="standard:indent" count="13" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="4" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:parameter-list-spacing" count="2" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="3" />
+    <rule id="standard:wrapping" count="13" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/FaceTrackRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="9" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="4" />
+    <rule id="standard:multiline-expression-wrapping" count="3" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:wrapping" count="9" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/FileCdfRepo.kt">
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:parameter-list-spacing" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/FileRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:colon-spacing" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="2" />
+    <rule id="standard:function-signature" count="6" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:parameter-list-spacing" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/FilterConditionRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:blank-line-before-declaration" count="2" />
+    <rule id="standard:colon-spacing" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="2" />
+    <rule id="standard:function-signature" count="6" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:parameter-list-spacing" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/FilterGroupRepo.kt">
+    <rule id="standard:blank-line-before-declaration" count="2" />
+    <rule id="standard:colon-spacing" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="2" />
+    <rule id="standard:function-signature" count="6" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="3" />
+    <rule id="standard:parameter-list-spacing" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/FilterRepo.kt">
+    <rule id="standard:blank-line-before-declaration" count="3" />
+    <rule id="standard:colon-spacing" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="2" />
+    <rule id="standard:function-signature" count="9" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:parameter-list-spacing" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/FrameRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="1" />
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="9" />
+    <rule id="standard:indent" count="14" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:parameter-list-spacing" count="2" />
+    <rule id="standard:wrapping" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/PersonRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="6" />
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="6" />
+    <rule id="standard:indent" count="2" />
+    <rule id="standard:max-line-length" count="2" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:parameter-list-spacing" count="2" />
+    <rule id="standard:wrapping" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/ProjectCdfRepo.kt">
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="3" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:parameter-list-spacing" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/ProjectRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="2" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/PropertyCdfRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="6" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:colon-spacing" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="3" />
+    <rule id="standard:function-signature" count="25" />
+    <rule id="standard:indent" count="4" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-multi-spaces" count="1" />
+    <rule id="standard:parameter-list-spacing" count="2" />
+    <rule id="standard:spacing-between-function-name-and-opening-parenthesis" count="3" />
+    <rule id="standard:wrapping" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/PropertyRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:colon-spacing" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="3" />
+    <rule id="standard:function-signature" count="21" />
+    <rule id="standard:indent" count="4" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:parameter-list-spacing" count="2" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:spacing-between-function-name-and-opening-parenthesis" count="4" />
+    <rule id="standard:wrapping" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/SceneRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="6" />
+    <rule id="standard:colon-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="7" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="2" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:parameter-list-spacing" count="2" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="6" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/ShotRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="41" />
+    <rule id="standard:colon-spacing" count="36" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="17" />
+    <rule id="standard:function-signature" count="53" />
+    <rule id="standard:indent" count="126" />
+    <rule id="standard:max-line-length" count="21" />
+    <rule id="standard:multiline-expression-wrapping" count="17" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="5" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:parameter-list-spacing" count="19" />
+    <rule id="standard:trailing-comma-on-call-site" count="10" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="41" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/ShotTmp2CdfRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="9" />
+    <rule id="standard:colon-spacing" count="7" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="9" />
+    <rule id="standard:max-line-length" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:parameter-list-spacing" count="7" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/ShotTmpCdfRepo.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:colon-spacing" count="3" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="3" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:parameter-list-spacing" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/repos/TrackRepo.kt">
+    <rule id="standard:blank-line-before-declaration" count="1" />
+    <rule id="standard:colon-spacing" count="5" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-return-type-spacing" count="2" />
+    <rule id="standard:function-signature" count="6" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:parameter-list-spacing" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/RunCmd.kt">
+    <rule id="standard:chain-method-continuation" count="4" />
+    <rule id="standard:class-signature" count="4" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:if-else-wrapping" count="2" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:multiline-if-else" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/RunListThreads.kt">
+    <rule id="standard:argument-list-wrapping" count="2" />
+    <rule id="standard:class-signature" count="5" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListEventsExt.kt">
+    <rule id="standard:argument-list-wrapping" count="6" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListFileFacesExt.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListFilesExt.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListFramesExt.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListPersonFacesExtForAll.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListPersonFacesExtForFile.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListPersonFacesExtForShot.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListPersonsExtForFile.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListPersonsExtForProject.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListPersonsExtForShot.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListProjectsExt.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="4" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="6" />
+    <rule id="standard:parameter-list-wrapping" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListScenesExt.kt">
+    <rule id="standard:argument-list-wrapping" count="6" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/loadlists/LoadListShotsExt.kt">
+    <rule id="standard:argument-list-wrapping" count="6" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/AnalyzeFrames.kt">
+    <rule id="standard:argument-list-wrapping" count="6" />
+    <rule id="standard:binary-expression-wrapping" count="8" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comment-spacing" count="2" />
+    <rule id="standard:curly-spacing" count="6" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="8" />
+    <rule id="standard:max-line-length" count="2" />
+    <rule id="standard:multiline-expression-wrapping" count="2" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="4" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:op-spacing" count="12" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:paren-spacing" count="3" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="4" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateConcat.kt">
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="8" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateFaces.kt">
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-unused-imports" count="3" />
+    <rule id="standard:op-spacing" count="4" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateFacesPreview.kt">
+    <rule id="standard:argument-list-wrapping" count="14" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:chain-method-continuation" count="3" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-literal" count="2" />
+    <rule id="standard:indent" count="7" />
+    <rule id="standard:max-line-length" count="2" />
+    <rule id="standard:multiline-expression-wrapping" count="2" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="6" />
+    <rule id="standard:op-spacing" count="4" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:statement-wrapping" count="2" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="4" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateFilterResult.kt">
+    <rule id="standard:argument-list-wrapping" count="2" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="8" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:max-line-length" count="2" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="14" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:string-template" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateFramesFull.kt">
+    <rule id="standard:argument-list-wrapping" count="2" />
+    <rule id="standard:chain-method-continuation" count="5" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-literal" count="2" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="11" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="4" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="2" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="5" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateFramesMedium.kt">
+    <rule id="standard:argument-list-wrapping" count="2" />
+    <rule id="standard:chain-method-continuation" count="5" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-literal" count="2" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="11" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="4" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-multi-spaces" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="2" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="5" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateFramesSmall.kt">
+    <rule id="standard:argument-list-wrapping" count="2" />
+    <rule id="standard:chain-method-continuation" count="5" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-literal" count="2" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="11" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-multi-spaces" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="2" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="5" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateLossless.kt">
+    <rule id="standard:chain-method-continuation" count="4" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="4" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:multiline-expression-wrapping" count="4" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="2" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="5" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreatePreview.kt">
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:multiline-expression-wrapping" count="4" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="5" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateShots.kt">
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:op-spacing" count="4" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateShotsCompressedWithAudio.kt">
+    <rule id="standard:chain-method-continuation" count="2" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-unused-imports" count="9" />
+    <rule id="standard:op-spacing" count="4" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateShotsLosslessWithAudio.kt">
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-unused-imports" count="6" />
+    <rule id="standard:op-spacing" count="4" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/CreateShotsLosslessWithoutAudio.kt">
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:comma-spacing" count="2" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-unused-imports" count="7" />
+    <rule id="standard:op-spacing" count="4" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:paren-spacing" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/DetectFaces.kt">
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:multiline-expression-wrapping" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="1" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:string-template" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="7" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/RecheckFaces.kt">
+    <rule id="standard:chain-method-continuation" count="1" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="5" />
+    <rule id="standard:multiline-expression-wrapping" count="4" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="3" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:statement-wrapping" count="22" />
+    <rule id="standard:string-template" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="7" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/RecognizeFaces.kt">
+    <rule id="standard:argument-list-wrapping" count="4" />
+    <rule id="standard:chain-method-continuation" count="1" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="8" />
+    <rule id="standard:multiline-expression-wrapping" count="3" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="2" />
+    <rule id="standard:no-unused-imports" count="1" />
+    <rule id="standard:op-spacing" count="4" />
+    <rule id="standard:parameter-list-wrapping" count="4" />
+    <rule id="standard:string-template" count="2" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+    <rule id="standard:wrapping" count="6" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/projectactions/TrackFaces.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="1" />
+    <rule id="standard:blank-line-before-declaration" count="2" />
+    <rule id="standard:chain-method-continuation" count="2" />
+    <rule id="standard:class-signature" count="6" />
+    <rule id="standard:colon-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="14" />
+    <rule id="standard:if-else-wrapping" count="9" />
+    <rule id="standard:import-ordering" count="1" />
+    <rule id="standard:indent" count="46" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="2" />
+    <rule id="standard:multiline-if-else" count="5" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="3" />
+    <rule id="standard:parameter-list-wrapping" count="6" />
+    <rule id="standard:statement-wrapping" count="4" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="2" />
+    <rule id="standard:wrapping" count="7" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/updatelists/UpdateListFilesExt.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/threads/updatelists/UpdateListFramesExt.kt">
+    <rule id="standard:argument-list-wrapping" count="3" />
+    <rule id="standard:binary-expression-wrapping" count="2" />
+    <rule id="standard:class-signature" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="1" />
+    <rule id="standard:max-line-length" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:op-spacing" count="7" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/utils/ComputerIdentifier.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:indent" count="6" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/utils/ConvertToFxImage.kt">
+    <rule id="standard:argument-list-wrapping" count="18" />
+    <rule id="standard:no-blank-line-before-rbrace" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="2" />
+    <rule id="standard:trailing-comma-on-call-site" count="3" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/utils/FaceDetection.kt">
+    <rule id="standard:chain-method-continuation" count="2" />
+    <rule id="standard:function-signature" count="1" />
+    <rule id="standard:multiline-expression-wrapping" count="3" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/utils/IvfxFFmpegUtils.kt">
+    <rule id="standard:chain-method-continuation" count="2" />
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="9" />
+    <rule id="standard:multiline-expression-wrapping" count="2" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-consecutive-blank-lines" count="3" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/utils/IvfxUtils.kt">
+    <rule id="standard:comment-spacing" count="1" />
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="6" />
+    <rule id="standard:multiline-expression-wrapping" count="1" />
+    <rule id="standard:no-blank-line-before-rbrace" count="2" />
+    <rule id="standard:no-unused-imports" count="2" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/utils/MediaInfo.kt">
+    <rule id="standard:chain-method-continuation" count="2" />
+    <rule id="standard:function-expression-body" count="2" />
+    <rule id="standard:function-signature" count="10" />
+    <rule id="standard:multiline-expression-wrapping" count="2" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+  </file>
+  <file name="src/main/kotlin/com/svoemesto/ivfx/utils/OverlayImage.kt">
+    <rule id="standard:final-newline" count="1" />
+    <rule id="standard:function-signature" count="19" />
+    <rule id="standard:indent" count="9" />
+    <rule id="standard:no-blank-line-before-rbrace" count="3" />
+    <rule id="standard:no-consecutive-blank-lines" count="1" />
+    <rule id="standard:no-empty-first-line-in-class-body" count="1" />
+    <rule id="standard:no-empty-first-line-in-method-block" count="1" />
+    <rule id="standard:parameter-list-wrapping" count="2" />
+    <rule id="standard:paren-spacing" count="3" />
+    <rule id="standard:trailing-comma-on-call-site" count="1" />
+    <rule id="standard:trailing-comma-on-declaration-site" count="4" />
+    <rule id="standard:wrapping" count="2" />
+  </file>
+</baseline>

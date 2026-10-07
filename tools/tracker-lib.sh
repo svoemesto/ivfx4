@@ -302,18 +302,22 @@ tracker_get_issue() {
     local response
     response=$(tracker_http_request GET "/api/v3/work_packages/${id}" "" "get-issue")
 
+    # OpenProject 13.4.1 по умолчанию отдаёт встроенное представление: поля
+    # .status/.assignee/.author/.project верхнего уровня равны null, реальные
+    # значения лежат в ._embedded. Верхний уровень оставлен запасным путём —
+    # на других версиях и при ?minimal= статус приходит строкой.
     echo "$response" | jq '{
         id: .id,
         subject: .subject,
         description: .description.raw,
-        type: .type,
-        status: (.status.title // .status.name // "unknown"),
-        priority: (.priority.title // .priority.name // "Normal"),
-        assignee: (.assignee.name // null),
-        author: (.author.name // null),
+        type: (._embedded.type.name // .type.title // .type.name // null),
+        status: (._embedded.status.name // .status.title // .status.name // "unknown"),
+        priority: (._embedded.priority.name // .priority.title // .priority.name // "Normal"),
+        assignee: (._embedded.assignee.name // .assignee.name // null),
+        author: (._embedded.author.name // .author.name // null),
         createdAt: .createdAt,
         updatedAt: .updatedAt,
-        project: (.project.title // .project.name)
+        project: (._embedded.project.name // .project.title // .project.name // null)
     }'
 }
 

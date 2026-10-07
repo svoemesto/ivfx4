@@ -70,6 +70,7 @@
 |---|---|
 | [guidelines/build-and-run.md](guidelines/build-and-run.md) | Сборка, запуск, проверки, отладка |
 | [guidelines/known-traps.md](guidelines/known-traps.md) | Ловушки, которые ломают сборку или данные |
+| [guidelines/linting.md](guidelines/linting.md) | Линтеры, отпечаток состояния, как сокращать долг |
 | [howto/index.md](howto/index.md) | Рабочие сценарии оператора и рецепты |
 
 ### 5. Историческая справка
@@ -123,6 +124,7 @@ Purge      → временные артефакты удалены
 
 ```bash
 python3 docs/scripts/lint-docs.py     # структура документации
+bash tools/check-ktlint.sh             # стиль Kotlin, отпечаток состояния
 bash tools/check-fx-wiring.sh         # связь FXML и контроллера, сборка
 ~/.local/opt/apache-maven-3.9.16/bin/mvn -q clean compile
 ```
