@@ -5,7 +5,6 @@ import com.svoemesto.ivfx.controllers.FilterConditionController
 import com.svoemesto.ivfx.controllers.FilterController
 import com.svoemesto.ivfx.controllers.FilterGroupController
 import com.svoemesto.ivfx.controllers.PersonController
-import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.controllers.ShotController
 import com.svoemesto.ivfx.controllers.ShotTmpCdfController
 import com.svoemesto.ivfx.enums.ReorderTypes
@@ -19,6 +18,7 @@ import com.svoemesto.ivfx.modelsext.ProjectExt
 import com.svoemesto.ivfx.modelsext.ShotExt
 import com.svoemesto.ivfx.threads.loadlists.LoadListFilesExt
 import com.svoemesto.ivfx.threads.projectactions.CreateFilterResult
+import com.svoemesto.ivfx.utils.Trace
 import javafx.application.HostServices
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -47,9 +47,7 @@ import javafx.stage.Stage
 import java.io.IOException
 import java.io.File as IOFile
 
-
 class FilterEditFXController {
-
     // FILTER
 
     @FXML
@@ -195,7 +193,6 @@ class FilterEditFXController {
     @FXML
     private var colShotTo: TableColumn<ShotExt, String>? = null
 
-
     @FXML
     private var btnCreateVideo: Button? = null
 
@@ -225,7 +222,10 @@ class FilterEditFXController {
     private var currentFilterGroupExt: FilterGroupExt? = null
     private var currentFilterExt: FilterExt? = null
 
-    fun editFilters(projectExt: ProjectExt, hostServices: HostServices? = null) {
+    fun editFilters(
+        projectExt: ProjectExt,
+        hostServices: HostServices? = null,
+    ) {
         currentProjectExt = projectExt
         mainStage = Stage()
         try {
@@ -241,12 +241,10 @@ class FilterEditFXController {
         }
         println("Завершение работы FilterEditFXController.")
         mainStage = null
-
     }
 
     @FXML
     fun initialize() {
-
         mainStage?.setOnCloseRequest {
             println("Закрытие окна FilterEditFXController.")
         }
@@ -270,7 +268,6 @@ class FilterEditFXController {
         colShotFrom?.cellValueFactory = PropertyValueFactory("labelFirst1")
         colShotTo?.cellValueFactory = PropertyValueFactory("labelLast1")
         colShotFileName?.cellValueFactory = PropertyValueFactory("fileName")
-
 
         tblFiles!!.selectionModel.selectionMode = SelectionMode.MULTIPLE
 
@@ -322,10 +319,11 @@ class FilterEditFXController {
         }
 
         // selectedItemProperty
-        tblFilters!!.selectionModel.selectedItemProperty()
+        tblFilters!!
+            .selectionModel
+            .selectedItemProperty()
             .addListener { _, _, newValue: FilterExt? ->
                 if (newValue != null) {
-
                     currentFilterExt = newValue
                     currentFilterGroupExt = null
                     currentFilterConditionExt = null
@@ -340,13 +338,13 @@ class FilterEditFXController {
                     rbFilterIsOr?.isSelected = !currentFilterExt!!.filter.isAnd
                     listFilterGroupsExt = FXCollections.observableList(FilterGroupController.getList(currentFilterExt!!))
                     tblFiltersGroups?.items = listFilterGroupsExt
-
-
                 }
             }
 
         // selectedItemProperty
-        tblFiltersGroups!!.selectionModel.selectedItemProperty()
+        tblFiltersGroups!!
+            .selectionModel
+            .selectedItemProperty()
             .addListener { _, _, newValue: FilterGroupExt? ->
                 if (newValue != null) {
                     currentFilterGroupExt = newValue
@@ -362,28 +360,29 @@ class FilterEditFXController {
             }
 
         // selectedItemProperty
-        tblFiltersConditions!!.selectionModel.selectedItemProperty()
+        tblFiltersConditions!!
+            .selectionModel
+            .selectedItemProperty()
             .addListener { _, _, newValue: FilterConditionExt? ->
                 if (newValue != null) {
                     currentFilterConditionExt = newValue
 
                     enabledButtons()
-
                 }
             }
 
-
         // Click
-        tblFiltersConditions!!.onMouseClicked = EventHandler { mouseEvent ->
-            if (mouseEvent.button == MouseButton.PRIMARY) {
-                if (mouseEvent.clickCount == 2) {
-                    if (currentFilterConditionExt != null && currentFilterGroupExt != null) {
-                        FilterConditionCreateFXController().createFilterCondition(currentProjectExt!!, currentFilterGroupExt!!)
-                        tblFiltersConditions!!.refresh()
+        tblFiltersConditions!!.onMouseClicked =
+            EventHandler { mouseEvent ->
+                if (mouseEvent.button == MouseButton.PRIMARY) {
+                    if (mouseEvent.clickCount == 2) {
+                        if (currentFilterConditionExt != null && currentFilterGroupExt != null) {
+                            FilterConditionCreateFXController().createFilterCondition(currentProjectExt!!, currentFilterGroupExt!!)
+                            tblFiltersConditions!!.refresh()
+                        }
                     }
                 }
             }
-        }
 
         fldFilterGroupName!!.textProperty().addListener { _, _, newValue ->
             if (currentFilterGroupExt != null) {
@@ -400,12 +399,9 @@ class FilterEditFXController {
                 tblFilters?.refresh()
             }
         }
-
     }
 
-
     fun enabledButtons() {
-
         btnFilterDelete?.isDisable = currentFilterExt == null
         btnFilterMoveToFirst?.isDisable = listFiltersExt.isEmpty() || currentFilterExt == null || currentFilterExt == listFiltersExt.first()
         btnFilterMoveUp?.isDisable = listFiltersExt.isEmpty() || currentFilterExt == null || currentFilterExt == listFiltersExt.first()
@@ -414,26 +410,46 @@ class FilterEditFXController {
         btnFilterGroupAdd?.isDisable = currentFilterExt == null
 
         btnFilterGroupDelete?.isDisable = currentFilterGroupExt == null
-        btnFilterGroupMoveToFirst?.isDisable = listFilterGroupsExt.isEmpty() || currentFilterGroupExt == null || currentFilterGroupExt == listFilterGroupsExt.first()
-        btnFilterGroupMoveUp?.isDisable = listFilterGroupsExt.isEmpty() || currentFilterGroupExt == null || currentFilterGroupExt == listFilterGroupsExt.first()
-        btnFilterGroupMoveToLast?.isDisable = listFilterGroupsExt.isEmpty() || currentFilterGroupExt == null || currentFilterGroupExt == listFilterGroupsExt.last()
-        btnFilterGroupMoveDown?.isDisable = listFilterGroupsExt.isEmpty() || currentFilterGroupExt == null || currentFilterGroupExt == listFilterGroupsExt.last()
+        btnFilterGroupMoveToFirst?.isDisable =
+            listFilterGroupsExt.isEmpty() ||
+            currentFilterGroupExt == null ||
+            currentFilterGroupExt == listFilterGroupsExt.first()
+        btnFilterGroupMoveUp?.isDisable =
+            listFilterGroupsExt.isEmpty() ||
+            currentFilterGroupExt == null ||
+            currentFilterGroupExt == listFilterGroupsExt.first()
+        btnFilterGroupMoveToLast?.isDisable =
+            listFilterGroupsExt.isEmpty() ||
+            currentFilterGroupExt == null ||
+            currentFilterGroupExt == listFilterGroupsExt.last()
+        btnFilterGroupMoveDown?.isDisable =
+            listFilterGroupsExt.isEmpty() ||
+            currentFilterGroupExt == null ||
+            currentFilterGroupExt == listFilterGroupsExt.last()
         btnFilterConditionAdd?.isDisable = currentFilterGroupExt == null
 
-
         btnFilterConditionDelete?.isDisable = currentFilterConditionExt == null
-        btnFilterConditionMoveToFirst?.isDisable = listFilterConditionsExt.isEmpty() || currentFilterConditionExt == null || currentFilterConditionExt == listFilterConditionsExt.first()
-        btnFilterConditionMoveUp?.isDisable = listFilterConditionsExt.isEmpty() || currentFilterConditionExt == null || currentFilterConditionExt == listFilterConditionsExt.first()
-        btnFilterConditionMoveToLast?.isDisable = listFilterConditionsExt.isEmpty() || currentFilterConditionExt == null || currentFilterConditionExt == listFilterConditionsExt.last()
-        btnFilterConditionMoveDown?.isDisable = listFilterConditionsExt.isEmpty() || currentFilterConditionExt == null || currentFilterConditionExt == listFilterConditionsExt.last()
-
+        btnFilterConditionMoveToFirst?.isDisable =
+            listFilterConditionsExt.isEmpty() ||
+            currentFilterConditionExt == null ||
+            currentFilterConditionExt == listFilterConditionsExt.first()
+        btnFilterConditionMoveUp?.isDisable =
+            listFilterConditionsExt.isEmpty() ||
+            currentFilterConditionExt == null ||
+            currentFilterConditionExt == listFilterConditionsExt.first()
+        btnFilterConditionMoveToLast?.isDisable =
+            listFilterConditionsExt.isEmpty() ||
+            currentFilterConditionExt == null ||
+            currentFilterConditionExt == listFilterConditionsExt.last()
+        btnFilterConditionMoveDown?.isDisable =
+            listFilterConditionsExt.isEmpty() ||
+            currentFilterConditionExt == null ||
+            currentFilterConditionExt == listFilterConditionsExt.last()
     }
-
-
-
 
     @FXML // Изменения IsAnd у группы
     fun doFilterGroupIsAnd(event: ActionEvent?) {
+        Trace.action("doFilterGroupIsAnd")
         if (currentFilterGroupExt != null) {
             currentFilterGroupExt?.filterGroup?.isAnd = rbFilterGroupIsAnd!!.isSelected
             FilterGroupController.save(currentFilterGroupExt!!.filterGroup)
@@ -443,6 +459,7 @@ class FilterEditFXController {
 
     @FXML // Изменения IsAnd у фильтра
     fun doFilterIsAnd(event: ActionEvent?) {
+        Trace.action("doFilterIsAnd")
         if (currentFilterExt != null) {
             currentFilterExt?.filter?.isAnd = rbFilterIsAnd!!.isSelected
             FilterController.save(currentFilterExt!!.filter)
@@ -452,6 +469,7 @@ class FilterEditFXController {
 
     @FXML
     fun doFilterAdd(event: ActionEvent?) {
+        Trace.action("doFilterAdd")
         val filter = FilterController.create(currentProjectExt!!.project)
         listFiltersExt = FXCollections.observableList(FilterController.getList(currentProjectExt!!))
         tblFilters?.items = listFiltersExt
@@ -460,6 +478,7 @@ class FilterEditFXController {
 
     @FXML
     fun doFilterConditionAdd(event: ActionEvent?) {
+        Trace.action("doFilterConditionAdd")
         val filterCondition = FilterConditionCreateFXController().createFilterCondition(currentProjectExt!!, currentFilterGroupExt!!)
         if (filterCondition != null) {
             listFilterConditionsExt = FXCollections.observableList(FilterConditionController.getList(currentFilterGroupExt!!))
@@ -470,6 +489,7 @@ class FilterEditFXController {
 
     @FXML
     fun doFilterGroupAdd(event: ActionEvent?) {
+        Trace.action("doFilterGroupAdd")
         val filterGroup = FilterGroupController.create(currentFilterExt!!.filter)
         listFilterGroupsExt = FXCollections.observableList(FilterGroupController.getList(currentFilterExt!!))
         tblFiltersGroups?.items = listFilterGroupsExt
@@ -478,7 +498,8 @@ class FilterEditFXController {
 
     @FXML
     fun doFilterConditionDelete(event: ActionEvent?) {
-        if (currentFilterConditionExt != null && currentFilterGroupExt!= null) {
+        Trace.action("doFilterConditionDelete")
+        if (currentFilterConditionExt != null && currentFilterGroupExt != null) {
             FilterConditionController.delete(currentFilterConditionExt!!.filterCondition)
             currentFilterConditionExt = null
             listFilterConditionsExt = FXCollections.observableList(FilterConditionController.getList(currentFilterGroupExt!!))
@@ -488,6 +509,7 @@ class FilterEditFXController {
 
     @FXML
     fun doFilterDelete(event: ActionEvent?) {
+        Trace.action("doFilterDelete")
         if (currentFilterExt != null) {
             FilterController.delete(currentFilterExt!!.filter)
             currentFilterExt = null
@@ -498,7 +520,8 @@ class FilterEditFXController {
 
     @FXML
     fun doFilterGroupDelete(event: ActionEvent?) {
-        if (currentFilterGroupExt!= null && currentFilterExt!= null) {
+        Trace.action("doFilterGroupDelete")
+        if (currentFilterGroupExt != null && currentFilterExt != null) {
             FilterGroupController.delete(currentFilterGroupExt!!.filterGroup)
             currentFilterGroupExt = null
             listFilterGroupsExt = FXCollections.observableList(FilterGroupController.getList(currentFilterExt!!))
@@ -508,21 +531,25 @@ class FilterEditFXController {
 
     @FXML
     fun doFilterConditionMoveDown(event: ActionEvent?) {
+        Trace.action("doFilterConditionMoveDown")
         doMoveFilterCondition(ReorderTypes.MOVE_DOWN)
     }
 
     @FXML
     fun doFilterConditionMoveToFirst(event: ActionEvent?) {
+        Trace.action("doFilterConditionMoveToFirst")
         doMoveFilterCondition(ReorderTypes.MOVE_TO_FIRST)
     }
 
     @FXML
     fun doFilterConditionMoveToLast(event: ActionEvent?) {
+        Trace.action("doFilterConditionMoveToLast")
         doMoveFilterCondition(ReorderTypes.MOVE_TO_LAST)
     }
 
     @FXML
     fun doFilterConditionMoveUp(event: ActionEvent?) {
+        Trace.action("doFilterConditionMoveUp")
         doMoveFilterCondition(ReorderTypes.MOVE_UP)
     }
 
@@ -536,21 +563,25 @@ class FilterEditFXController {
 
     @FXML
     fun doFilterGroupMoveDown(event: ActionEvent?) {
+        Trace.action("doFilterGroupMoveDown")
         doMoveFilterGroup(ReorderTypes.MOVE_DOWN)
     }
 
     @FXML
     fun doFilterGroupMoveToFirst(event: ActionEvent?) {
+        Trace.action("doFilterGroupMoveToFirst")
         doMoveFilterGroup(ReorderTypes.MOVE_TO_FIRST)
     }
 
     @FXML
     fun doFilterGroupMoveToLast(event: ActionEvent?) {
+        Trace.action("doFilterGroupMoveToLast")
         doMoveFilterGroup(ReorderTypes.MOVE_TO_LAST)
     }
 
     @FXML
     fun doFilterGroupMoveUp(event: ActionEvent?) {
+        Trace.action("doFilterGroupMoveUp")
         doMoveFilterGroup(ReorderTypes.MOVE_UP)
     }
 
@@ -564,21 +595,25 @@ class FilterEditFXController {
 
     @FXML
     fun doFilterMoveDown(event: ActionEvent?) {
+        Trace.action("doFilterMoveDown")
         doMoveFilter(ReorderTypes.MOVE_DOWN)
     }
 
     @FXML
     fun doFilterMoveToFirst(event: ActionEvent?) {
+        Trace.action("doFilterMoveToFirst")
         doMoveFilter(ReorderTypes.MOVE_TO_FIRST)
     }
 
     @FXML
     fun doFilterMoveToLast(event: ActionEvent?) {
+        Trace.action("doFilterMoveToLast")
         doMoveFilter(ReorderTypes.MOVE_TO_LAST)
     }
 
     @FXML
     fun doFilterMoveUp(event: ActionEvent?) {
+        Trace.action("doFilterMoveUp")
         doMoveFilter(ReorderTypes.MOVE_UP)
     }
 
@@ -592,23 +627,31 @@ class FilterEditFXController {
 
     @FXML
     fun doFilter(event: ActionEvent?) {
-
+        Trace.action("doFilter")
 
         ShotTmpCdfController.deleteAll()
         tblFiles?.selectionModel?.selectedItems?.forEach { fileExt ->
             Main.shotTmpCdfRepo.addAllByFileId(Main.ccid, fileExt.file.id)
         }
 
-        val shotsIds = FilterController.getFilterExt(currentProjectExt!!, tblFilters?.selectionModel?.selectedItem?.filter!!.id).shotsIds()
+        val shotsIds =
+            FilterController
+                .getFilterExt(
+                    currentProjectExt!!,
+                    tblFilters
+                        ?.selectionModel
+                        ?.selectedItem
+                        ?.filter!!
+                        .id,
+                ).shotsIds()
 
         val shotsExt = ShotController.convertSetShotsIdsToListShotsExt(shotsIds, currentProjectExt!!)
         tblShots?.items = FXCollections.observableArrayList(shotsExt)
-
-
     }
 
     @FXML
     fun doCreateVideo(event: ActionEvent?) {
+        Trace.action("doCreateVideo")
 
         val shotsExt = tblShots?.items?.toMutableList()
         val fileExt = tblFiles?.items?.first()
@@ -617,21 +660,24 @@ class FilterEditFXController {
         if (shotsExt != null && fileExt != null && filterExt != null) {
             CreateFilterResult(filterExt, currentProjectExt!!, shotsExt, fileExt).run()
         }
-
     }
 
     @FXML
     fun doCreateVideoForAllPersons(event: ActionEvent?) {
+        Trace.action("doCreateVideoForAllPersons")
 
         ShotTmpCdfController.deleteAll()
         tblFiles?.selectionModel?.selectedItems?.forEach { fileExt ->
             Main.shotTmpCdfRepo.addAllByFileId(Main.ccid, fileExt.file.id)
         }
 
-        val personsExt = PersonController.getListPersonsExt(currentProjectExt!!).filter { PersonController.isPropertyPresent(it.person,"end") }
+        val personsExt =
+            PersonController
+                .getListPersonsExt(
+                    currentProjectExt!!,
+                ).filter { PersonController.isPropertyPresent(it.person, "end") }
 
         if (personsExt.isNotEmpty()) {
-
             FilterController.deleteFilterExt(currentProjectExt!!, "AllEventsPerson")
             val filterExt = FilterController.getFilterExt(currentProjectExt!!, "AllEventsPerson")
             val filterGroup = FilterGroupController.create(filterExt.filter, true)
@@ -641,10 +687,22 @@ class FilterEditFXController {
             filterExt.filter.filterGroups = mutableSetOf(filterGroup)
 
             personsExt.forEach { personExt ->
-                val fileName = "${personExt.projectExt.folderFilters}${IOFile.separator}AllEventsPerson «${personExt.person.name}».${VideoContainers.valueOf(currentProjectExt!!.project.container).extention}"
+                val fileName = "${personExt.projectExt.folderFilters}${IOFile.separator}AllEventsPerson «${personExt.person.name}».${VideoContainers.valueOf(
+                    currentProjectExt!!.project.container,
+                ).extention}"
                 if (!IOFile(fileName).exists()) {
                     FilterConditionController.deleteAll(filterGroup)
-                    val filterCondition = FilterConditionController.create(filterGroup,"AllEventsPerson",personExt.person.id,personExt.person.name,"",personExt.person::class.java.simpleName,Event::class.java.simpleName,true)
+                    val filterCondition =
+                        FilterConditionController.create(
+                            filterGroup,
+                            "AllEventsPerson",
+                            personExt.person.id,
+                            personExt.person.name,
+                            "",
+                            personExt.person::class.java.simpleName,
+                            Event::class.java.simpleName,
+                            true,
+                        )
                     filterGroup.filterConditions = mutableSetOf(filterCondition)
 
                     val shotsIds = FilterController.getFilterExt(currentProjectExt!!, filterExt.filter.id).shotsIds()
@@ -655,16 +713,10 @@ class FilterEditFXController {
                         CreateFilterResult(filterExt, currentProjectExt!!, shotsExt, fileExt, fileName).run()
                         println(personExt.person.name)
                     }
-
                 }
-
             }
 
 //            personsExt.forEach { personExt -> println(personExt.person.name) }
-
         }
-
-
-
     }
 }

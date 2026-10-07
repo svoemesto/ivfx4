@@ -5,6 +5,7 @@ import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import com.svoemesto.ivfx.threads.RunListThreads
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForProject
+import com.svoemesto.ivfx.utils.Trace
 import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
@@ -33,9 +34,7 @@ import java.io.IOException
 import java.util.*
 import java.util.function.Predicate
 
-
 class PersonSelectFXController {
-
     @FXML
     private var fldFind: TextField? = null
 
@@ -68,7 +67,10 @@ class PersonSelectFXController {
     private val runListThreadsPersonFlagIsDone = SimpleBooleanProperty(false)
     private var filteredPersonExt: FilteredList<PersonExt>? = FilteredList(listPersonsExtAll)
 
-    fun getPersonExt(projectExt: ProjectExt, personExt: PersonExt? = null): PersonExt? {
+    fun getPersonExt(
+        projectExt: ProjectExt,
+        personExt: PersonExt? = null,
+    ): PersonExt? {
         mainStage = Stage()
         currentProjectExt = projectExt
         currentPersonExt = personExt
@@ -80,7 +82,6 @@ class PersonSelectFXController {
             mainStage?.scene = Scene(root)
             mainStage?.initModality(Modality.APPLICATION_MODAL)
             mainStage?.showAndWait()
-
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -89,7 +90,6 @@ class PersonSelectFXController {
 
         return currentPersonExt
     }
-
 
     @FXML
     fun initialize() {
@@ -126,102 +126,125 @@ class PersonSelectFXController {
             }
         }
 
-        tblPersons!!.selectionModel.selectedItemProperty()
+        tblPersons!!
+            .selectionModel
+            .selectedItemProperty()
             .addListener { v: ObservableValue<out PersonExt?>?, oldValue: PersonExt?, newValue: PersonExt? ->
                 if (newValue != null) {
-
                     currentPersonExt = newValue
-
                 }
             }
 
-        tblPersons!!.onMouseClicked = EventHandler { mouseEvent ->
+        tblPersons!!.onMouseClicked =
+            EventHandler { mouseEvent ->
 
-            if (mouseEvent.button == MouseButton.PRIMARY) {
-                if (mouseEvent.clickCount == 2) {
-                    if (currentPersonExt != null) {
-                        doOk(null)
+                if (mouseEvent.button == MouseButton.PRIMARY) {
+                    if (mouseEvent.clickCount == 2) {
+                        if (currentPersonExt != null) {
+                            doOk(null)
+                        }
                     }
-
                 }
-
             }
-        }
-
 
         // обработка события отпускания кнопки в поле поиска fldFind
-        fldFind!!.onKeyReleased = EventHandler { e: KeyEvent? ->
-            fldFind!!.textProperty()
-                .addListener(ChangeListener { v: ObservableValue<out String?>?, oldValue: String?, newValue: String? ->
-                    filteredPersonExt!!.setPredicate(Predicate<PersonExt?> { personExt: PersonExt? ->
-                        if (newValue == null || newValue.isEmpty()) {
-                            return@Predicate true
-                        }
-                        val lowerCaseFilter = newValue.lowercase(Locale.getDefault())
-                        if (personExt!!.person.name.lowercase().contains(lowerCaseFilter)) return@Predicate true
-                        return@Predicate false
-                    } as Predicate<in PersonExt?>?)
-                })
-            val sortedTags: SortedList<PersonExt> = SortedList(filteredPersonExt)
-            sortedTags.comparatorProperty().bind(tblPersons!!.comparatorProperty())
-            tblPersons!!.items = sortedTags
-            if (sortedTags.size > 0) {
-                Platform.runLater {
-                    tblPersons!!.selectionModel.select(sortedTags[0])
-                    tblPersons!!.scrollTo(sortedTags[0])
+        fldFind!!.onKeyReleased =
+            EventHandler { e: KeyEvent? ->
+                fldFind!!
+                    .textProperty()
+                    .addListener(
+                        ChangeListener { v: ObservableValue<out String?>?, oldValue: String?, newValue: String? ->
+                            filteredPersonExt!!.setPredicate(
+                                Predicate<PersonExt?> { personExt: PersonExt? ->
+                                    if (newValue == null || newValue.isEmpty()) {
+                                        return@Predicate true
+                                    }
+                                    val lowerCaseFilter = newValue.lowercase(Locale.getDefault())
+                                    if (personExt!!
+                                            .person.name
+                                            .lowercase()
+                                            .contains(lowerCaseFilter)
+                                    ) {
+                                        return@Predicate true
+                                    }
+                                    return@Predicate false
+                                } as Predicate<in PersonExt?>?,
+                            )
+                        },
+                    )
+                val sortedTags: SortedList<PersonExt> = SortedList(filteredPersonExt)
+                sortedTags.comparatorProperty().bind(tblPersons!!.comparatorProperty())
+                tblPersons!!.items = sortedTags
+                if (sortedTags.size > 0) {
+                    Platform.runLater {
+                        tblPersons!!.selectionModel.select(sortedTags[0])
+                        tblPersons!!.scrollTo(sortedTags[0])
+                    }
                 }
             }
-        }
 
         // нажатие Enter в поле fldFind - переход на первую запись в таблице tblPersons
-        fldFind!!.onKeyPressed = EventHandler { ke: KeyEvent ->
-            if (ke.code == KeyCode.ENTER) {
-                Platform.runLater {
-                    tblPersons!!.requestFocus()
-                    tblPersons!!.selectionModel.select(0)
-                    tblPersons!!.scrollTo(0)
+        fldFind!!.onKeyPressed =
+            EventHandler { ke: KeyEvent ->
+                if (ke.code == KeyCode.ENTER) {
+                    Platform.runLater {
+                        tblPersons!!.requestFocus()
+                        tblPersons!!.selectionModel.select(0)
+                        tblPersons!!.scrollTo(0)
+                    }
                 }
             }
-        }
 
         // нажатие Enter в поле в таблице tblPersons
-        tblPersons!!.onKeyPressed = EventHandler { ke: KeyEvent ->
-            if (ke.code == KeyCode.ENTER) {
-                btnOk!!.requestFocus()
+        tblPersons!!.onKeyPressed =
+            EventHandler { ke: KeyEvent ->
+                if (ke.code == KeyCode.ENTER) {
+                    btnOk!!.requestFocus()
 //                fldFind!!.text = ""
+                }
             }
-        }
-
 
         // обработка события нажатия Enter на кнопке btnOK - нажатие на кнопку OK
-        btnOk!!.setOnKeyPressed(EventHandler { ke: KeyEvent ->
-            if (ke.code == KeyCode.ENTER) {
-                doOk(null)
-            }
-        })
+        btnOk!!.setOnKeyPressed(
+            EventHandler { ke: KeyEvent ->
+                if (ke.code == KeyCode.ENTER) {
+                    doOk(null)
+                }
+            },
+        )
     }
-
 
     @FXML
     fun doCancel(event: ActionEvent?) {
+        Trace.action("doCancel")
         currentPersonExt = null
         mainStage?.close()
     }
 
     @FXML
     fun doOk(event: ActionEvent?) {
-        if (listLastSelectedPersons.firstOrNull { it.person.id == currentPersonExt!!.person.id } == null) listLastSelectedPersons.add(0, currentPersonExt!!)
+        Trace.action("doOk")
+        if (listLastSelectedPersons.firstOrNull { it.person.id == currentPersonExt!!.person.id } ==
+            null
+        ) {
+            listLastSelectedPersons.add(0, currentPersonExt!!)
+        }
         if (listLastSelectedPersons.size >= 11) listLastSelectedPersons.removeLast()
         mainStage?.close()
     }
 
     @FXML
     fun doPersonAdd(event: ActionEvent?) {
-        PersonEditFXController().editPerson(currentProjectExt!!, PersonExt(PersonController.create(currentProjectExt!!.project), currentProjectExt!!))
+        Trace.action("doPersonAdd")
+        PersonEditFXController().editPerson(
+            currentProjectExt!!,
+            PersonExt(PersonController.create(currentProjectExt!!.project), currentProjectExt!!),
+        )
         initialize()
     }
 
     @FXML
     fun doPersonDelete(event: ActionEvent?) {
+        Trace.action("doPersonDelete")
     }
 }

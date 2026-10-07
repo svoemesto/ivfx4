@@ -7,6 +7,7 @@ import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.FrameExt
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import com.svoemesto.ivfx.utils.OverlayImage
+import com.svoemesto.ivfx.utils.Trace
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -34,7 +35,6 @@ import java.io.IOException
 import java.util.*
 import javax.imageio.ImageIO
 import java.io.File as IOFile
-
 
 class FrameFacesEditFXController {
     @FXML
@@ -67,21 +67,18 @@ class FrameFacesEditFXController {
             mainStage = Stage()
             try {
                 val loader = FXMLLoader(FrameFacesEditFXController::class.java.getResource("frame-faces-edit-view.fxml"))
-            loader.setController(this)
-            val root = loader.load<Parent>()
+                loader.setController(this)
+                val root = loader.load<Parent>()
                 mainStage?.scene = Scene(root)
                 mainStage?.initModality(Modality.APPLICATION_MODAL)
 //            onStart()
                 mainStage?.showAndWait()
-
             } catch (e: IOException) {
                 e.printStackTrace()
             }
             println("Завершение работы FrameFacesEditFXController.")
             mainStage = null
-
         }
-
     }
 
     private var listFacesExt: ObservableList<FaceExt> = FXCollections.observableArrayList()
@@ -95,7 +92,6 @@ class FrameFacesEditFXController {
 
     @FXML
     fun initialize() {
-
         mainStage?.setOnCloseRequest {
             println("Закрытие окна FrameFacesEditFXController.")
         }
@@ -113,28 +109,32 @@ class FrameFacesEditFXController {
 
         showFrame()
 
-        tblFaces!!.selectionModel.selectedItemProperty()
+        tblFaces!!
+            .selectionModel
+            .selectedItemProperty()
             .addListener { v: ObservableValue<out FaceExt?>?, oldValue: FaceExt?, newValue: FaceExt? ->
                 if (newValue != null) {
                     showFrame(newValue)
                 }
             }
 
-        lblFrame!!.onMousePressed = EventHandler {
-            if (it.button == MouseButton.PRIMARY) {
-                biOverlayed = FaceController.getOverlayedFrame(currentFrameExt!!, null, true)
-                startX = it.x.toInt()
-                startY = it.y.toInt()
-                wasClicked = true
+        lblFrame!!.onMousePressed =
+            EventHandler {
+                if (it.button == MouseButton.PRIMARY) {
+                    biOverlayed = FaceController.getOverlayedFrame(currentFrameExt!!, null, true)
+                    startX = it.x.toInt()
+                    startY = it.y.toInt()
+                    wasClicked = true
+                }
             }
-        }
 
-        lblFrame!!.onMouseReleased = EventHandler {
-            if (it.button == MouseButton.PRIMARY) {
-                wasClicked = false
-                onCreateNewFace(null)
+        lblFrame!!.onMouseReleased =
+            EventHandler {
+                if (it.button == MouseButton.PRIMARY) {
+                    wasClicked = false
+                    onCreateNewFace(null)
+                }
             }
-        }
 
 //        lblFrame!!.onMouseMoved = EventHandler {
 //            if (wasClicked) {
@@ -144,13 +144,14 @@ class FrameFacesEditFXController {
 //            }
 //        }
 //
-        lblFrame!!.onMouseDragged = EventHandler {
-            if (wasClicked) {
-                endX = it.x.toInt()
-                endY = it.y.toInt()
-                showFrame()
+        lblFrame!!.onMouseDragged =
+            EventHandler {
+                if (wasClicked) {
+                    endX = it.x.toInt()
+                    endY = it.y.toInt()
+                    showFrame()
+                }
             }
-        }
     }
 
     fun deepCopy(bi: BufferedImage): BufferedImage {
@@ -161,10 +162,9 @@ class FrameFacesEditFXController {
     }
 
     fun showFrame(faceExt: FaceExt? = null) {
-
         if (biOverlayed == null) biOverlayed = FaceController.getOverlayedFrame(currentFrameExt!!, null, true)
 
-        if (startX !=0 && endX != 0 && startY !=0 && endY != 0) {
+        if (startX != 0 && endX != 0 && startY != 0 && endY != 0) {
             var biOverClone = deepCopy(biOverlayed!!)
             val graphics2D = biOverClone.graphics as Graphics2D
             graphics2D.drawImage(biOverClone, 0, 0, null)
@@ -183,21 +183,18 @@ class FrameFacesEditFXController {
         } else {
             lblFrame!!.graphic = ImageView(ConvertToFxImage.convertToFxImage(biOverlayed))
         }
-
-
-
     }
 
     @FXML
     fun onCreateNewFace(event: ActionEvent?) {
+        Trace.action("onCreateNewFace")
 
         val personExt = PersonSelectFXController().getPersonExt(currentFrameExt!!.fileExt.projectExt)
         if (personExt != null) {
-
             val face = Face()
             face.file = currentFrameExt!!.fileExt.file
             face.person = personExt.person
-            face.faceNumberInFrame = listFacesExt.size+1
+            face.faceNumberInFrame = listFacesExt.size + 1
             face.frameNumber = currentFrameExt!!.frame.frameNumber
             face.startX = startX
             face.startY = startY
@@ -210,9 +207,20 @@ class FrameFacesEditFXController {
 
             if (!IOFile(faceExt.pathToPreviewFile).parentFile.exists()) IOFile(faceExt.pathToPreviewFile).parentFile.mkdir()
             val biSource = ImageIO.read(IOFile(currentFrameExt!!.pathToFull))
-            var bi = OverlayImage.extractRegion(biSource, startX, startY, endX, endY, Main.PREVIEW_FACE_W.toInt(), Main.PREVIEW_FACE_H.toInt(), Main.PREVIEW_FACE_EXPAND_FACTOR, Main.PREVIEW_FACE_CROPPING)
-            if (face.isExample) bi = OverlayImage.setOverlayTriangle(bi,3,0.2, Color.GREEN, 1.0F)
-            if (face.isManual) bi = OverlayImage.setOverlayTriangle(bi,3,0.2, Color.RED, 1.0F)
+            var bi =
+                OverlayImage.extractRegion(
+                    biSource,
+                    startX,
+                    startY,
+                    endX,
+                    endY,
+                    Main.PREVIEW_FACE_W.toInt(),
+                    Main.PREVIEW_FACE_H.toInt(),
+                    Main.PREVIEW_FACE_EXPAND_FACTOR,
+                    Main.PREVIEW_FACE_CROPPING,
+                )
+            if (face.isExample) bi = OverlayImage.setOverlayTriangle(bi, 3, 0.2, Color.GREEN, 1.0F)
+            if (face.isManual) bi = OverlayImage.setOverlayTriangle(bi, 3, 0.2, Color.RED, 1.0F)
             val outputfile = IOFile(faceExt.pathToPreviewFile)
             ImageIO.write(bi, "jpg", outputfile)
 
@@ -226,16 +234,13 @@ class FrameFacesEditFXController {
 
             biOverlayed = FaceController.getOverlayedFrame(currentFrameExt!!, null, true)
             showFrame()
-
         }
-
     }
 
     @FXML
     fun doOk(event: ActionEvent?) {
+        Trace.action("doOk")
 
         mainStage!!.close()
-
     }
-
 }

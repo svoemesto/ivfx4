@@ -1,6 +1,5 @@
 package com.svoemesto.ivfx.fxcontrollers
 
-import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FilterConditionController
 import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.controllers.PropertyController
@@ -11,7 +10,7 @@ import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.modelsext.FilterConditionExt
 import com.svoemesto.ivfx.modelsext.FilterGroupExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
-import javafx.collections.FXCollections
+import com.svoemesto.ivfx.utils.Trace
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.fxml.FXML
@@ -19,23 +18,18 @@ import javafx.fxml.FXMLLoader
 import javafx.geometry.Bounds
 import javafx.scene.Parent
 import javafx.scene.Scene
-import javafx.scene.control.Alert
 import javafx.scene.control.Button
-import javafx.scene.control.ButtonType
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.RadioButton
-import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.ToggleGroup
 import javafx.stage.Modality
 import javafx.stage.Stage
 import java.io.IOException
 
 class FilterConditionCreateFXController {
-
-
     @FXML
     private var lblHeader: Label? = null
 
@@ -98,12 +92,15 @@ class FilterConditionCreateFXController {
         private var currentFilterConditionExt: FilterConditionExt? = null
     }
 
-
     private var currentObjectId: Long? = null
     private var currentObjectName: String = "???"
     private var currentObjectValue: String = ""
 
-    fun createFilterCondition(projectExt: ProjectExt, filterGroupExt: FilterGroupExt, initFilterConditionExt: FilterConditionExt? = null) : FilterConditionExt? {
+    fun createFilterCondition(
+        projectExt: ProjectExt,
+        filterGroupExt: FilterGroupExt,
+        initFilterConditionExt: FilterConditionExt? = null,
+    ): FilterConditionExt? {
         currentFilterConditionExt = null
         currentFilterGroupExt = filterGroupExt
         currentProjectExt = projectExt
@@ -127,7 +124,6 @@ class FilterConditionCreateFXController {
 
     @FXML
     fun initialize() {
-
         mainStage?.setOnCloseRequest {
             println("Закрытие окна FilterConditionCreateFXController.")
         }
@@ -138,12 +134,12 @@ class FilterConditionCreateFXController {
             rbIsIncluded!!.isSelected = initFilterConditionExt!!.filterCondition.isIncluded
             rbIsNotIncluded!!.isSelected = !initFilterConditionExt!!.filterCondition.isIncluded
             currentObjectId = initFilterConditionExt!!.filterCondition.objectId
-            when(initFilterConditionExt!!.filterCondition.subjectClass) {
+            when (initFilterConditionExt!!.filterCondition.subjectClass) {
                 com.svoemesto.ivfx.models.Shot::class.java.simpleName -> rbShot!!.isSelected = true
                 com.svoemesto.ivfx.models.Scene::class.java.simpleName -> rbScene!!.isSelected = true
                 com.svoemesto.ivfx.models.Event::class.java.simpleName -> rbEvent!!.isSelected = true
             }
-            when(initFilterConditionExt!!.filterCondition.objectClass) {
+            when (initFilterConditionExt!!.filterCondition.objectClass) {
                 Person::class.java.simpleName -> {
                     rbPerson!!.isSelected = true
                     currentObjectName = PersonController.getById(currentObjectId!!).name
@@ -159,17 +155,20 @@ class FilterConditionCreateFXController {
 
     @FXML
     fun doCancel(event: ActionEvent?) {
+        Trace.action("doCancel")
         currentFilterConditionExt = null
         mainStage?.close()
     }
 
     @FXML
     fun doChangeIsIncluded(event: ActionEvent?) {
+        Trace.action("doChangeIsIncluded")
         updateNameLabel()
     }
 
     @FXML
     fun doChangeObjectClass(event: ActionEvent?) {
+        Trace.action("doChangeObjectClass")
         currentObjectId = null
         currentObjectName = "???"
         currentObjectValue = ""
@@ -179,11 +178,17 @@ class FilterConditionCreateFXController {
         rbEvent?.isDisable = rbSceneProperty!!.isSelected
 
         btnSelectObject?.text =
-            if (rbPerson!!.isSelected) "Select Person"
-            else if((rbPersonProperty!!.isSelected)) "Select Person property"
-            else if((rbShotProperty!!.isSelected)) "Select Shot property"
-            else if((rbSceneProperty!!.isSelected)) "Select Scene property"
-            else "Select Event property"
+            if (rbPerson!!.isSelected) {
+                "Select Person"
+            } else if ((rbPersonProperty!!.isSelected)) {
+                "Select Person property"
+            } else if ((rbShotProperty!!.isSelected)) {
+                "Select Shot property"
+            } else if ((rbSceneProperty!!.isSelected)) {
+                "Select Scene property"
+            } else {
+                "Select Event property"
+            }
 
         if (rbPerson!!.isSelected) {
             btnSelectObject?.text = "Select Person"
@@ -204,46 +209,62 @@ class FilterConditionCreateFXController {
 
     @FXML
     fun doChangeSubjectClass(event: ActionEvent?) {
+        Trace.action("doChangeSubjectClass")
         updateNameLabel()
     }
 
     @FXML
     fun doOk(event: ActionEvent?) {
+        Trace.action("doOk")
         if (currentObjectId != null) {
             if (currentFilterConditionExt == null) {
-                currentFilterConditionExt = FilterConditionExt( FilterConditionController.create(
-                    currentFilterGroupExt!!.filterGroup,
-                    getCurrentName(),
-                    currentObjectId!!,
-                    currentObjectName,
-                    currentObjectValue,
-                    if (rbPerson!!.isSelected) Person::class.java.simpleName
-                    else if (rbPersonProperty!!.isSelected) "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
-                    else if (rbShotProperty!!.isSelected) "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
-                    else if (rbSceneProperty!!.isSelected) "${com.svoemesto.ivfx.models.Scene::class.java.simpleName} ${Property::class.java.simpleName}"
-                    else "${Event::class.java.simpleName} ${Property::class.java.simpleName}"
-                    ,
-                    when(true) {
-                        rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
-                        rbScene!!.isSelected -> com.svoemesto.ivfx.models.Scene::class.java.simpleName
-                        rbEvent!!.isSelected -> com.svoemesto.ivfx.models.Event::class.java.simpleName
-                        else -> "Error"
-                    },
-                    rbIsIncluded!!.isSelected
-                ))
+                currentFilterConditionExt =
+                    FilterConditionExt(
+                        FilterConditionController.create(
+                            currentFilterGroupExt!!.filterGroup,
+                            getCurrentName(),
+                            currentObjectId!!,
+                            currentObjectName,
+                            currentObjectValue,
+                            if (rbPerson!!.isSelected) {
+                                Person::class.java.simpleName
+                            } else if (rbPersonProperty!!.isSelected) {
+                                "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
+                            } else if (rbShotProperty!!.isSelected) {
+                                "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
+                            } else if (rbSceneProperty!!.isSelected) {
+                                "${com.svoemesto.ivfx.models.Scene::class.java.simpleName} ${Property::class.java.simpleName}"
+                            } else {
+                                "${Event::class.java.simpleName} ${Property::class.java.simpleName}"
+                            },
+                            when (true) {
+                                rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
+                                rbScene!!.isSelected -> com.svoemesto.ivfx.models.Scene::class.java.simpleName
+                                rbEvent!!.isSelected -> com.svoemesto.ivfx.models.Event::class.java.simpleName
+                                else -> "Error"
+                            },
+                            rbIsIncluded!!.isSelected,
+                        ),
+                    )
             } else {
                 currentFilterConditionExt!!.filterCondition.name = getCurrentName()
                 currentFilterConditionExt!!.filterCondition.objectId = currentObjectId!!
                 currentFilterConditionExt!!.filterCondition.objectName = currentObjectName
                 currentFilterConditionExt!!.filterCondition.objectValue = currentObjectValue
                 currentFilterConditionExt!!.filterCondition.objectClass =
-                    if (rbPerson!!.isSelected) Person::class.java.simpleName
-                    else if (rbPersonProperty!!.isSelected) "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
-                    else if (rbShotProperty!!.isSelected) "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
-                    else if (rbSceneProperty!!.isSelected) "${com.svoemesto.ivfx.models.Scene::class.java.simpleName} ${Property::class.java.simpleName}"
-                    else "${Event::class.java.simpleName} ${Property::class.java.simpleName}"
+                    if (rbPerson!!.isSelected) {
+                        Person::class.java.simpleName
+                    } else if (rbPersonProperty!!.isSelected) {
+                        "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
+                    } else if (rbShotProperty!!.isSelected) {
+                        "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
+                    } else if (rbSceneProperty!!.isSelected) {
+                        "${com.svoemesto.ivfx.models.Scene::class.java.simpleName} ${Property::class.java.simpleName}"
+                    } else {
+                        "${Event::class.java.simpleName} ${Property::class.java.simpleName}"
+                    }
                 currentFilterConditionExt!!.filterCondition.subjectClass =
-                    when(true) {
+                    when (true) {
                         rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
                         rbScene!!.isSelected -> com.svoemesto.ivfx.models.Scene::class.java.simpleName
                         rbEvent!!.isSelected -> com.svoemesto.ivfx.models.Event::class.java.simpleName
@@ -251,29 +272,34 @@ class FilterConditionCreateFXController {
                     }
                 currentFilterConditionExt!!.filterCondition.isIncluded = rbIsIncluded!!.isSelected
                 FilterConditionController.save(currentFilterConditionExt!!.filterCondition)
-
             }
 
             mainStage?.close()
         }
-
     }
 
-    private fun getCurrentName() : String {
+    private fun getCurrentName(): String {
         val objectClass =
-            if (rbPerson!!.isSelected) Person::class.java.simpleName
-            else if(rbPersonProperty!!.isSelected) "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
-            else if(rbShotProperty!!.isSelected) "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
-            else if(rbSceneProperty!!.isSelected) "${com.svoemesto.ivfx.models.Scene::class.java.simpleName} ${Property::class.java.simpleName}"
-            else "${Event::class.java.simpleName} ${Property::class.java.simpleName}"
-        val subjectClass = when(true) {
-            rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
-            rbScene!!.isSelected -> com.svoemesto.ivfx.models.Scene::class.java.simpleName
-            rbEvent!!.isSelected -> com.svoemesto.ivfx.models.Event::class.java.simpleName
-            else -> "Error"
-        }
-        val including = if(rbIsIncluded!!.isSelected) " " else " NOT "
-        return "$objectClass «$currentObjectName»${if(currentObjectValue=="") "" else " = «${currentObjectValue}»"} is${including}included in $subjectClass"
+            if (rbPerson!!.isSelected) {
+                Person::class.java.simpleName
+            } else if (rbPersonProperty!!.isSelected) {
+                "${Person::class.java.simpleName} ${Property::class.java.simpleName}"
+            } else if (rbShotProperty!!.isSelected) {
+                "${Shot::class.java.simpleName} ${Property::class.java.simpleName}"
+            } else if (rbSceneProperty!!.isSelected) {
+                "${com.svoemesto.ivfx.models.Scene::class.java.simpleName} ${Property::class.java.simpleName}"
+            } else {
+                "${Event::class.java.simpleName} ${Property::class.java.simpleName}"
+            }
+        val subjectClass =
+            when (true) {
+                rbShot!!.isSelected -> com.svoemesto.ivfx.models.Shot::class.java.simpleName
+                rbScene!!.isSelected -> com.svoemesto.ivfx.models.Scene::class.java.simpleName
+                rbEvent!!.isSelected -> com.svoemesto.ivfx.models.Event::class.java.simpleName
+                else -> "Error"
+            }
+        val including = if (rbIsIncluded!!.isSelected) " " else " NOT "
+        return "$objectClass «$currentObjectName»${if (currentObjectValue == "") "" else " = «$currentObjectValue»"} is${including}included in $subjectClass"
     }
 
     private fun updateNameLabel() {
@@ -283,6 +309,7 @@ class FilterConditionCreateFXController {
 
     @FXML
     fun doSelectObject(event: ActionEvent?) {
+        Trace.action("doSelectObject")
         if (rbPerson!!.isSelected) {
             val selectedPerson = PersonSelectFXController().getPersonExt(currentProjectExt!!, null)
             if (selectedPerson != null) {
@@ -294,11 +321,18 @@ class FilterConditionCreateFXController {
             val menu = ContextMenu()
             var menuItem: MenuItem
 
-            val className = if (rbPersonProperty!!.isSelected) Person::class.java.simpleName
-            else if (rbShotProperty!!.isSelected) Shot::class.java.simpleName
-            else if (rbSceneProperty!!.isSelected) Shot::class.java.simpleName
-            else if (rbSceneProperty!!.isSelected) com.svoemesto.ivfx.models.Scene::class.java.simpleName
-            else Event::class.java.simpleName
+            val className =
+                if (rbPersonProperty!!.isSelected) {
+                    Person::class.java.simpleName
+                } else if (rbShotProperty!!.isSelected) {
+                    Shot::class.java.simpleName
+                } else if (rbSceneProperty!!.isSelected) {
+                    Shot::class.java.simpleName
+                } else if (rbSceneProperty!!.isSelected) {
+                    com.svoemesto.ivfx.models.Scene::class.java.simpleName
+                } else {
+                    Event::class.java.simpleName
+                }
 
             val mapKeyValues = PropertyController.getMapKeyValuesByParentClass(className)
             mapKeyValues.forEach { (key, value) ->
@@ -309,12 +343,13 @@ class FilterConditionCreateFXController {
                     menuItem = MenuItem()
                     menuItem.isMnemonicParsing = false
                     menuItem.text = if (value == "") "<пусто>" else value
-                    menuItem.onAction = EventHandler {
-                        currentObjectId = 0
-                        currentObjectName = key
-                        currentObjectValue = value
-                        updateNameLabel()
-                    }
+                    menuItem.onAction =
+                        EventHandler {
+                            currentObjectId = 0
+                            currentObjectName = key
+                            currentObjectValue = value
+                            updateNameLabel()
+                        }
                     menuGroup.items.add(menuItem)
                 }
                 menu.items.add(menuGroup)
@@ -322,9 +357,7 @@ class FilterConditionCreateFXController {
 
             btnSelectObject?.contextMenu = menu
             val screenBounds: Bounds = btnSelectObject!!.localToScreen(btnSelectObject!!.boundsInLocal)
-            menu.show(mainStage, screenBounds.minX +screenBounds.width, screenBounds.minY)
-
+            menu.show(mainStage, screenBounds.minX + screenBounds.width, screenBounds.minY)
         }
-
     }
 }

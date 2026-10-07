@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.fxcontrollers
 import com.svoemesto.ivfx.H2database
 import com.svoemesto.ivfx.deleteH2Database
 import com.svoemesto.ivfx.getListH2databases
+import com.svoemesto.ivfx.utils.Trace
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.event.ActionEvent
@@ -45,6 +46,7 @@ class DatabaseSelectFXController {
         private var currentDatabase: H2database? = null
         private var incomingDatabase: H2database? = null
     }
+
     private var mainStage: Stage? = null
     private var listDatabases: ObservableList<H2database> = FXCollections.observableArrayList()
 
@@ -71,7 +73,6 @@ class DatabaseSelectFXController {
         return currentDatabase
     }
 
-
     @FXML
     fun initialize() {
         println("Инициализация DatabaseSelectFXController.")
@@ -89,10 +90,9 @@ class DatabaseSelectFXController {
             currentDatabase = newValue
         }
 
-
         // событие двойного клика в таблице tblFilters
         tblDatabases?.setOnMouseClicked { mouseEvent ->
-            //событие двойного клика
+            // событие двойного клика
             if (mouseEvent.button == MouseButton.PRIMARY) {
                 if (mouseEvent.clickCount == 2) {
                     mainStage?.close()
@@ -101,9 +101,9 @@ class DatabaseSelectFXController {
         }
     }
 
-
     @FXML
     fun doCancel(event: ActionEvent?) {
+        Trace.action("doCancel")
         println("Нажатие кнопки Cancel")
         currentDatabase = incomingDatabase
         mainStage?.close()
@@ -111,6 +111,7 @@ class DatabaseSelectFXController {
 
     @FXML
     fun doCreateNewDb(event: ActionEvent?) {
+        Trace.action("doCreateNewDb")
         println("Нажатие кнопки CreateNewDb")
         DatabaseEditFXController().editH2database(H2database())
         listDatabases = FXCollections.observableArrayList(getListH2databases())
@@ -119,6 +120,7 @@ class DatabaseSelectFXController {
 
     @FXML
     fun doDeleteDb(event: ActionEvent?) {
+        Trace.action("doDeleteDb")
         println("Нажатие кнопки DeleteDb")
         currentDatabase?.let { deleteH2Database(it) }
         listDatabases = FXCollections.observableArrayList(getListH2databases())
@@ -127,6 +129,7 @@ class DatabaseSelectFXController {
 
     @FXML
     fun doEditDb(event: ActionEvent?) {
+        Trace.action("doEditDb")
         println("Нажатие кнопки EditDb")
         currentDatabase?.let { DatabaseEditFXController().editH2database(it) }
         listDatabases = FXCollections.observableArrayList(getListH2databases())
@@ -135,8 +138,8 @@ class DatabaseSelectFXController {
 
     @FXML
     fun doSelectDb(event: ActionEvent?) {
+        Trace.action("doSelectDb")
         println("Нажатие кнопки SelectDb")
         mainStage?.close()
     }
-
 }

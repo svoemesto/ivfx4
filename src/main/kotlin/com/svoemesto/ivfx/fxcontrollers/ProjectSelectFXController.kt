@@ -1,10 +1,10 @@
 package com.svoemesto.ivfx.fxcontrollers
 
-import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.ProjectController
 import com.svoemesto.ivfx.enums.ReorderTypes
 import com.svoemesto.ivfx.getCurrentDatabase
 import com.svoemesto.ivfx.models.Project
+import com.svoemesto.ivfx.utils.Trace
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.event.ActionEvent
@@ -23,7 +23,6 @@ import javafx.stage.Stage
 import java.io.IOException
 
 class ProjectSelectFXController {
-
     @FXML
     private var lblDb: Label? = null
 
@@ -78,7 +77,6 @@ class ProjectSelectFXController {
             mainStage?.setOnCloseRequest { println("Закрытие окна ProjectSelectFXController.") }
 
             mainStage?.showAndWait()
-
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -86,7 +84,6 @@ class ProjectSelectFXController {
         mainStage = null
         return currentProject
     }
-
 
     @FXML
     fun initialize() {
@@ -114,7 +111,6 @@ class ProjectSelectFXController {
             btnMoveUp?.isDisable = currentProject == listProjects.first()
             btnMoveToLast?.isDisable = currentProject == listProjects.last()
             btnMoveDown?.isDisable = currentProject == listProjects.last()
-
         }
 
         // событие двойного клика в таблице tblProjects
@@ -126,9 +122,10 @@ class ProjectSelectFXController {
             }
         }
     }
-    
+
     @FXML
     fun doCancel(event: ActionEvent?) {
+        Trace.action("doCancel")
         println("Нажатие кнопки Cancel")
         currentProject = incomingProject
         mainStage?.close()
@@ -136,21 +133,25 @@ class ProjectSelectFXController {
 
     @FXML
     fun doMoveDown(event: ActionEvent?) {
+        Trace.action("doMoveDown")
         doMove(ReorderTypes.MOVE_DOWN)
     }
 
     @FXML
     fun doMoveToFirst(event: ActionEvent?) {
+        Trace.action("doMoveToFirst")
         doMove(ReorderTypes.MOVE_TO_FIRST)
     }
 
     @FXML
     fun doMoveToLast(event: ActionEvent?) {
+        Trace.action("doMoveToLast")
         doMove(ReorderTypes.MOVE_TO_LAST)
     }
 
     @FXML
     fun doMoveUp(event: ActionEvent?) {
+        Trace.action("doMoveUp")
         doMove(ReorderTypes.MOVE_UP)
     }
 
@@ -162,8 +163,10 @@ class ProjectSelectFXController {
         currentProject = listProjects.filter { it.id == id }.first()
         tblProjects?.selectionModel?.select(currentProject)
     }
+
     @FXML
     fun doOk(event: ActionEvent?) {
+        Trace.action("doOk")
         println("Нажатие кнопки OK")
         mainStage?.close()
     }

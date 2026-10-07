@@ -2,6 +2,7 @@ package com.svoemesto.ivfx.fxcontrollers
 
 import com.svoemesto.ivfx.H2database
 import com.svoemesto.ivfx.saveH2database
+import com.svoemesto.ivfx.utils.Trace
 import javafx.event.ActionEvent
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
@@ -14,7 +15,6 @@ import javafx.stage.Stage
 import java.io.IOException
 
 class DatabaseEditFXController {
-    
     @FXML
     private var fldId: TextField? = null
 
@@ -78,17 +78,18 @@ class DatabaseEditFXController {
         fldUrl?.text = currentDatabase.url.toString()
         fldUser?.text = currentDatabase.user.toString()
         fldPassword?.text = currentDatabase.password.toString()
-
     }
-    
+
     @FXML
     fun doCancel(event: ActionEvent?) {
+        Trace.action("doCancel")
         println("Нажатие кнопки Cancel")
         mainStage?.close()
     }
 
     @FXML
     fun doOk(event: ActionEvent?) {
+        Trace.action("doOk")
         println("Нажатие кнопки OK")
         currentDatabase.name = fldName?.text
         currentDatabase.driver = fldDriver?.text

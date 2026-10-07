@@ -1,11 +1,8 @@
 package com.svoemesto.ivfx.fxcontrollers
 
-import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.modelsext.FileExt
-import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.threads.RunListThreads
 import com.svoemesto.ivfx.threads.projectactions.AnalyzeFrames
 import com.svoemesto.ivfx.threads.projectactions.CreateConcat
@@ -21,10 +18,10 @@ import com.svoemesto.ivfx.threads.projectactions.CreateShotsCompressedWithAudio
 import com.svoemesto.ivfx.threads.projectactions.CreateShotsLosslessWithAudio
 import com.svoemesto.ivfx.threads.projectactions.CreateShotsLosslessWithoutAudio
 import com.svoemesto.ivfx.threads.projectactions.DetectFaces
+import com.svoemesto.ivfx.threads.projectactions.RecheckFaces
 import com.svoemesto.ivfx.threads.projectactions.RecognizeFaces
 import com.svoemesto.ivfx.threads.projectactions.TrackFaces
-import com.svoemesto.ivfx.threads.projectactions.RecheckFaces
-import com.svoemesto.ivfx.utils.FaceDetection
+import com.svoemesto.ivfx.utils.Trace
 import javafx.application.HostServices
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -43,9 +40,7 @@ import javafx.scene.control.TableView
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.stage.Modality
 import javafx.stage.Stage
-import java.io.FileWriter
 import java.io.IOException
-import java.io.File as IOFile
 
 class ProjectActionsFXController {
     @FXML
@@ -177,13 +172,15 @@ class ProjectActionsFXController {
         private var hostServices: HostServices? = null
     }
 
-
     private var mainStage: Stage? = null
 
     private var currentFileExt: FileExt? = null
 
-
-    fun actionsProject(project: Project, listFilesExt: ObservableList<FileExt>, hostServices: HostServices? = null) {
+    fun actionsProject(
+        project: Project,
+        listFilesExt: ObservableList<FileExt>,
+        hostServices: HostServices? = null,
+    ) {
         currentProject = project
         ProjectActionsFXController.listFilesExt = listFilesExt
         mainStage = Stage()
@@ -195,19 +192,15 @@ class ProjectActionsFXController {
             ProjectActionsFXController.hostServices = hostServices
             mainStage?.initModality(Modality.NONE)
             mainStage?.showAndWait()
-
         } catch (e: IOException) {
             e.printStackTrace()
         }
         println("Завершение работы ProjectActionsFXController.")
         mainStage = null
-
     }
-
 
     @FXML
     fun initialize() {
-
         mainStage?.setOnCloseRequest {
             println("Закрытие окна ProjectActionsFXController.")
         }
@@ -256,30 +249,49 @@ class ProjectActionsFXController {
         // окно ещё не прошло первый расчёт размеров, и все поля нулевые.
         // Именно нулевые размеры у детей VBox уже сжимали полосы прогресса,
         // поэтому галочки проверяем фактической геометрией, а не догадкой.
-        javafx.animation.Timeline(javafx.animation.KeyFrame(
-            javafx.util.Duration.seconds(1.5),
-            javafx.event.EventHandler { _ ->
-            val parts = mutableListOf<String>()
-            for (cb in actionCheckBoxes()) {
-                parts.add("${cb.text}=h${cb.height.toInt()}/v${if (cb.isVisible) 1 else 0}")
-            }
-            println("[TR-раскладка] галочек ${actionCheckBoxes().size}: ${parts.joinToString(" ")}")
-            println("[TR-раскладка] кнопка h=${btnDoActions?.height?.toInt()} " +
-                    "включена=${if (btnDoActions?.isDisable == true) "нет" else "да"}")
-        })).apply { cycleCount = 1 }.let { it.playFromStart() }
-
+        javafx.animation
+            .Timeline(
+                javafx.animation.KeyFrame(
+                    javafx.util.Duration.seconds(1.5),
+                    javafx.event.EventHandler { _ ->
+                        val parts = mutableListOf<String>()
+                        for (cb in actionCheckBoxes()) {
+                            parts.add("${cb.text}=h${cb.height.toInt()}/v${if (cb.isVisible) 1 else 0}")
+                        }
+                        println("[TR-раскладка] галочек ${actionCheckBoxes().size}: ${parts.joinToString(" ")}")
+                        println(
+                            "[TR-раскладка] кнопка h=${btnDoActions?.height?.toInt()} " +
+                                "включена=${if (btnDoActions?.isDisable == true) "нет" else "да"}",
+                        )
+                    },
+                ),
+            ).apply { cycleCount = 1 }
+            .let { it.playFromStart() }
     }
 
     /**
      * Все галочки-действия: их состояние определяет, можно ли запускать.
      */
-    private fun actionCheckBoxes(): List<CheckBox> = listOfNotNull(
-        checkCreatePreview, checkCreateLossless, checkCreateFramesSmall, checkCreateFramesMedium,
-        checkCreateFramesFull, checkAnalyzeFrames, checkCreateShots, checkDetectFaces,
-        checkCreateFaces, checkCreateFacesPreview, checkRecognizeFaces, checkTrackFaces, checkRecheckFaces,
-        checkCreateShotsCompressedWithAudio, checkCreateShotsLosslessWithAudio,
-        checkCreateShotsLosslessWithoutAudio, checkCreateConcat
-    )
+    private fun actionCheckBoxes(): List<CheckBox> =
+        listOfNotNull(
+            checkCreatePreview,
+            checkCreateLossless,
+            checkCreateFramesSmall,
+            checkCreateFramesMedium,
+            checkCreateFramesFull,
+            checkAnalyzeFrames,
+            checkCreateShots,
+            checkDetectFaces,
+            checkCreateFaces,
+            checkCreateFacesPreview,
+            checkRecognizeFaces,
+            checkTrackFaces,
+            checkRecheckFaces,
+            checkCreateShotsCompressedWithAudio,
+            checkCreateShotsLosslessWithAudio,
+            checkCreateShotsLosslessWithoutAudio,
+            checkCreateConcat,
+        )
 
     /**
      * Кнопка «Do actions» доступна, только когда выделена хотя бы одна строка
@@ -297,9 +309,11 @@ class ProjectActionsFXController {
         // Диагностика: по одному клику видно, что именно помешало кнопке.
         // Без неё приходится гадать — выделена ли строка и отмечена ли хоть
         // одна галочка, из формы это не различить.
-        println("[TR-диагностика] строк выделено: ${tblFilesExt?.selectionModel?.selectedItems?.size ?: 0}, " +
-                "отмечено: ${checked.size} ${checked}, кнопка " +
-                "${if (btnDoActions?.isDisable == true) "выключена" else "включена"}")
+        println(
+            "[TR-диагностика] строк выделено: ${tblFilesExt?.selectionModel?.selectedItems?.size ?: 0}, " +
+                "отмечено: ${checked.size} $checked, кнопка " +
+                "${if (btnDoActions?.isDisable == true) "выключена" else "включена"}",
+        )
     }
 
     private fun watchForDoActionsAvailability() {
@@ -308,37 +322,100 @@ class ProjectActionsFXController {
         // в Kotlin не синтезируется как свойство, а список выделения —
         // обычный ObservableList, на который подписаться можно.
         tblFilesExt?.selectionModel?.selectedItems?.addListener(
-            javafx.collections.ListChangeListener { updateDoActionsAvailability() }
+            javafx.collections.ListChangeListener { updateDoActionsAvailability() },
         )
-        actionCheckBoxes().forEach { it.selectedProperty().addListener { _, _, _ ->
-            updateDoActionsAvailability()
-        } }
+        actionCheckBoxes().forEach {
+            it.selectedProperty().addListener { _, _, _ ->
+                updateDoActionsAvailability()
+            }
+        }
     }
 
     @FXML
     fun doActions(event: ActionEvent?) {
+        Trace.action("doActions")
 
         var countActions = 0
 
         tblFilesExt?.selectionModel?.selectedItems?.forEach { fileExt ->
-            if (checkCreatePreview?.isSelected == true && (!fileExt.hasPreview!! || (fileExt.hasPreview!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateLossless?.isSelected == true && (!fileExt.hasLossless!! || (fileExt.hasLossless!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall!! || (fileExt.hasFramesSmall!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium!! || (fileExt.hasFramesMedium!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull!! || (fileExt.hasFramesFull!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames!! || (fileExt.hasAnalyzedFrames!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateShots?.isSelected == true && (!fileExt.hasCreatedShots!! || (fileExt.hasCreatedShots!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces!! || (fileExt.hasDetectedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateFacesPreview?.isSelected == true && (!fileExt.hasCreatedFacesPreview!! || (fileExt.hasCreatedFacesPreview!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkRecognizeFaces?.isSelected == true && (!fileExt.hasRecognizedFaces!! || (fileExt.hasRecognizedFaces!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreatePreview?.isSelected == true &&
+                (!fileExt.hasPreview!! || (fileExt.hasPreview!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateLossless?.isSelected == true &&
+                (!fileExt.hasLossless!! || (fileExt.hasLossless!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateFramesSmall?.isSelected == true &&
+                (!fileExt.hasFramesSmall!! || (fileExt.hasFramesSmall!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateFramesMedium?.isSelected == true &&
+                (!fileExt.hasFramesMedium!! || (fileExt.hasFramesMedium!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateFramesFull?.isSelected == true &&
+                (!fileExt.hasFramesFull!! || (fileExt.hasFramesFull!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkAnalyzeFrames?.isSelected == true &&
+                (!fileExt.hasAnalyzedFrames!! || (fileExt.hasAnalyzedFrames!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateShots?.isSelected == true &&
+                (!fileExt.hasCreatedShots!! || (fileExt.hasCreatedShots!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkDetectFaces?.isSelected == true &&
+                (!fileExt.hasDetectedFaces!! || (fileExt.hasDetectedFaces!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateFaces?.isSelected == true &&
+                (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateFacesPreview?.isSelected == true &&
+                (!fileExt.hasCreatedFacesPreview!! || (fileExt.hasCreatedFacesPreview!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkRecognizeFaces?.isSelected == true &&
+                (!fileExt.hasRecognizedFaces!! || (fileExt.hasRecognizedFaces!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
             if (checkTrackFaces?.isSelected == true) countActions++
             if (checkRecheckFaces?.isSelected == true) countActions++
 
-            if (checkCreateShotsCompressedWithAudio?.isSelected == true && (!fileExt.hasShotsCompressedWithAudio!! || (fileExt.hasShotsCompressedWithAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateShotsLosslessWithAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithAudio!! || (fileExt.hasShotsLosslessWithAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateShotsLosslessWithoutAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithoutAudio!! || (fileExt.hasShotsLosslessWithoutAudio!! && checkReCreateIfExists?.isSelected!!))) countActions++
-            if (checkCreateConcat?.isSelected == true && (!fileExt.hasConcat!! || (fileExt.hasConcat!! && checkReCreateIfExists?.isSelected!!))) countActions++
+            if (checkCreateShotsCompressedWithAudio?.isSelected == true &&
+                (!fileExt.hasShotsCompressedWithAudio!! || (fileExt.hasShotsCompressedWithAudio!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateShotsLosslessWithAudio?.isSelected == true &&
+                (!fileExt.hasShotsLosslessWithAudio!! || (fileExt.hasShotsLosslessWithAudio!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateShotsLosslessWithoutAudio?.isSelected == true &&
+                (!fileExt.hasShotsLosslessWithoutAudio!! || (fileExt.hasShotsLosslessWithoutAudio!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
+            if (checkCreateConcat?.isSelected == true &&
+                (!fileExt.hasConcat!! || (fileExt.hasConcat!! && checkReCreateIfExists?.isSelected!!))
+            ) {
+                countActions++
+            }
         }
         var counterPb1 = 0
 
@@ -346,169 +423,330 @@ class ProjectActionsFXController {
 
         tblFilesExt?.selectionModel?.selectedItems?.forEach { fileExt ->
 
-            if (checkCreatePreview?.isSelected == true && (!fileExt.hasPreview!! || (fileExt.hasPreview!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreatePreview?.isSelected == true &&
+                (!fileExt.hasPreview!! || (fileExt.hasPreview!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreatePreview(fileExt!!, tblFilesExt!!,
-                    "File: ${fileExt.file.name}, Action: Create Preview, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreatePreview(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Preview, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateLossless?.isSelected == true && (!fileExt.hasLossless!! || (fileExt.hasLossless!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateLossless?.isSelected == true &&
+                (!fileExt.hasLossless!! || (fileExt.hasLossless!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateLossless(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create Lossless, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateLossless(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Lossless, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateFramesSmall?.isSelected == true && (!fileExt.hasFramesSmall!! || (fileExt.hasFramesSmall!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateFramesSmall?.isSelected == true &&
+                (!fileExt.hasFramesSmall!! || (fileExt.hasFramesSmall!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateFramesSmall(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create Frames (small size 175x35), Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateFramesSmall(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Frames (small size 175x35), Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateFramesMedium?.isSelected == true && (!fileExt.hasFramesMedium!! || (fileExt.hasFramesMedium!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateFramesMedium?.isSelected == true &&
+                (!fileExt.hasFramesMedium!! || (fileExt.hasFramesMedium!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateFramesMedium(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create Frames (medium size 720x400), Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateFramesMedium(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Frames (medium size 720x400), Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateFramesFull?.isSelected == true && (!fileExt.hasFramesFull!! || (fileExt.hasFramesFull!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateFramesFull?.isSelected == true &&
+                (!fileExt.hasFramesFull!! || (fileExt.hasFramesFull!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateFramesFull(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create Frames (full size 1920x1080), Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateFramesFull(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Frames (full size 1920x1080), Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkAnalyzeFrames?.isSelected == true && (!fileExt.hasAnalyzedFrames!! || (fileExt.hasAnalyzedFrames!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkAnalyzeFrames?.isSelected == true &&
+                (!fileExt.hasAnalyzedFrames!! || (fileExt.hasAnalyzedFrames!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    AnalyzeFrames(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Analyze Frames, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    AnalyzeFrames(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Analyze Frames, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-
-            if (checkCreateShots?.isSelected == true && (!fileExt.hasCreatedShots!! || (fileExt.hasCreatedShots!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateShots?.isSelected == true &&
+                (!fileExt.hasCreatedShots!! || (fileExt.hasCreatedShots!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateShots(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create shots, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateShots(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create shots, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkDetectFaces?.isSelected == true && (!fileExt.hasDetectedFaces!! || (fileExt.hasDetectedFaces!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkDetectFaces?.isSelected == true &&
+                (!fileExt.hasDetectedFaces!! || (fileExt.hasDetectedFaces!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    DetectFaces(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Detect Faces, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    DetectFaces(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Detect Faces, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateFaces?.isSelected == true && (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateFaces?.isSelected == true &&
+                (!fileExt.hasCreatedFaces!! || (fileExt.hasCreatedFaces!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateFaces(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create Faces, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateFaces(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Faces, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateFacesPreview?.isSelected == true && (!fileExt.hasCreatedFacesPreview!! || (fileExt.hasCreatedFacesPreview!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateFacesPreview?.isSelected == true &&
+                (!fileExt.hasCreatedFacesPreview!! || (fileExt.hasCreatedFacesPreview!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateFacesPreview(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create Faces Preview, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateFacesPreview(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Faces Preview, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkRecognizeFaces?.isSelected == true && (!fileExt.hasRecognizedFaces!! || (fileExt.hasRecognizedFaces!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkRecognizeFaces?.isSelected == true &&
+                (!fileExt.hasRecognizedFaces!! || (fileExt.hasRecognizedFaces!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    RecognizeFaces(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Recognize Faces, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    RecognizeFaces(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Recognize Faces, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
             if (checkTrackFaces?.isSelected == true) {
                 counterPb1++
                 listThreads.add(
-                    TrackFaces(fileExt!!,
-                        "File: ${fileExt.file.name}, Action: Track Faces, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    TrackFaces(
+                        fileExt!!,
+                        "File: ${fileExt.file.name}, Action: Track Faces, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
             if (checkRecheckFaces?.isSelected == true) {
                 counterPb1++
                 listThreads.add(
-                    RecheckFaces(fileExt!!,
-                        "File: ${fileExt.file.name}, Action: Recheck Faces, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    RecheckFaces(
+                        fileExt!!,
+                        "File: ${fileExt.file.name}, Action: Recheck Faces, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateShotsCompressedWithAudio?.isSelected == true && (!fileExt.hasShotsCompressedWithAudio!! || (fileExt.hasShotsCompressedWithAudio!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateShotsCompressedWithAudio?.isSelected == true &&
+                (!fileExt.hasShotsCompressedWithAudio!! || (fileExt.hasShotsCompressedWithAudio!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateShotsCompressedWithAudio(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create Shots video files (compressed, with audio), Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateShotsCompressedWithAudio(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Shots video files (compressed, with audio), Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateShotsLosslessWithAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithAudio!! || (fileExt.hasShotsLosslessWithAudio!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateShotsLosslessWithAudio?.isSelected == true &&
+                (!fileExt.hasShotsLosslessWithAudio!! || (fileExt.hasShotsLosslessWithAudio!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateShotsLosslessWithAudio(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create Shots video files (lossless, with audio), Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateShotsLosslessWithAudio(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Shots video files (lossless, with audio), Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateShotsLosslessWithoutAudio?.isSelected == true && (!fileExt.hasShotsLosslessWithoutAudio!! || (fileExt.hasShotsLosslessWithoutAudio!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateShotsLosslessWithoutAudio?.isSelected == true &&
+                (!fileExt.hasShotsLosslessWithoutAudio!! || (fileExt.hasShotsLosslessWithoutAudio!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateShotsLosslessWithoutAudio(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create Shots video files (lossless, without audio), Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateShotsLosslessWithoutAudio(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create Shots video files (lossless, without audio), Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
 
-            if (checkCreateConcat?.isSelected == true && (!fileExt.hasConcat!! || (fileExt.hasConcat!! && checkReCreateIfExists?.isSelected!!))) {
+            if (checkCreateConcat?.isSelected == true &&
+                (!fileExt.hasConcat!! || (fileExt.hasConcat!! && checkReCreateIfExists?.isSelected!!))
+            ) {
                 counterPb1++
                 listThreads.add(
-                    CreateConcat(fileExt!!, tblFilesExt!!,
-                        "File: ${fileExt.file.name}, Action: Create concatinated video file, Issue: [${counterPb1}/${countActions}]",
-                        counterPb1, countActions, lblPb1!!, pb1!!, lblPb2!!, pb2!!)
+                    CreateConcat(
+                        fileExt!!,
+                        tblFilesExt!!,
+                        "File: ${fileExt.file.name}, Action: Create concatinated video file, Issue: [$counterPb1/$countActions]",
+                        counterPb1,
+                        countActions,
+                        lblPb1!!,
+                        pb1!!,
+                        lblPb2!!,
+                        pb2!!,
+                    ),
                 )
             }
-
         }
 
         RunListThreads(listThreads).start()
-
     }
 
     class Embeddings(
         @SerializedName("embeddings") var vectors: Array<DoubleArray?>,
-        @SerializedName("names") var tags: Array<String?>
+        @SerializedName("names") var tags: Array<String?>,
     )
 
     // Шаг обучения модели распознавания удалён вместе с кнопкой
@@ -526,5 +764,4 @@ class ProjectActionsFXController {
     //
     // Отметка лиц в интерфейсе при этом остаётся: галерея строится из
     // отмеченных лиц, и без них распознавать нечего.
-
 }
