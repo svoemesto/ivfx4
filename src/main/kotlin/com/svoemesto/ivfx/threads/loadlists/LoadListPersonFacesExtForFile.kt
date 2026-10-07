@@ -66,6 +66,12 @@ class LoadListPersonFacesExtForFile(
             }
 
         }
+        // Порядок вывода — тот же, что и у `reorganizeMatrixFaces`: файл,
+        // кадр, номер лица в кадре (`Face.compareTo`). Запрос
+        // `findByFileIdAndPersonId` без ORDER BY отдаёт строки в произвольном
+        // порядке, и лица персоны выводились вразнобой, пока какое-нибудь лицо
+        // не переназначали — только тогда список пересобирался и сортировался.
+        list.sort()
         Platform.runLater {
             if (pb!=null) pb!!.isVisible = false
             if (lbl!=null) lbl!!.isVisible = false

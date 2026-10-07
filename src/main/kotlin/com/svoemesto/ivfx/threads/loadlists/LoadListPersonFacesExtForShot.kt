@@ -68,6 +68,9 @@ class LoadListPersonFacesExtForShot(
             }
 
         }
+        // Как и в двух других загрузчиках лиц: запрос без ORDER BY, порядок
+        // вывода задаёт `Face.compareTo` — файл, кадр, номер лица в кадре.
+        list.sort()
         Platform.runLater {
             if (pb!=null) pb!!.isVisible = false
             if (lbl!=null) lbl!!.isVisible = false

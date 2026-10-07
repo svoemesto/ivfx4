@@ -67,6 +67,12 @@ class LoadListPersonFacesExtForAll(
             }
 
         }
+        // Порядок вывода — файл, кадр, номер лица в кадре (`Face.compareTo`).
+        // Запрос `findByProjectIdAndPersonId` без ORDER BY отдаёт строки в
+        // произвольном порядке. Здесь сортировка нужна ещё и потому, что
+        // список сразу за несколько файлов проекта, а `Face.compareTo`
+        // сравнивает по `file.order` — то есть по порядку файлов в проекте.
+        list.sort()
         Platform.runLater {
             if (pb!=null) pb!!.isVisible = false
             if (lbl!=null) lbl!!.isVisible = false
