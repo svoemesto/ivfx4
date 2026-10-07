@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.threads.loadlists
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.ProjectExt
 import javafx.application.Platform
@@ -35,7 +36,12 @@ class LoadListPersonsExtForProject(
             }
         }
 
-        val sourceIterable = projectExt.project.persons
+        // Источник — запрос репозитория, а не ленивая коллекция сущности:
+        // список наполняется в отдельном потоке, и обращение к ленивому полю
+        // вне сессии зависит от настройки `enable_lazy_load_no_trans`. Оба
+        // соседних загрузчика (ForFile, ForShot) идут через `Main.personRepo`
+        // по той же причине.
+        val sourceIterable = Main.personRepo.findByProjectId(projectExt.project.id)
         list.clear()
 
         for ((i, person) in sourceIterable.withIndex()) {
@@ -47,7 +53,6 @@ class LoadListPersonsExtForProject(
                 person.project = projectExt.project
                 val personExt = PersonExt(person, projectExt)
                 list.add(personExt)
-                println(personExt)
             } else {
                 return
             }

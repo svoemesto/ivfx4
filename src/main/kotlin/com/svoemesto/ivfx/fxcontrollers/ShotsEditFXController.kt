@@ -36,6 +36,7 @@ import com.svoemesto.ivfx.threads.loadlists.LoadListFramesExt
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonFacesExtForAll
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonFacesExtForFile
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForFile
+import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForProject
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForShot
 import com.svoemesto.ivfx.threads.loadlists.LoadListScenesExt
 import com.svoemesto.ivfx.threads.loadlists.LoadListShotsExt
@@ -864,6 +865,19 @@ class ShotsEditFXController {
             if (newValue == true) {
                 isDoneLoadListPersonsExtForFile.set(false)
                 fillTrackFacesCount()
+                restorePersonSelectionAfterPersonsReload()
+            }
+        }
+
+        /**
+         * LoadListPersonsExtForProject — тот же список персон, но из проекта:
+         * его наполняет переключатель «All / File» (см. doSelectPersonsRb).
+         */
+        isDoneLoadListPersonsExtForProject.addListener { _, _, newValue ->
+            if (newValue == true) {
+                isDoneLoadListPersonsExtForProject.set(false)
+                fillTrackFacesCount()
+                restorePersonSelectionAfterPersonsReload()
             }
         }
 
@@ -3241,16 +3255,75 @@ class ShotsEditFXController {
         Trace.action("doSelectFacesRb: наборы лиц для All и File не разделены, переключение не работает")
     }
 
+    /**
+     * Переключатель «All / File» для персон.
+     *
+     * Он выбирает **источник данных**, а не то, какая из двух таблиц видна.
+     * Таблиц две, и стоят они в разных местах окна: `tblPersonsAllForFile` —
+     * список серии на вкладке «Persons», `tblPersonsAllForShot` — персоны
+     * выбранного плана в середине окна. Переключение видимости между ними
+     * было ошибкой: нажатие «All» скрывало правую таблицу (персоны пропадали),
+     * нажатие «File» — среднюю (пропадали персоны плана). Обе таблицы
+     * показываются всегда, меняется только наполнение правой:
+     *
+     * - **File** — персоны, у которых есть лица в этой серии;
+     * - **All** — все персоны проекта, включая отмеченных в других сериях.
+     *
+     * Второй список нужен, чтобы назначить персону, которой в этой серии ещё
+     * не было: раньше он был единственным, и переключатель был лишней
+     * кнопкой с двумя подписями на одном и том же списке.
+     */
+    @FXML
     fun doSelectPersonsRb(event: ActionEvent?) {
         val all = grpPersons?.selectedToggle == rbPersonAll
-        Trace.action("doSelectPersonsRb: " + if (all) "All" else "File")
+        val source = if (all) "All" else "File"
+        Trace.action("doSelectPersonsRb: $source, в списке ${listPersonsExtForFile.size}")
+        if (currentFileExt == null) return
         if (all) {
-            tblPersonsAllForShot?.isVisible = true
-            tblPersonsAllForFile?.isVisible = false
+            LoadListPersonsExtForProject(
+                listPersonsExtForFile,
+                currentFileExt!!.projectExt,
+                pbPersonsForFile,
+                null,
+                isDoneLoadListPersonsExtForProject,
+            ).start()
         } else {
-            tblPersonsAllForShot?.isVisible = false
-            tblPersonsAllForFile?.isVisible = true
+            LoadListPersonsExtForFile(
+                listPersonsExtForFile,
+                currentFileExt!!,
+                pbPersonsForFile,
+                null,
+                isDoneLoadListPersonsExtForFile,
+                false,
+            ).start()
         }
+    }
+
+    /**
+     * Смена источника пересоздаёт элементы списка, поэтому выделение снимается,
+     * а `currentPersonExt` остаётся от прежнего человека — панель лиц продолжала
+     * бы показывать того, кого в списке уже нет. Персона возвращается в выделение,
+     * если она в новом списке есть; иначе лица и выделение очищаются.
+     */
+    private fun restorePersonSelectionAfterPersonsReload() {
+        val previous = currentPersonExt
+        val stillThere =
+            previous?.let { p ->
+                listPersonsExtForFile.firstOrNull { it.person.id == p.person.id }
+            }
+        if (stillThere != null) {
+            tblPersonsAllForFile?.selectionModel?.select(stillThere)
+            return
+        }
+        if (previous == null) return
+        currentPersonExt = null
+        tblPersonsAllForFile?.selectionModel?.clearSelection()
+        listFacesExt.clear()
+        listMatrixPageFaces.clear()
+        tblPagesFaces?.items = listMatrixPageFaces
+        paneFaces?.children?.clear()
+        currentMatrixFace = null
+        currentMatrixPageFaces = null
     }
 
     /**
