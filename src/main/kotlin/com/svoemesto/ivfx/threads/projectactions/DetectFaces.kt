@@ -70,13 +70,16 @@ class DetectFaces(var fileExt: FileExt,
         param.add("-o")
         param.add("${fileExt.folderFacesFull}")
         param.add("-d")
-        param.add("${faceDetectorPath}/face_detection_model")
+        // Детектор и распознаватель лежат не в ресурсах, а в кеше на
+        // машине: 184 МБ моделей в git — несоразмерно. Каталог достаётся
+        // через FaceDetection.MODELS_DIR, скачивание — tools/fetch-models.sh.
+        param.add(FaceDetection.MODELS_DIR)
         param.add("-m")
         // Раньше здесь была модель openface_nn4.small2.v1.t7 в формате
         // TorchScript: она грузилась только через cv2.dnn.readNetFromTorch,
         // которого нет в OpenCV 5. Сейчас это ArcFace R50, и она работает
         // через тот же onnxruntime, что и детектор.
-        param.add("${faceDetectorPath}/w600k_r50.onnx")
+        param.add(FaceDetection.modelPath("w600k_r50.onnx"))
         param.add("-c")
         // Порог 0,5 — на нём проводилось сравнение с YuNet: при 0,5 медианная
         // достоверность находимых лиц 0,79, а ложные срабатывания на

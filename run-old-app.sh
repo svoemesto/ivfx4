@@ -54,6 +54,20 @@ if [ ! -f "$CP_FILE" ]; then
     "$MVN" -q -B dependency:build-classpath -Dmdep.outputFile="$CP_FILE"
 fi
 
+# Модели лиц не хранятся в репозитории: 184 МБ бинарников в git раздувают
+# каждый клон и никогда не меняются между правками кода. Скачиваются один
+# раз и кешируются в ~/.insightface/models/buffalo_l. Само приложение
+# работает и без них — распознавание лиц просто будет недоступно, — поэтому
+# здесь они не обязательны, а лишь предлагаются.
+MODELS_DIR="${IVFX_MODELS_DIR:-$HOME/.insightface/models/buffalo_l}"
+if [ ! -s "$MODELS_DIR/det_10g.onnx" ] || [ ! -s "$MODELS_DIR/w600k_r50.onnx" ]; then
+    echo
+    echo "Модели распознавания лиц не найдены в $MODELS_DIR" >&2
+    echo "Без них работает всё, кроме DetectFaces / RecognizeFaces." >&2
+    echo "Скачать (~275 МБ, один раз):  bash tools/fetch-models.sh" >&2
+    echo
+fi
+
 # Банки с нативными библиотеками — на модульный путь, остальное — в classpath.
 MODULE_PATH="$(tr ':' '\n' < "$CP_FILE" | grep -E 'javafx.*-linux\.jar$' | tr '\n' ':')"
 CLASSPATH="$PROJECT_DIR/target/classes:$(tr ':' '\n' < "$CP_FILE" | grep -vE 'javafx.*-linux\.jar$' | tr '\n' ':')"

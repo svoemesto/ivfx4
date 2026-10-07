@@ -124,9 +124,10 @@ class RecheckFaces(var fileExt: FileExt,
         param.add("-o")
         param.add("${fileExt.folderFacesFull}")
         param.add("-d")
-        param.add("${faceDetectorPath}/face_detection_model")
+        // Модели лежат в кеше на машине, а не в ресурсах — см. DetectFaces.
+        param.add(FaceDetection.MODELS_DIR)
         param.add("-m")
-        param.add("${faceDetectorPath}/w600k_r50.onnx")
+        param.add(FaceDetection.modelPath("w600k_r50.onnx"))
         // Ключевое отличие от обычного DF: свой список кадров и свой файл
         // результата.
         param.add("-l")

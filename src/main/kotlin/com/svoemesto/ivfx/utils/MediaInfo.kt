@@ -19,10 +19,10 @@ object MediaInfo {
      * файлу, а строку вида `file:/...jar!/...`, которую ProcessBuilder
      * принять не может.
      *
-     * Теперь сначала ищется системная утилита, затем — исполняемый файл
-     * рядом с приложением, и только потом встроенный ресурс, но уже с
-     * корректным разбором пути. Если утилиты нет, `executeMediaInfo`
-     * сообщает об этом понятной ошибкой, а не падает с IOException.
+     * Папка MediaInfo_CLI удалена из проекта 2026-10-07: 7,3 МБ мёртвой
+     * Windows-поставки. Осталась система: утилита ищется в PATH, затем
+     * рядом с приложением. Если её нет, `executeMediaInfo` сообщает об
+     * этом понятной ошибкой, а не падает с IOException.
      */
     private val MEDIA_INFO_CLI_PATH: String? = resolveMediaInfoPath()
 
@@ -39,18 +39,7 @@ object MediaInfo {
         if (fromPath != null) {
             return fromPath.absolutePath
         }
-        val nearby = listOf(
-            File("mediainfo"),
-            File("MediaInfo_CLI/MediaInfo")
-        ).firstOrNull { it.canExecute() }
-        if (nearby != null) {
-            return nearby.absolutePath
-        }
-        val bundled = MediaInfo::class.java.getResource("MediaInfo_CLI/MediaInfo")
-            ?: return null
-        val path = bundled.toURI().path
-        val file = File(path)
-        return if (file.canExecute()) file.absolutePath else null
+        return File("mediainfo").takeIf { it.canExecute() }?.absolutePath
     }
 
     @Throws(IOException::class, InterruptedException::class)

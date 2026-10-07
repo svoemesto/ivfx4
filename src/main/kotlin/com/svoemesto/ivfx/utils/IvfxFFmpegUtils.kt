@@ -11,31 +11,31 @@ class IvfxFFmpegUtils {
         /**
          * Пути к утилитам ffmpeg.
          *
-         * Раньше здесь жёстко были прописаны бинарники с расширением .exe в папке ffmpeg-shared из
-         * ресурсов, взятые через `getResource().path`. Это ломалось дважды:
-         * `.exe` — исполняемый файл для Windows, на Linux его не запустить,
-         * а `getResource().path` при запуске из jar-а отдаёт строку
+         * Раньше здесь жёстко были прописаны бинарники с расширением .exe в
+         * папке ffmpeg-shared из ресурсов, взятые через `getResource().path`.
+         * Это ломалось дважды: `.exe` на Linux не запустить, а
+         * `getResource().path` при запуске из jar-а отдаёт строку
          * `file:/...jar!/...`, которую ProcessBuilder принять не может.
-         * Из-за этого любое действие с ffmpeg, в том числе «Create preview»,
-         * падало с IOException.
          *
-         * Теперь сначала ищется системная утилита, затем файл рядом с
-         * приложением, и только потом встроенный ресурс — уже с корректным
-         * разбором пути.
+         * Папка ffmpeg-shared удалена из проекта 2026-10-07: 72 МБ мёртвых
+         * Windows-бинарников. Осталась система: сначала утилита из PATH,
+         * затем исполняемый файл рядом с приложением.
          */
-        val FFMPEG_PATH: String = resolveBinary("ffmpeg", "ffmpeg-shared/bin/ffmpeg.exe")
-        val FFPROBE_PATH: String = resolveBinary("ffprobe", "ffprobe-shared/bin/ffprobe.exe")
-        val FFPLAY_PATH: String = resolveBinary("ffplay", "ffplay-shared/bin/ffplay.exe")
+        val FFMPEG_PATH: String = resolveBinary("ffmpeg")
+        val FFPROBE_PATH: String = resolveBinary("ffprobe")
+        val FFPLAY_PATH: String = resolveBinary("ffplay")
 
         /**
-         * Ищет исполняемый файл: системный, затем рядом с приложением,
-         * затем встроенный ресурс.
+         * Ищет исполняемый файл: системный, затем рядом с приложением.
          *
-         * @param name имя утилиты в PATH
-         * @param resource путь к встроенной утилите в ресурсах
-         * @return путь к утилите либо её имя, если ничего не найдено
+         * Если не найдено ни того, ни другого, возвращается само имя —
+         * тогда запуском займётся система, и ошибку сообщит ProcessBuilder
+         * с понятным текстом, а не молчаливый отказ здесь.
+         *
+         * @param name имя утилиты
+         * @return путь к утилите либо её имя
          */
-        private fun resolveBinary(name: String, resource: String): String {
+        private fun resolveBinary(name: String): String {
             val fromPath = System.getenv("PATH").orEmpty()
                 .split(File.pathSeparator)
                 .map { File(it, name) }
@@ -43,14 +43,8 @@ class IvfxFFmpegUtils {
             if (fromPath != null) {
                 return fromPath.absolutePath
             }
-            val nearby = listOf(File(name), File("ffmpeg-shared/bin/$name"))
-                .firstOrNull { it.canExecute() }
-            if (nearby != null) {
-                return nearby.absolutePath
-            }
-            val bundled = IvfxFFmpegUtils::class.java.getResource(resource) ?: return name
-            val file = File(bundled.toURI().path)
-            return if (file.canExecute()) file.absolutePath else name
+            val nearby = File(name).takeIf { it.canExecute() }
+            return nearby?.absolutePath ?: name
         }
 
         //@Throws(IOException::class, InterruptedException::class)

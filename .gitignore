@@ -29,6 +29,11 @@ __pycache__/
 .codegraph/
 .gradle/
 
+# --- Модели лиц: ~184 МБ неизменяемых бинарников, в git не хранятся ---
+# Скачиваются один раз и кешируются: bash tools/fetch-models.sh
+*.onnx
+face_detection_model/
+
 # --- Разовые дампы данных (пересоздаются, в репозитории не хранятся) ---
 transition-analysis/scores-snapshot.txt
 

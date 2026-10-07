@@ -4,6 +4,13 @@ import java.io.File
 
 object FaceDetection {
     /**
+     * Модели, без которых распознавание не работает.
+     *
+     * Первая — детектор SCRFD-10G, вторая — эмбеддинги ArcFace.
+     */
+    private val MODELS_REQUIRED = listOf("det_10g.onnx", "w600k_r50.onnx")
+
+    /**
      * Папка со скриптами распознавания лиц.
      *
      * Раньше путь брался через `getResource().path` и перв��й символ
@@ -17,6 +24,54 @@ object FaceDetection {
      * настоящий путь в файловой системе.
      */
     val FACE_DETECTOR_PATH: String = resolveDetectorPath()
+
+    /**
+     * Папка с моделями распознавания лиц.
+     *
+     * Модели — это ~184 МБ неизменяемых бинарных файлов, и в git их держать
+     * нельзя: они раздувают каждый клон и не меняются между правками кода.
+     * Поэтому они скачиваются один раз и кешируются на машине.
+     *
+     * Путь по умолчанию — `~/.insightface/models/buffalo_l`: именно туда
+     * библиотека insightface кладёт пакет buffalo_l, так что наш кеш и её
+     * кеш — один и тот же каталог, и повторной загрузки не будет.
+     * Переопределяется переменной окружения `IVFX_MODELS_DIR`.
+     *
+     * Скачивание: `bash tools/fetch-models.sh`.
+     */
+    val MODELS_DIR: String = resolveModelsDir()
+
+    /**
+     * Полный путь к файлу модели.
+     *
+     * @param name имя файла, например `w600k_r50.onnx`
+     * @return путь к модели
+     */
+    fun modelPath(name: String): String = File(MODELS_DIR, name).absolutePath
+
+    /**
+     * Проверяет, что модели на месте.
+     *
+     * Вызывать перед запуском распознавания, чтобы вместо ошибки от
+     * onnxruntime пользователь увидел понятное «скачайте models».
+     *
+     * @return список недостающих моделей; пустой список — всё на месте
+     */
+    fun missingModels(): List<String> = MODELS_REQUIRED.filterNot {
+        File(MODELS_DIR, it).let { f -> f.isFile && f.length() > 0 }
+    }
+
+    /**
+     * Папка моделей: переменная окружения, затем кеш insightface.
+     */
+    private fun resolveModelsDir(): String {
+        val fromEnv = System.getenv("IVFX_MODELS_DIR")
+        if (!fromEnv.isNullOrBlank()) {
+            return File(fromEnv).absolutePath
+        }
+        return File(System.getProperty("user.home"), ".insightface/models/buffalo_l")
+            .absolutePath
+    }
 
     /**
      * Ищет папку со скриптами: в ресурсах, рядом с приложением, в рабочем
