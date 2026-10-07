@@ -1,0 +1,36 @@
+# --- Сборка ---
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# --- IDE: сгенерированное из зависимостей Maven, не должно быть в репозитории ---
+.idea/libraries/
+.idea/amplicode-jpa.xml
+.idea/kotlinc.xml
+*.iml
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+
+# --- Локальные базы данных H2 (содержат данные конкретной машины) ---
+*.mv.db
+*.trace.db
+*.trace.db.old
+*.mv.db.bak
+*.mv.db.bak2
+*.db
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Служебное ---
+.codegraph/
+.gradle/
+
+# --- Скриншоты и разовые артефакты в корне (доказательства запуска) ---
+# Ресурсы внутри src/main/resources НЕ игнорируются: там лежат пиктограммы
+# типов плана (shot_type_*.png), они часть приложения.
+/*.png
+/*.md.bak
