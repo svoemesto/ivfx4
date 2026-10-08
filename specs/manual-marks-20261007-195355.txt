@@ -1,0 +1,4 @@
+# Снимок ручной разметки, снят 2026-10-07 19:53:55
+# Формат: кадр, is_manual_add, is_manual_cancel
+# Восстановление: UPDATE tbl_frames SET is_manual_<flag>=true
+#                  WHERE file_id=F AND frame_number=<кадр>;

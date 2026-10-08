@@ -1,0 +1,13 @@
+# Снимок ручной разметки E03, снят 2026-10-07 20:37:33
+# Формат строк: кадр, is_manual_add, is_manual_cancel
+143, false, true
+428, false, true
+429, false, true
+1674, false, true
+1676, false, true
+1699, false, true
+1701, false, true
+2414, false, true
+2422, false, true
+2823, true, false
+кадров=82336 планов=934 add=1 cancel=9
