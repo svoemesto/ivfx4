@@ -16,7 +16,6 @@ import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TableView
-import java.io.FileReader
 import java.io.FileWriter
 import java.io.IOException
 import java.io.File as IOFile
@@ -187,18 +186,21 @@ class RecognizeFaces(var fileExt: FileExt,
         // форме. Скрипт пишет итог в файл, здесь он подхватывается и
         // показывается в надписи и в журнал.
         val resultFile = IOFile(fileExt.folderFramesFull + IOFile.separator + "recognize_faces_result.txt")
-        val scriptFailed = !resultFile.exists()
+        val resultJsonFile = IOFile(fileExt.folderFramesFull + IOFile.separator + "recognize_faces_result.json")
+        val scriptFailed = !resultFile.exists() || !resultJsonFile.exists()
         val resultText = if (scriptFailed) "РАСПОЗНАВАНИЕ НЕ СОСТОЯЛОСЬ: скрипт не дал результата" else resultFile.readText().trim()
         println("[RecognizeFaces] $resultText")
         Platform.runLater { lbl2.text = resultText }
         resultFile.delete()
 
-        // Дальше json читается и лица перезаписываются ВСЕГДА, даже если
-        // скрипт упал. При провале в нём лежат те же неопределённые лица, и
-        // приложение двадцать минут перезаписывает их вхолостую, показывая
-        // растущий счётчик, — выглядит как работа, а результата ноль. Поэтому
-        // при провале останавливаемся здесь, а не идём по кругу.
+        // Дальше читается json с результатом, и лица перезаписываются
+        // ВСЕГДА, даже если скрипт упал. При провале в нём лежат те же
+        // неопределённые лица, и приложение двадцать минут перезаписывает их
+        // вхолостую, показывая растущий счётчик, — выглядит как работа, а
+        // результата ноль. Поэтому при провале останавливаемся здесь, а не идём
+        // по кругу.
         if (scriptFailed) {
+            resultJsonFile.delete()
             Platform.runLater {
                 lbl1.isVisible = false
                 lbl2.text = resultText
@@ -206,28 +208,36 @@ class RecognizeFaces(var fileExt: FileExt,
             return
         }
 
+        // Читается не входной faces.json, а отдельный файл результата, куда
+        // скрипт пишет ТОЛЬКО распознанные лица. Входной файл — это
+        // разметка, 492 МБ, из которых 69 % галерея; читать его обратно
+        // было второй разцией за один и тот же файл.
+        //
+        // Применяются только распознанные. Прежде сюда попадали все
+        // неопределённые лица очереди, и каждое проходило поиск в базе и
+        // сохранение без единого изменения: нераспознанное лицо и так
+        // остаётся неопределённым, а перезапись стоила запроса на лицо.
         try {
-            FileReader(pathToFileJSON).use { fileReader ->
-                val facesExtJsonArray: Array<FaceExtJson> = gson.fromJson(fileReader, Array<FaceExtJson>::class.java)
-                val nonPerson = PersonController.getNonpersonExt(fileExt.projectExt)
-                val undefindedPerson = PersonController.getUndefindedExt(fileExt.projectExt)
-                val facesToUpdate = facesExtJsonArray.filter { it.personType == PersonType.UNDEFINDED.name }
-                for ((i, faceExtJson) in facesToUpdate.withIndex()) {
+            val facesExtJsonArray: Array<FaceExtJson> =
+                gson.fromJson(resultJsonFile.readText(), Array<FaceExtJson>::class.java)
+            resultJsonFile.delete()
+            val nonPerson = PersonController.getNonpersonExt(fileExt.projectExt)
+            val undefindedPerson = PersonController.getUndefindedExt(fileExt.projectExt)
+            for ((i, faceExtJson) in facesExtJsonArray.withIndex()) {
 
-                    val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
-                    val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-                    val percentage2: Double = (i+1)/facesToUpdate.size.toDouble()
-                    val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
-                    Platform.runLater {
-                        lbl1.text = textLbl1
-                        pb1.progress = percentage1
-                        lbl2.text = "Recognize face [$i/${facesToUpdate.size}]"
-                        pb2.progress = percentage2
-                    }
-
-                    FaceController.createOrUpdate(faceExtJson, fileExt, undefindedPerson, nonPerson)
-
+                val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
+                val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
+                val percentage2: Double = if (facesExtJsonArray.isEmpty()) 1.0 else (i+1)/facesExtJsonArray.size.toDouble()
+                val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
+                Platform.runLater {
+                    lbl1.text = textLbl1
+                    pb1.progress = percentage1
+                    lbl2.text = "Recognize face [$i/${facesExtJsonArray.size}]"
+                    pb2.progress = percentage2
                 }
+
+                FaceController.createOrUpdate(faceExtJson, fileExt, undefindedPerson, nonPerson)
+
             }
         } catch (e: IOException) {
             e.printStackTrace()

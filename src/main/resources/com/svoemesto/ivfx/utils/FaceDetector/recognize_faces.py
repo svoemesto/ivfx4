@@ -40,10 +40,30 @@ args = vars(ap.parse_args())
 result_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
                                 "recognize_faces_result.txt"])
 
+# Результат — в отдельный json, и только распознанные лица.
+#
+# Раньше скрипт перезаписывал входной файл целиком. На прогоне E05 это
+# стоило 20,3 секунды из 78,7: две трети времени уходило на чтение и
+# запись 492 МБ, из которых 69 % — галерея, которая только читается и
+# никогда не меняется. Приложение затем читало тот же файл обратно и
+# применяло лишь записи очереди, то есть платило за перезапись дважды.
+#
+# Теперь входной файл остаётся нетронутым — он же разметка, по которой
+# разбирают прогон, — а в отдельный файл уходят только те лица очереди,
+# которые преодолели порог и запас. Обычно это единицы процентов от
+# очереди, то есть файл в десятки раз меньше входа.
+result_json_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
+                                     "recognize_faces_result.json"])
+
 
 def save_result(text):
     with open(result_file, "w") as file:
         file.write(text)
+
+
+def save_recognized(faces):
+    with open(result_json_file, "w") as file:
+        json.dump(faces, file)
 
 # Загружаем данные об изображениях из json - это список объектов
 file_json_images = args["inputjson"]
@@ -69,10 +89,9 @@ for face_data in data_of_images:
 if not gallery:
     save_result("ГАЛЕРЕЯ ПУСТА: нет ни одного отмеченного лица. Распознавать нечего — "
                 "сначала отметьте лица в монтажной.")
+    save_recognized([])
     print("[INFO] галерея пуста: нет ни одного лица, отмеченного как PERSON с именем. "
           "Распознавать нечего — сначала отметьте лица в интерфейсе.")
-    with open(file_json_images, 'w') as file:
-        json.dump(data_of_images, file)
     raise SystemExit(0)
 
 # Нормализуем вектора один раз: косинус угла для нормализованных векторов
@@ -112,6 +131,8 @@ recognized = 0
 rejected = 0
 thin_margin = 0
 best_by_person = {}
+
+recognized_faces = []
 
 for face_data in data_of_images:
 
@@ -165,6 +186,7 @@ for face_data in data_of_images:
             # отмеченное», и калибруется порогом выше.
             face_data['recognizeProbability'] = similarity
             recognized += 1
+            recognized_faces.append(face_data)
         elif similarity > args["confidence"]:
             # Порог взят, но запас не набран: кандидат сомнительный.
             thin_margin += 1
@@ -173,8 +195,7 @@ for face_data in data_of_images:
 
         best_by_person[name] = max(best_by_person.get(name, 0.0), similarity)
 
-with open(file_json_images, 'w') as file:
-    json.dump(data_of_images, file)
+save_recognized(recognized_faces)
 
 print("[INFO] распознано: {}, отклонено по порогу: {}, отклонено по запасу: {}".format(recognized, rejected, thin_margin))
 save_result("Галерея: {} персон, {} отмеченных лиц. Распознано: {}, отклонено по порогу: {}, отклонено по запасу: {}".format(
