@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.fxcontrollers
 
+import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.controllers.PropertyController
 import com.svoemesto.ivfx.enums.ReorderTypes
@@ -74,6 +75,7 @@ class PersonEditFXController {
 
     @FXML
     private var tblProperties: TableView<Property>? = null
+    private var btnCalcSeriesBounds: Button? = null
 
     @FXML
     private var colPropertyKey: TableColumn<Property, String>? = null
@@ -115,6 +117,9 @@ class PersonEditFXController {
     private var btnOk: Button? = null
 
     companion object {
+        /** Ключи свойств, в которых живут границы серий персонажа. */
+        const val PROPERTY_FIRST_EPISODE = "FirstEpisode"
+        const val PROPERTY_LAST_EPISODE = "LastEpisode"
         private var currentPersonExt: PersonExt? = null
         private var currentProjectExt: ProjectExt? = null
         private var hostServices: HostServices? = null
@@ -579,6 +584,89 @@ class PersonEditFXController {
     fun doPropertyMoveUp(event: ActionEvent?) {
         Trace.action("doPropertyMoveUp")
         doMoveProperty(ReorderTypes.MOVE_UP)
+    }
+
+    /**
+     * Рассчитать границы серий персонажа.
+     *
+     * Кнопка нужна в тот момент, когда оператор закончил путь персонажа в
+     * сериале: находит первую и последнюю серию, где персона встречается, и
+     * записывает их в свойства `FirstEpisode` и `LastEpisode`.
+     *
+     * **Почему достаточно двух границ, а не набора серий.** Персона может
+     * отсутствовать в середине, и тогда диапазон 2–6 накрывает серии 3–5, где
+     * его нет. На галерею это не влияет: фильтр отбирает не серии, а ЛИЦА этой
+     * персоны, а лиц в сериях 3–5 просто не существует. Лишнего не
+     * появляется, поэтому хранить точный набор незачем.
+     *
+     * **Границы считаются по текущим лицам.** Если нажать до того, как
+     * отработала серия, где персонаж появится, границы запишутся слишком
+     * узкие, и распознавание в той серии его не увидит. Поэтому порядок
+     * такой: прогнать серию, потом нажать кнопку.
+     *
+     * **Служебные персоны отказывают**: у «неопределённых» и «не-персонаж»
+     * путь не заканчивается, считать им границы бессмысленно.
+     */
+    @FXML
+    fun doCalcSeriesBounds(event: ActionEvent?) {
+        Trace.action("doCalcSeriesBounds")
+        if (currentPersonExt == null) {
+            showMessage("Персона не выбрана. Выберите персонажа в списке слева.", "Расчёт границ серий")
+            return
+        }
+        val person = currentPersonExt!!.person
+        if (person.name == "UNDEFINDED" || person.name == "NONPERSON") {
+            showMessage(
+                "У служебной персоны «${person.name}» нет пути в сериале. " +
+                    "Границы для неё не считаются.",
+                "Расчёт границ серий",
+            )
+            return
+        }
+        val first = Main.faceRepo.getFirstSeriesOfPerson(person.id).firstOrNull()
+        val last = Main.faceRepo.getLastSeriesOfPerson(person.id).firstOrNull()
+        if (first == null || last == null || first.fileId == null || last.fileId == null) {
+            showMessage(
+                "У персоны «${person.name}» нет ни одного лица — границы считать не по чему. " +
+                    "Сначала прогнате создание и распознавание лиц.",
+                "Расчёт границ серий",
+            )
+            return
+        }
+
+        val parentClass = person::class.java.simpleName
+        for ((key, bound) in listOf(PROPERTY_FIRST_EPISODE to first, PROPERTY_LAST_EPISODE to last)) {
+            val property = Main.propertyRepo.findByParentClassAndParentIdAndKey(parentClass, person.id, key).firstOrNull()
+            if (property == null) {
+                PropertyController.getOrCreate(parentClass, person.id, key)
+            }
+            val created = Main.propertyRepo.findByParentClassAndParentIdAndKey(parentClass, person.id, key).first()
+            created.value = bound.fileId.toString()
+            PropertyController.save(created)
+        }
+
+        // Таблица свойств показывает значение как есть, то есть числом. Чтобы
+        // результат не пришлось угадывать, показываем названия серий.
+        showMessage(
+            "Персона «${person.name}»: первая серия ${first.shortName}, последняя ${last.shortName}. " +
+                "Записано в свойства $PROPERTY_FIRST_EPISODE и $PROPERTY_LAST_EPISODE.",
+            "Расчёт границ серий",
+        )
+
+        listProperties =
+            FXCollections.observableArrayList(PropertyController.getListProperties(parentClass, person.id))
+        tblProperties?.items = listProperties
+    }
+
+    private fun showMessage(
+        text: String,
+        title: String,
+    ) {
+        val alert = Alert(Alert.AlertType.INFORMATION)
+        alert.title = title
+        alert.headerText = null
+        alert.contentText = text
+        alert.showAndWait()
     }
 
     @FXML

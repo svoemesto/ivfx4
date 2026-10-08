@@ -140,6 +140,14 @@
                                           <Tooltip text="Добавить файл" />
                                        </tooltip>
                                     </Button>
+                                    <Button fx:id="btnCalcSeriesBounds" mnemonicParsing="false" onAction="#doCalcSeriesBounds" prefHeight="46.0" prefWidth="46.0" text="↔">
+                                       <font>
+                                          <Font name="Arial" size="18.0" />
+                                       </font>
+                                       <tooltip>
+                                          <Tooltip text="Рассчитать границы серий: первую и последнюю серию, где встречается персона, и записать их в свойства" />
+                                       </tooltip>
+                                    </Button>
                                     <Button fx:id="btnPropertyDelete" mnemonicParsing="false" onAction="#doPropertyDelete" prefHeight="46.0" prefWidth="46.0" text="✖">
                                        <font>
                                           <Font name="Arial" size="18.0" />

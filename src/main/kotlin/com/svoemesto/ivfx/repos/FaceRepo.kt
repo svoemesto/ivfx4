@@ -74,6 +74,36 @@ interface FaceRepo : CrudRepository<Face, Long> {
     @Query("select f from Face f where f.track is not null and f.track.id in :ids")
     fun findByTrackIds(ids: Collection<Long>): Iterable<Face>
 
+    /**
+     * Первая и последняя серия, где встречалась персона: [fileId, название]
+     * для каждой границы либо пустой список, если лиц у персоны нет.
+     *
+     * Порядок берётся у файла, а не у лица: в самой таблице лиц серии нет,
+     * и порядок выдачи запроса нигде не гарантирован.
+     */
+    @Query(
+        value = """
+            SELECT MIN(fl.order_file) AS fileId, MIN(fl.short_name) AS shortName FROM tbl_faces f
+              JOIN tbl_files fl ON fl.id = f.file_id WHERE f.person_id = ?1
+            """,
+        nativeQuery = true,
+    )
+    fun getFirstSeriesOfPerson(personId: Long): Iterable<SeriesBound>
+
+    @Query(
+        value = """
+            SELECT MAX(fl.order_file) AS fileId, MAX(fl.short_name) AS shortName FROM tbl_faces f
+              JOIN tbl_files fl ON fl.id = f.file_id WHERE f.person_id = ?1
+            """,
+        nativeQuery = true,
+    )
+    fun getLastSeriesOfPerson(personId: Long): Iterable<SeriesBound>
+
+    interface SeriesBound {
+        val fileId: Long?
+        val shortName: String?
+    }
+
     /** Сколько лиц каждого персонажа файла состоят в треках: пара «идентификатор персоны, число». */
     @Query(
         value =
