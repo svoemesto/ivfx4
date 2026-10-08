@@ -197,12 +197,36 @@ class FaceController {
             return listFacesExt
         }
 
+        /**
+         * Лица серии, которые имеет смысл отправлять на распознавание.
+         *
+         * Лица с вытянутой рамкой **сюда не попадают**: их всё равно
+         * отправят в «не персонаж», и сделано это будет после сравнения —
+         * то есть сравнение оплачивается, а толку ноль. Раньше эта проверка
+         * жила в применении результата, то есть в конце, и на прогоне E05
+         * таких лиц был десятки тысяч. Теперь они отсекаются до постановки
+         * в очередь и сразу получают персону «не персонаж», как и раньше,
+         * только без сравнения.
+         *
+         * Проверка вытянутости — та же самая, что была в применении
+         * результата: отношение большей стороны к меньшей больше 4.
+         */
         fun getListFacesExtToRecognize(fileExt: FileExt): MutableList<FaceExt> {
             val undefindedPerson = PersonController.getUndefinded(fileExt.projectExt.project)
+            val nonPersonPerson = PersonController.getNonperson(fileExt.projectExt.project)
             val result = Main.faceRepo.findFacesToRecognize(fileExt.file.id, undefindedPerson.id).toMutableList()
             var listFacesExt: MutableList<FaceExt> = mutableListOf()
             val personExtMap: MutableMap<String, PersonExt> = mutableMapOf()
+            val tooThin = mutableListOf<Face>()
             result.forEach { face->
+                val width = face.endX - face.startX
+                val height = face.endY - face.startY
+                val ratio = if (width > height) width / height.toDouble() else height / width.toDouble()
+                if (ratio > 4) {
+                    face.person = nonPersonPerson
+                    tooThin.add(face)
+                    return@forEach
+                }
                 face.file = fileExt.file
                 var person = if (personExtMap.containsKey(face.personRecognizedName)) personExtMap[face.personRecognizedName]?.person else {
                     if (face.personRecognizedName != "") {
@@ -217,6 +241,10 @@ class FaceController {
                 face.person = person
 
                 listFacesExt.add(FaceExt(face, fileExt , personExt))
+            }
+            if (tooThin.isNotEmpty()) {
+                Main.faceRepo.saveAll(tooThin)
+                println("[FaceController] вытянутых рамок отправлено в «не персонаж» до распознавания: ${tooThin.size}")
             }
             return listFacesExt
         }
