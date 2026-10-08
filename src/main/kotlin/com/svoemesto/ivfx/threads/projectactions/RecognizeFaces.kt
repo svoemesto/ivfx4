@@ -68,6 +68,7 @@ class RecognizeFaces(
         // файл с чужими сериями и переписывал 45 тысяч лиц из шести серий в
         // седьмую: потерялось 60 тысяч лиц, включая все ручные назначения.
         val pathToFileJSON: String = fileExt.folderFramesFull + IOFile.separator + "recognize_faces_input.json"
+        val queueStartedAt = System.currentTimeMillis()
         val arrFrameFaces: Array<FaceExt> = FaceController.getListFacesExtToRecognize(fileExt).toTypedArray()
 
         arrFrameFaces.forEach {
@@ -75,6 +76,12 @@ class RecognizeFaces(
             it.personType = PersonType.UNDEFINDED.name
             it.personRecognizedName = ""
         }
+        val queueReadyAt = System.currentTimeMillis()
+        // Загрузка очереди меряется отдельно потому, что FaceExt тянет
+        // вектор в числа регуляркой при создании. На шести тысячах лиц
+        // это миллионы разборов, и без отдельной отметки их время
+        // растворялось в «сбор галереи».
+        println("[RecognizeFaces] загрузка очереди: ${queueReadyAt - queueStartedAt} мс")
 
         // В json добавляются уже отмеченные лица — они и есть галерея.
         //
@@ -287,6 +294,17 @@ class RecognizeFaces(
                 )
             }
             NpyWriter.write(IOFile(pathToFileNpy), allVectors, row, vectorColumns)
+            val matrixReadyAt = System.currentTimeMillis()
+            // Разбор всех векторов в числа и запись матрицы — отдельный
+            // измеряемый блок.
+            //
+            // Раньше он попадал в «сбор галереи», потому что галерея
+            // оборачивалась в FaceExt, а тот тянет вектор регуляркой при
+            // создании. Теперь галерея приходит проекцией, и разбор ушёл
+            // за пределы того замера — то есть из измеряемого места в
+            // невидимое. Без этой отметки на такие правки время просто
+            // пропадало из журнала, а не исчезало.
+            println("[RecognizeFaces] разбор и запись матрицы: ${matrixReadyAt - galleryReadyAt} мс")
 
             // Векторы в json больше не пишутся — они уже в матрице. В json
             // остаются только записи, по которым скрипт вернёт результат.
