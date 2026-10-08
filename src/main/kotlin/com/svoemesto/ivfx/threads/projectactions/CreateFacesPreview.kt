@@ -49,6 +49,10 @@ class CreateFacesPreview(var fileExt: FileExt,
         val builder = GsonBuilder()
         val gson = builder.create()
 
+        // Как и создание лиц, превью берёт faces.json — результат детектора.
+        // Файл распознавания теперь лежит рядом под своим именем, но проверить
+        // содержимое всё равно обязаны: то, что в файле лежат лица этой серии,
+        // это факт, а не следствие имени.
         val pathToJsonFaces = fileExt.folderFramesFull + IOFile.separator + "faces.json"
 
         var countBlocks = 1

@@ -57,6 +57,37 @@ class CreateFaces(
         try {
             FileReader(pathToJsonFaces).use { fileReader ->
                 val facesExtJsonArray: Array<FaceExtJson> = gson.fromJson(fileReader, Array<FaceExtJson>::class.java)
+
+                // Проверка содержимого, а не имени файла.
+                //
+                // Имя файла ничего не гарантирует: в faces.json кладёт записи
+                // и детектор, и распознавание, а распознавание кладёт туда
+                // галерeю всего проекта. Создание лиц, взяв такой файл,
+                // переписывало 45 тысяч лиц из шести серий в седьмую: потеря
+                // составила 60 тысяч лиц со всеми ручными назначениями.
+                //
+                // Теперь чужие записи — отказ, а не молчаливая работа.
+                val ownFileId = fileExt.file.id
+                val foreignIds = HashSet<Long>()
+                for (faceExtJson in facesExtJsonArray) {
+                    val idInJson = faceExtJson.fileId
+                    if (idInJson != 0L && idInJson != ownFileId) foreignIds.add(idInJson)
+                }
+                if (foreignIds.isNotEmpty()) {
+                    Trace.action(
+                        "CreateFaces: в faces.json есть лица других серий (" +
+                            "fileId=" + foreignIds.joinToString(",") + "), ожидался только " +
+                            fileExt.file.id + ". Похоже на вход распознавания. Операция остановлена.",
+                    )
+                    Platform.runLater {
+                        lbl1.isVisible = false
+                        lbl2.isVisible = false
+                        pb1.isVisible = false
+                        pb2.isVisible = false
+                    }
+                    return
+                }
+
                 val jsonReadAt = System.currentTimeMillis()
                 println("[CreateFaces] прочитано лиц из json: ${facesExtJsonArray.size}, чтение: ${jsonReadAt - startedAt} мс")
                 val nonPerson = PersonController.getNonpersonExt(fileExt.projectExt)

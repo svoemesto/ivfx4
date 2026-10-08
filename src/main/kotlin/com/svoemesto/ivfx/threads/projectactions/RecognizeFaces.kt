@@ -55,7 +55,16 @@ class RecognizeFaces(var fileExt: FileExt,
         val builder = GsonBuilder()
         val gson = builder.create()
 
-        val pathToFileJSON: String = fileExt.folderFramesFull + IOFile.separator + "faces.json"
+        // Свой файл на вход, а не общий faces.json.
+        //
+        // В faces.json пишут двое: детектор (и перепроверка) кладут туда
+        // найденные лица серии, а распознавание — очередь серии ПЛЮС галерею
+        // всего проекта, потому что скрипту нужно с чем сравнивать. Пока
+        // порядок строго «детект → создание лиц → распознавание», это
+        // безвредно. Но перезапуск создания лиц после распознавания читал
+        // файл с чужими сериями и переписывал 45 тысяч лиц из шести серий в
+        // седьмую: потерялось 60 тысяч лиц, включая все ручные назначения.
+        val pathToFileJSON: String = fileExt.folderFramesFull + IOFile.separator + "recognize_faces_input.json"
         val arrFrameFaces: Array<FaceExt> = FaceController.getListFacesExtToRecognize(fileExt).toTypedArray()
 
         arrFrameFaces.forEach {
@@ -248,7 +257,8 @@ class RecognizeFaces(var fileExt: FileExt,
             return
         }
 
-        // Читается не входной faces.json, а отдельный файл результата, куда
+        // Читается не входной recognize_faces_input.json, а отдельный файл
+        // результата, куда
         // скрипт пишет ТОЛЬКО распознанные лица. Входной файл — это
         // разметка, 492 МБ, из которых 69 % галерея; читать его обратно
         // было второй разцией за один и тот же файл.
