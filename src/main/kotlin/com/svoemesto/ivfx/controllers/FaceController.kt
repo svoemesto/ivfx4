@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.Face
 import com.svoemesto.ivfx.models.File
+import com.svoemesto.ivfx.models.Person
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Shot
 import com.svoemesto.ivfx.utils.FaceDetection
@@ -28,8 +29,55 @@ class FaceController {
 
     companion object {
 
-        fun createOrUpdate(faceExtJson: FaceExtJson, fileExt: FileExt, undefindedPerson: PersonExt, nonPerson: PersonExt): FaceExt {
+        /**
+         * Применяет результат распознавания или создания лиц **целиком, в одной
+         * транзакции**.
+         *
+         * Почему так. Применение шло по одному лицу, и каждое лицо обращалось
+         * к базе отдельно. Hibernate в проекте настроен на
+         * `enable_lazy_load_no_trans`, а это значит: **каждое ленивое чтение
+         * вне транзакции открывает новую сессию**. На каждое лицо приходилось
+         * несколько таких чтений — отложенная коллекция персон проекта,
+         * связи лица, — и на прогоне E05 это дало 21,5 секунды на 400 лиц,
+         * то есть 54 миллисекунды на лицо.
+         *
+         * В одной транзакции сессия одна: ленивые чтения бесплатны, а
+         * сохранения идут пачкой, а не по одному.
+         *
+         * [personByName] — кеш персон по имени в распознавателе. Без него на
+         * прогоне E05 выполнялось 400 одинаковых поисков по 71 персоне.
+         */
+        fun createOrUpdateAll(
+            facesExtJson: List<FaceExtJson>,
+            fileExt: FileExt,
+            undefindedPerson: PersonExt,
+            nonPerson: PersonExt,
+            onFaceApplied: (Int, Int) -> Unit,
+        ): Int {
+            val personByName: MutableMap<String, Person> = mutableMapOf()
+            var applied = 0
+            Main.transactionTemplate.executeWithoutResult {
+                facesExtJson.forEachIndexed { i, faceExtJson ->
+                    createOrUpdate(faceExtJson, fileExt, undefindedPerson, nonPerson, personByName)
+                    applied = i + 1
+                    onFaceApplied(i + 1, facesExtJson.size)
+                }
+            }
+            return applied
+        }
 
+        fun createOrUpdate(
+            faceExtJson: FaceExtJson,
+            fileExt: FileExt,
+            undefindedPerson: PersonExt,
+            nonPerson: PersonExt,
+            personByName: MutableMap<String, Person> = mutableMapOf(),
+        ): FaceExt {
+
+            // Проект берём один раз: обращение fileExt.projectExt.project
+            // внутри цикла — это ленивое чтение, а вне транзакции каждое
+            // такое чтение открывает свою сессию.
+            val project = fileExt.projectExt.project
             val w = faceExtJson.endX - faceExtJson.startX
             val h = faceExtJson.endY - faceExtJson.startY
             val d = if(w>h) w/h.toDouble() else h/w.toDouble()
@@ -51,8 +99,11 @@ class FaceController {
                 } else {
                     if (faceExtJson.personRecognizedName != "") {
                         if (faceExtJson.recognizeProbability > FaceDetection.RECOGNIZE_THRESHOLD) {
-                            face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
-                                faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                            face.person = personByName.getOrPut(faceExtJson.personRecognizedName) {
+                                PersonController.getPersonByProjectIdAndNameInRecognizer(project,
+                                    faceExtJson.personRecognizedName, faceExtJson.fileId,
+                                    faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                            }
                         } else {
                             face.person = undefindedPerson.person
                         }
@@ -70,8 +121,11 @@ class FaceController {
                     if (faceExtJson.personRecognizedName != "") {
                         face.personRecognizedName = faceExtJson.personRecognizedName
                         if (faceExtJson.recognizeProbability > FaceDetection.RECOGNIZE_THRESHOLD) {
-                            face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
-                                faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                            face.person = personByName.getOrPut(faceExtJson.personRecognizedName) {
+                                PersonController.getPersonByProjectIdAndNameInRecognizer(project,
+                                    faceExtJson.personRecognizedName, faceExtJson.fileId,
+                                    faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                            }
                         } else {
                             face.person = undefindedPerson.person
                         }
@@ -121,8 +175,11 @@ class FaceController {
             } else {
                 if (faceExtJson.personRecognizedName != "") {
                     if (faceExtJson.recognizeProbability > FaceDetection.RECOGNIZE_THRESHOLD) {
-                        face.person = PersonController.getPersonByProjectIdAndNameInRecognizer(fileExt.projectExt.project,
-                            faceExtJson.personRecognizedName, faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                        face.person = personByName.getOrPut(faceExtJson.personRecognizedName) {
+                            PersonController.getPersonByProjectIdAndNameInRecognizer(project,
+                                faceExtJson.personRecognizedName, faceExtJson.fileId,
+                                faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
+                        }
                     } else {
                         face.person = undefindedPerson.person
                     }

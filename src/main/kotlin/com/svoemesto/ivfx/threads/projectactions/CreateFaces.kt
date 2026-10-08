@@ -45,21 +45,22 @@ class CreateFaces(
                 val facesExtJsonArray: Array<FaceExtJson> = gson.fromJson(fileReader, Array<FaceExtJson>::class.java)
                 val nonPerson = PersonController.getNonpersonExt(fileExt.projectExt)
                 val undefindedPerson = PersonController.getUndefindedExt(fileExt.projectExt)
-                for ((i, faceExtJson) in facesExtJsonArray.withIndex()) {
-                    Trace.progress("CF", i + 1L, facesExtJsonArray.size.toLong())
-
-                    val initProgress1: Double = (numCurrentThread - 1) / (countThreads.toDouble())
-                    val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-                    val percentage2: Double = ((currentBlock - 1) + (i + 1) / facesExtJsonArray.size.toDouble()) / countBlocks.toDouble()
+                val initProgress1: Double = (numCurrentThread - 1) / (countThreads.toDouble())
+                val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
+                // Применение идёт целиком в одной транзакции: по лицу на
+                // транзакцию означало, что каждое ленивое чтение открывало свою
+                // сессию, и на больших сериях это стоило минут.
+                FaceController.createOrUpdateAll(facesExtJsonArray.toList(), fileExt, undefindedPerson, nonPerson) { i, total ->
+                    Trace.progress("CF", i.toLong(), total.toLong())
+                    val percentage2: Double =
+                        ((currentBlock - 1) + i / total.toDouble()) / countBlocks.toDouble()
                     val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
                     Platform.runLater {
                         lbl1.text = textLbl1
                         pb1.progress = percentage1
-                        lbl2.text = "Create face [$i/${facesExtJsonArray.size}]"
+                        lbl2.text = "Create face [$i/$total]"
                         pb2.progress = percentage2
                     }
-
-                    FaceController.createOrUpdate(faceExtJson, fileExt, undefindedPerson, nonPerson)
                 }
             }
         } catch (e: IOException) {
