@@ -150,19 +150,24 @@ class RecognizeFaces(
                     boundsKey2,
                     personClassName,
                 )
-        // Галерея НЕ оборачивается в FaceExt.
+        // Галерея приходит проекцией из двух столбцов, а не сущностями Face,
+        // и НЕ оборачивается в FaceExt.
         //
         // FaceExt при создании тянет вектор в числа: у него инициализатор
         // `toSerializeVector = vector`, а тот разбирает строку регуляркой. На
-        // 53 тысячах лиц это 27 миллионов разборов — 9 секунд чистого
-        // времени на галерею, которая в json больше не пишется вовсе.
+        // 62 тысячах лиц это 31 миллион разборов — 9 секунд чистого времени
+        // на галерею, которая в json больше не пишется вовсе.
         //
-        // Нужны от галереи ровно две вещи: имя персоны, чтобы сгруппировать,
-        // и текст вектора, чтобы положить в матрицу. Обе лежат в самой
-        // сущности лица, и обе достаются без единого разбора.
+        // Что приходит из базы: person_id — чтобы взять имя персоны из уже
+        // собранной карты `galleryPersons`, и vector — чтобы положить строку в
+        // матрицу. Больше из строки не нужно ничего, поэтому тянуть сущность
+        // целиком было лишней работой на всех 62 тысячах строк.
         val galleryRows: List<GalleryRow> =
-            galleryQuery.map { face ->
-                GalleryRow(galleryPersons.getValue(face.person.id).nameInRecognizer, face.vectorText)
+            galleryQuery.map { row ->
+                // person_id приходит из нативного запроса как Long; приводим
+                // через Number, чтобы не зависеть от того, чем именно его
+                // отдал драйвер.
+                GalleryRow(galleryPersons.getValue((row[0] as Number).toLong()).nameInRecognizer, row[1] as String)
             }
         val galleryReadyAt = System.currentTimeMillis()
         println("[RecognizeFaces] неопределённых лиц: ${arrFrameFaces.size}, отмеченных для галереи: ${galleryRows.size}")

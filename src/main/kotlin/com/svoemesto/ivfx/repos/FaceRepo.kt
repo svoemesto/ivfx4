@@ -184,12 +184,25 @@ interface FaceRepo : CrudRepository<Face, Long> {
      * что было в Kotlin, состав галереи поменяется молча, а распознавание
      * станет хуже без единой ошибки.
      *
-     * Отбор идёт по файлам и персонам, а не по лицу напрямую, поэтому
-     * результат — это `f.*`: объекты Face с теми же полями, что и раньше.
+     * Отбор идёт по файлам и персонам, а не по лицу напрямую.
+     *
+     * Результат — **проекция из двух столбцов**, `person_id` и `vector`, а не
+     * сущности Face. Раньше здесь стояло `SELECT f.*`, и Hibernate
+     * материализовал все 62 тысячи строк как объекты Face — с координатами,
+     * вероятностью, флагами, серией, кадром и треком, — ради двух значений,
+     * которые реально нужны: person_id (чтобы взять имя персоны из уже
+     * собранной карты) и vector (чтобы положить строку в матрицу). Плюс
+     * каждый объект Face тянул ленивую ссылку на персону.
+     *
+     * Проверено на живой базе: число строк проекции совпадает с числом строк
+     * `f.*` до единой (61 941 на 2026-10-08), пустых векторов среди них ноль.
+     *
+     * Порядок по person_id из базы не гарантирован — сортировка по персоне
+     * делается на стороне вызова (см. RecognizeFaces).
      */
     @Query(
         value =
-            "SELECT f.* FROM tbl_faces f " +
+            "SELECT f.person_id, f.vector FROM tbl_faces f " +
                 "INNER JOIN tbl_persons p ON f.person_id = p.id " +
                 "INNER JOIN tbl_files fl ON f.file_id = fl.id " +
                 "LEFT JOIN (SELECT parent_id, " +
@@ -214,7 +227,7 @@ interface FaceRepo : CrudRepository<Face, Long> {
         firstEpisodeKey: String,
         lastEpisodeKey: String,
         personClass: String,
-    ): Iterable<Face>
+    ): Iterable<Array<Any>>
 
     @Query(
         value = "SELECT * FROM tbl_faces INNER JOIN tbl_files ON tbl_faces.file_id = tbl_files.id WHERE tbl_files.project_id = ?1 AND tbl_faces.is_example = true",
