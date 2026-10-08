@@ -224,8 +224,12 @@ class PersonSelectFXController {
     @FXML
     fun doOk(event: ActionEvent?) {
         Trace.action("doOk")
-        if (listLastSelectedPersons.firstOrNull { it.person.id == currentPersonExt!!.person.id } ==
-            null
+        // Персона могли и не выбрать: окно открывается списком, а кнопка
+        // «ОК» доступна сразу. Раньше здесь стояло currentPersonExt!!, и
+        // нажатие без выбора роняло обработчик — окно не закрывалось, а в
+        // журнал падало исключение.
+        if (currentPersonExt != null &&
+            listLastSelectedPersons.firstOrNull { it.person.id == currentPersonExt!!.person.id } == null
         ) {
             listLastSelectedPersons.add(0, currentPersonExt!!)
         }

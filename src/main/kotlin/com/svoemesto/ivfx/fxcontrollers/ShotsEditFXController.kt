@@ -3210,6 +3210,16 @@ class ShotsEditFXController {
     @FXML
     fun doSelectFacesCb(event: ActionEvent?) {
         Trace.action("doSelectFacesCb")
+        // Персона может быть не выбрана: переключатель виден всегда, и
+        // щёлкнуть по нему можно раньше, чем выбрана строка в списке персон.
+        // Раньше здесь стояло currentPersonExt!!, и фоновый потот загрузки
+        // падал на NullPointerException, оставляя флаг готовности списка
+        // сброшенным — то есть переключатель не просто ничего не делал, а ещё
+        // и ломал состояние.
+        if (currentPersonExt == null) {
+            Trace.action("doSelectFacesCb: персона не выбрана, переключение пропущено")
+            return
+        }
         isDoneLoadListPersonFacesExt.set(false)
         if (rbFaceFile!!.isSelected) {
             LoadListPersonFacesExtForFile(
