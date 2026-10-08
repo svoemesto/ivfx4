@@ -95,6 +95,31 @@ class Face: Comparable<Face> {
     @Column(name = "vector", columnDefinition = "text")
     var vectorText: String = "0.0"
 
+    /**
+     * Тот же вектор двоично: 512 float32 little-endian подряд (задача #268).
+     *
+     * Заполняется миграцией, до неё остаётся `null`, и тогда читается
+     * [vectorText]. **Читателей переключать только после проверки
+     * перезаписанных данных**: правило 2.11 выросло как раз из того, что
+     * оптимизацию проверили на том объёме, на котором её не гоняли.
+     */
+    @Column(name = "vector_bin")
+    var vectorBinary: ByteArray? = null
+
+    /**
+     * Вектор из двоичной колонки, либо `null`, если её ещё нет.
+     *
+     * Возвращается именно `null`, а не текстовый разбор: вызывающий должен
+     * сам решить, откуда брать значения. Подмена одного источника другим
+     * молча — это то, из-за чего вчера стёрли векторы у 7 597 лиц.
+     */
+    fun vectorFloats(): FloatArray? {
+        val binary = vectorBinary ?: return null
+        if (binary.size < com.svoemesto.ivfx.utils.VectorBinary.BYTES) return null
+        return com.svoemesto.ivfx.utils.VectorBinary
+            .toFloats(binary)
+    }
+
     var vector: DoubleArray
         get() {
             val textVector: Array<String> = vectorText.split("\\|".toRegex()).toTypedArray()
