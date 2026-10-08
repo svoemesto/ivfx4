@@ -404,12 +404,54 @@ class RecognizeFaces(
             resultJsonFile.delete()
             val nonPerson = PersonController.getNonpersonExt(fileExt.projectExt)
             val undefindedPerson = PersonController.getUndefindedExt(fileExt.projectExt)
+
+            // Границы серий — не только про качество галереи, но и запрет на
+            // результат. Персона с `LastEpisode = 7`, у которой оператор
+            // собственной рукой объявил последнюю серию, не может быть
+            // назначена лицу из восьмой: это прямое противоречие объявленному.
+            //
+            // Проверено 2026-10-08 на E08: у восьми персон с границами
+            // нашлось 78 лиц за их пределами, включая два лица Визериса
+            // Таргариена. Скрипт сравнивал их с галереей персон из первых
+            // семи серий и назначал — границы на результат не смотрели нигде.
+            //
+            // Персоны без границ (в карте их нет) пропускаются как есть: у
+            // 70 из 87 персон границы не заданы, и правило их не касается.
+            val episodeBounds = PersonController.getEpisodeBounds(fileExt.projectExt.project)
+            val seriesOrder = fileExt.file.order
+            val personNameByRecognizer = galleryPersons.values.associate { it.nameInRecognizer to it.name }
+            val allowedRecognizerNames =
+                galleryPersons.values
+                    .filter { PersonController.isAllowedInSeries(episodeBounds, it.id, seriesOrder) }
+                    .mapTo(HashSet()) { it.nameInRecognizer }
+            val refusedNames =
+                facesExtJsonArray
+                    .filter { it.personRecognizedName.isNotEmpty() && it.personRecognizedName !in allowedRecognizerNames }
+                    .groupingBy { it.personRecognizedName }
+                    .eachCount()
+            val toApply = facesExtJsonArray.filter { it.personRecognizedName !in refusedNames }
+            if (refusedNames.isNotEmpty()) {
+                val refusedFaces = refusedNames.values.sum()
+                val listed =
+                    refusedNames.entries.joinToString { entry ->
+                        "${personNameByRecognizer[entry.key] ?: entry.key} ${entry.value}"
+                    }
+                println(
+                    "[RecognizeFaces] отклонено по границам серий: $refusedFaces лиц, " +
+                        "${refusedNames.size} персон — $listed",
+                )
+            }
             // Применение идёт целиком в одной транзакции: по лицу на
             // транзакцию означало, что каждое ленивое чтение открывало свою
             // сессию. На прогоне E05 это дало 21,5 секунды на 400 лиц.
             val initProgress1: Double = (numCurrentThread - 1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
-            FaceController.createOrUpdateAll(facesExtJsonArray.toList(), fileExt, undefindedPerson, nonPerson) { i, total ->
+            FaceController.createOrUpdateAll(
+                toApply.toList(),
+                fileExt,
+                undefindedPerson,
+                nonPerson,
+            ) { i, total ->
                 val percentage2: Double = if (total == 0) 1.0 else i / total.toDouble()
                 val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
                 Platform.runLater {

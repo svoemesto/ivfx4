@@ -2,6 +2,7 @@ package com.svoemesto.ivfx.threads.projectactions
 
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FaceController
+import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.models.Face
 import com.svoemesto.ivfx.models.FaceTrack
@@ -88,6 +89,24 @@ class TrackFaces(var fileExt: FileExt,
         // Персоны подгружаем целиком заранее: тип персоны тоже лежит за
         // отложенной связью, и читать его прямо здесь так же нельзя.
         val personById = Main.personRepo.findAll().associateBy { it.id }
+
+        // Границы серий: назначать персону за её пределами нельзя ни здесь,
+        // ни в распознавании. Без проверки трек собирает лиц по сходству
+        // векторов и раздаёт всем персону по большинству — то есть границы,
+        // объявленные оператором, обходились ещё и здесь. Персоны без
+        // границ в карте отсутствуют и не затрагиваются.
+        val episodeBounds = PersonController.getEpisodeBounds(fileExt.projectExt.project)
+        val seriesOrder = fileExt.file.order
+        val notAllowedHere: Set<Long> =
+            episodeBounds
+                .filter { seriesOrder !in it.value.firstSeries..it.value.lastSeries }
+                .keys
+        if (notAllowedHere.isNotEmpty()) {
+            println(
+                "[TR] за границами серий в этой серии: ${notAllowedHere.size} персон — " +
+                    notAllowedHere.joinToString { personById[it]?.name ?: "#$it" },
+            )
+        }
 
         Platform.runLater {
             lbl1.text = "$textLbl1: сцен ${shots.size}, лиц ${faces.size}"
@@ -183,7 +202,7 @@ class TrackFaces(var fileExt: FileExt,
                 track.firstFrameNumber = members.minOf { it.frameNumber }
                 track.lastFrameNumber = members.maxOf { it.frameNumber }
                 track.faceCount = members.size
-                track.person = majorityPerson(members, personById)
+                track.person = majorityPerson(members, personById, notAllowedHere)
 
                 val saved = Main.faceTrackRepo.save(track)
                 created++
@@ -212,8 +231,9 @@ class TrackFaces(var fileExt: FileExt,
                 // делаем: трек действительно собрал двоих, и кому отдать
                 // неопределённых, без участия человека не решить.
                 val knownIds = members.mapNotNull { f -> personById[f.person.id] }
-                        .filter { it.personType != PersonType.UNDEFINDED }
-                        .map { it.id }.distinct()
+                    .filter { it.personType != PersonType.UNDEFINDED }
+                    .filter { it.id !in notAllowedHere }
+                    .map { it.id }.distinct()
                 if (knownIds.size == 1) {
                     val known = personById[knownIds[0]]!!
                     for (f in members) {
@@ -286,11 +306,19 @@ class TrackFaces(var fileExt: FileExt,
      * лиц в треке, и они уже размечены, тогда как лица, попавшие в него
      * по сходству с разных кадров, могли остаться неназванными.
      */
-    private fun majorityPerson(members: List<Face>, personById: Map<Long, Person>): Person? {
+    private fun majorityPerson(
+        members: List<Face>,
+        personById: Map<Long, Person>,
+        notAllowedHere: Set<Long>,
+    ): Person? {
         val counts = mutableMapOf<Long, Pair<Person, Int>>()
         for (f in members) {
             val p = personById[f.person.id] ?: continue
             if (p.personType == PersonType.UNDEFINDED) continue
+            // Персона за границами своей серии в большинство не идёт: иначе
+            // трек, где она случайно оказалась, сделал бы её персоной всего
+            // трека и раздал всем его лицам.
+            if (p.id in notAllowedHere) continue
             val id = p.id
             val cur = counts[id]
             counts[id] = if (cur == null) Pair(p, 1) else Pair(cur.first, cur.second + 1)

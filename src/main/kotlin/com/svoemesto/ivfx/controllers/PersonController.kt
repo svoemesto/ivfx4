@@ -133,5 +133,70 @@ class PersonController() {
             return Main.personRepo.findById(personId).get()
         }
 
+        /** Ключи свойств, в которых оператор задаёт границы серий персоны. */
+        const val FIRST_EPISODE = "FirstEpisode"
+        const val LAST_EPISODE = "LastEpisode"
+
+        /**
+         * Границы серий персоны: номера первой и последней серии, где она
+         * встречается. Персона без заданных границ считается доступной везде,
+         * то есть в карте её просто нет.
+         */
+        data class EpisodeBounds(
+            val firstSeries: Int,
+            val lastSeries: Int,
+        )
+
+        /**
+         * Границы серий всех персон проекта, собранные ОДНИМ запросом по
+         * свойствам и одним по файлам.
+         *
+         * Значение свойства — идентификатор файла, а сравнивать надо номера
+         * серий, поэтому файлы переводятся в номера один раз. Значение, не
+         * похожее на число, границей не считается: пропустить лицо персоны
+         * хуже, чем молча отказать ей в отборе — та же оговорка, что и в
+         * запросе галереи.
+         *
+         * Персон с границами на 2026-10-08 было 17 из 87, поэтому карта мала,
+         * но собирается целиком: по свойству на персону вышло бы 34 запроса,
+         * а ленивое чтение вне транзакции открывает новую сессию на каждое.
+         */
+        fun getEpisodeBounds(project: Project): Map<Long, EpisodeBounds> {
+            val orderByFileId = Main.fileRepo.findByProjectId(project.id).associate { it.id to it.order }
+            val firstByPerson = HashMap<Long, String>()
+            val lastByPerson = HashMap<Long, String>()
+            Main.propertyRepo.findByParentClass(Person::class.simpleName!!).forEach { property ->
+                when (property.key) {
+                    FIRST_EPISODE -> firstByPerson[property.parentId] = property.value
+                    LAST_EPISODE -> lastByPerson[property.parentId] = property.value
+                }
+            }
+            val bounds = HashMap<Long, EpisodeBounds>()
+            for ((personId, firstValue) in firstByPerson) {
+                val lastValue = lastByPerson[personId] ?: continue
+                val firstOrder = firstValue.trim().toLongOrNull()?.let { orderByFileId[it] } ?: continue
+                val lastOrder = lastValue.trim().toLongOrNull()?.let { orderByFileId[it] } ?: continue
+                bounds[personId] = EpisodeBounds(minOf(firstOrder, lastOrder), maxOf(firstOrder, lastOrder))
+            }
+            return bounds
+        }
+
+        /**
+         * Может ли персона встречаться в серии с указанным номером.
+         *
+         * Персона без границ (в карте её нет) доступна везде: у 70 из 87
+         * персон границы не заданы, и правило не должно их затрагивать.
+         * Серия за пределами границ — прямое противоречие тому, что оператор
+         * написал собственной рукой, поэтому такие назначения не применяются.
+         */
+        fun isAllowedInSeries(
+            bounds: Map<Long, EpisodeBounds>,
+            personId: Long,
+            seriesOrder: Int,
+        ): Boolean {
+            val b = bounds[personId] ?: return true
+            return seriesOrder in b.firstSeries..b.lastSeries
+        }
+
     }
 }
