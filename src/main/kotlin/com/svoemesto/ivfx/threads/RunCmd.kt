@@ -8,8 +8,10 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.io.File as IOFile
 
-
-class RunCmd(private val cmdText: String): Thread(), Runnable {
+class RunCmd(
+    private val cmdText: String,
+) : Thread(),
+    Runnable {
     override fun run() {
         this.name = "RunCmd"
         val cmdFile = IOFile.createTempFile("ivfx", ".cmd")
@@ -83,11 +85,21 @@ class RunCmd(private val cmdText: String): Thread(), Runnable {
             }
         }
         if (interrupted) {
-            // Процесс надо убить явно: сам он после прерывания потока
-            // не завершается, и дальше он бы добежал до конца и записал
-            // результат поверх незавершённого.
+            // Убивать нужно дерево, а не только оболочку.
+            //
+            // RunCmd запускает `/bin/sh` с файлом команды, а python идёт его
+            // потомком. destroy() убивает только оболочку, и скрипт
+            // остаётся жить: его переподчиняет systemd, и он продолжает
+            // писать на диск. Проверено на живом прогоне — после прерывания
+            // процесс detect_faces_in_folder.py жил с ppid = systemd --user.
+            //
+            // Потомки собираются ДО убийства: после смерти оболочки дерево
+            // рассыпается и найти его уже нельзя.
+            val descendants = p.toHandle().descendants().toList()
+            descendants.forEach { it.destroy() }
             p.destroy()
             if (!p.waitFor(3, TimeUnit.SECONDS)) p.destroyForcibly()
+            descendants.forEach { if (it.isAlive) it.destroyForcibly() }
             reader.join(1000)
             // Флаг прерывания возвращается: иначе вызывающий не увидит, что
             // операция была прервана, и запишет её как успешную.
