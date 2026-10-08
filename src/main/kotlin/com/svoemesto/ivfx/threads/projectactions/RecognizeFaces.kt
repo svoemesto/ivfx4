@@ -6,6 +6,8 @@ import com.svoemesto.ivfx.controllers.FaceController
 import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.enums.PersonType
+import com.svoemesto.ivfx.models.File
+import com.svoemesto.ivfx.models.Person
 import com.svoemesto.ivfx.modelsext.FaceExt
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.FaceExtJson
@@ -94,21 +96,37 @@ class RecognizeFaces(var fileExt: FileExt,
         // У каждой серии своя папка кадров, поэтому у лица галереи должен
         // быть И ЕГО FileExt, а не тот, на котором идёт распознавание: иначе
         // пути в json указывали бы на чужую серию.
+        // Галерея собирается ОДНИМ запросом, а не обходом «серия × персона».
+        //
+        // Обход давал 700 запросов на проект из 10 серий и 70 персон, и он
+        // повторялся заново для каждой серии подряд. Здесь три запроса:
+        // файлы, персоны и сами лица галереи.
+        //
+        // Условия отбора те же, что были в коде, перенесены в SQL буквально
+        // (см. FaceRepo). Расхождение с прежним отбором поменяло бы состав
+        // галереи молча, и распознавание стало бы хуже без единой ошибки.
+        //
+        // У каждого лица отложенные связи file и person заменяются
+        // настоящими объектами: идентификатор ленивого прокси Hibernate
+        // отдаёт без запроса, а чтение shortName конструктором FaceExt без
+        // подмены падает.
         val projectId = fileExt.projectExt.project.id
-        val galleryPersons = Main.personRepo.findByProjectId(projectId)
-            .filter { it.personType == PersonType.PERSON && it.id != undefinded.id }
-        val galleryFaces = mutableListOf<FaceExt>()
-        for (galleryFile in Main.fileRepo.findByProjectId(projectId)) {
-            val galleryFileExt = FileExt(galleryFile, fileExt.projectExt)
-            for (person in galleryPersons) {
-                for (face in Main.faceRepo.findAllByFileIdAndPersonId(galleryFile.id, person.id)) {
-                    face.file = galleryFile
-                    face.person = person
-                    if (face.personRecognizedName == "") continue
-                    galleryFaces.add(FaceExt(face, galleryFileExt, PersonExt(person, fileExt.projectExt)))
-                }
+        val galleryFiles: Map<Long, File> = Main.fileRepo.findByProjectId(projectId).associateBy { it.id }
+        val galleryPersons: Map<Long, Person> = Main.personRepo.findByProjectId(projectId).associateBy { it.id }
+        val galleryFileExts: MutableMap<Long, FileExt> = mutableMapOf()
+        val galleryPersonExts: MutableMap<Long, PersonExt> = mutableMapOf()
+        val galleryFaces = Main.faceRepo
+            .findGalleryByProjectId(projectId, PersonType.PERSON.order, undefinded.id)
+            .map { face ->
+                val galleryFile = galleryFiles.getValue(face.file.id)
+                val galleryPerson = galleryPersons.getValue(face.person.id)
+                val faceExt = galleryFileExts.getOrPut(galleryFile.id) { FileExt(galleryFile, fileExt.projectExt) }
+                val personExt = galleryPersonExts.getOrPut(galleryPerson.id) { PersonExt(galleryPerson, fileExt.projectExt) }
+                face.file = galleryFile
+                face.person = galleryPerson
+                FaceExt(face, faceExt, personExt)
             }
-        }
+            .toMutableList()
         galleryFaces.forEach {
             it.personType = PersonType.PERSON.name
             it.personRecognizedName = it.face.personRecognizedName

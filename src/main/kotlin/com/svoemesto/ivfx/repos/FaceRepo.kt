@@ -140,6 +140,38 @@ interface FaceRepo : CrudRepository<Face, Long> {
         personId: Long,
     ): Iterable<Face>
 
+    /**
+     * Галерея распознавания целиком, одним запросом.
+     *
+     * Раньше она собиралась обходом «каждая серия × каждая персона», то
+     * есть на проекте из 10 серий и 70 персон это 700 отдельных запросов на
+     * каждый запуск распознавания, и пересборка повторялась для каждой
+     * серии подряд.
+     *
+     * Отбор здесь **буквально тот же**, что был в коде: персонаж типа
+     * PERSON, не неопределённый, и у лица непустое имя в распознавателе.
+     * Условия перенесены в SQL не для красоты: если они разойдутся с тем,
+     * что было в Kotlin, состав галереи поменяется молча, а распознавание
+     * станет хуже без единой ошибки.
+     *
+     * Отбор идёт по файлам и персонам, а не по лицу напрямую, поэтому
+     * результат — это `f.*`: объекты Face с теми же полями, что и раньше.
+     */
+    @Query(
+        value =
+            "SELECT f.* FROM tbl_faces f " +
+                "INNER JOIN tbl_persons p ON f.person_id = p.id " +
+                "INNER JOIN tbl_files fl ON f.file_id = fl.id " +
+                "WHERE fl.project_id = ?1 AND p.person_type = ?2 AND f.person_id <> ?3 " +
+                "AND f.person_recognized_name <> ''",
+        nativeQuery = true,
+    )
+    fun findGalleryByProjectId(
+        projectId: Long,
+        personType: Int,
+        undefindedPersonId: Long,
+    ): Iterable<Face>
+
     @Query(
         value = "SELECT * FROM tbl_faces INNER JOIN tbl_files ON tbl_faces.file_id = tbl_files.id WHERE tbl_files.project_id = ?1 AND tbl_faces.is_example = true",
         nativeQuery = true,
