@@ -94,22 +94,32 @@ class FaceController {
 
             if (face != null) {
                 face.file = fileExt.file
-                if (d > 4) {
-                    face.person = nonPerson.person
-                } else {
-                    if (faceExtJson.personRecognizedName != "") {
-                        if (faceExtJson.recognizeProbability > FaceDetection.RECOGNIZE_THRESHOLD) {
-                            face.person = personByName.getOrPut(faceExtJson.personRecognizedName) {
-                                PersonController.getPersonByProjectIdAndNameInRecognizer(project,
-                                    faceExtJson.personRecognizedName, faceExtJson.fileId,
-                                    faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
-                            }
-                        } else {
-                            face.person = undefindedPerson.person
+                // Кто вправе решить судьбу лица.
+                //
+                // Имя в json приносит только распознавание. Создание лиц
+                // имён не приносит вовсе, и прежнее правило «имя не пришло —
+                // значит неопределённый» означало, что перезапуск создания лиц
+                // на уже обработанной серии тихо отправлял размеченные лица
+                // обратно в неопределённые. Работа оператора исчезала без
+                // единой ошибки и без единой отметки.
+                //
+                // Правило теперь: **чужое решение не отменяется**. Персону
+                // меняет только тот, кто принёс имя, то есть распознавание.
+                // Геометрия — вытянутая рамка означает «не персонаж» —
+                // применяется только к лицам, для которых ещё никто ничего
+                // не решил.
+                if (faceExtJson.personRecognizedName != "") {
+                    if (faceExtJson.recognizeProbability > FaceDetection.RECOGNIZE_THRESHOLD) {
+                        face.person = personByName.getOrPut(faceExtJson.personRecognizedName) {
+                            PersonController.getPersonByProjectIdAndNameInRecognizer(project,
+                                faceExtJson.personRecognizedName, faceExtJson.fileId,
+                                faceExtJson.frameNumber, faceExtJson.faceNumberInFrame)
                         }
                     } else {
                         face.person = undefindedPerson.person
                     }
+                } else if (face.person.id == undefindedPerson.person.id && d > 4) {
+                    face.person = nonPerson.person
                 }
 
                 val personExt = PersonExt(face.person, fileExt.projectExt)
@@ -130,10 +140,10 @@ class FaceController {
                             face.person = undefindedPerson.person
                         }
                         needToSave = true
-                    } else {
-                        face.person = undefindedPerson.person
                     }
-
+                    // Пустой ветке здесь больше нечего делать: снять персону
+                    // пришло бы значить ровно то, от чего мы ушли выше, —
+                    // стереть чужое решение из-за отсутствия имени в json.
                 }
                 if (face.recognizeProbability != faceExtJson.recognizeProbability) {
                     face.recognizeProbability = faceExtJson.recognizeProbability
