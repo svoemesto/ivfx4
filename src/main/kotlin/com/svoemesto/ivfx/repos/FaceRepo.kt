@@ -192,14 +192,28 @@ interface FaceRepo : CrudRepository<Face, Long> {
             "SELECT f.* FROM tbl_faces f " +
                 "INNER JOIN tbl_persons p ON f.person_id = p.id " +
                 "INNER JOIN tbl_files fl ON f.file_id = fl.id " +
+                "LEFT JOIN (SELECT parent_id, " +
+                "MIN(CASE WHEN property_key = ?4 THEN property_value END) AS first_id, " +
+                "MIN(CASE WHEN property_key = ?5 THEN property_value END) AS last_id " +
+                "FROM tbl_properties WHERE parent_class = ?6 AND property_key IN (?4, ?5) " +
+                "GROUP BY parent_id) b ON b.parent_id = p.id " +
+                "LEFT JOIN tbl_files flf ON flf.id = " +
+                "(CASE WHEN b.first_id ~ '^[0-9]+$' THEN CAST(b.first_id AS bigint) END) " +
+                "LEFT JOIN tbl_files fll ON fll.id = " +
+                "(CASE WHEN b.last_id ~ '^[0-9]+$' THEN CAST(b.last_id AS bigint) END) " +
                 "WHERE fl.project_id = ?1 AND p.person_type = ?2 AND f.person_id <> ?3 " +
-                "AND f.person_recognized_name <> ''",
+                "AND f.person_recognized_name <> '' " +
+                "AND (b.first_id IS NULL OR fl.order_file >= flf.order_file) " +
+                "AND (b.last_id IS NULL OR fl.order_file <= fll.order_file)",
         nativeQuery = true,
     )
     fun findGalleryByProjectId(
         projectId: Long,
         personType: Int,
         undefindedPersonId: Long,
+        firstEpisodeKey: String,
+        lastEpisodeKey: String,
+        personClass: String,
     ): Iterable<Face>
 
     @Query(

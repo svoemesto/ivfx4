@@ -130,8 +130,15 @@ class RecognizeFaces(var fileExt: FileExt,
         val galleryPersons: Map<Long, Person> = Main.personRepo.findByProjectId(projectId).associateBy { it.id }
         val galleryFileExts: MutableMap<Long, FileExt> = mutableMapOf()
         val galleryPersonExts: MutableMap<Long, PersonExt> = mutableMapOf()
+        // Границы серий из свойств персоны. Значение свойства — идентификатор
+        // файла, а сравниваются номера серий, поэтому приведение сделано в SQL.
+        // Значение, не похожее на число, границей не считается: пропустить
+        // лицо персоны хуже, чем молча отказать ей в отборе.
+        val boundsKey1 = PERSON_PROPERTY_FIRST_EPISODE
+        val boundsKey2 = PERSON_PROPERTY_LAST_EPISODE
+        val personClassName = Person::class.java.simpleName
         val galleryFaces = Main.faceRepo
-            .findGalleryByProjectId(projectId, PersonType.PERSON.order, undefinded.id)
+            .findGalleryByProjectId(projectId, PersonType.PERSON.order, undefinded.id, boundsKey1, boundsKey2, personClassName)
             .map { face ->
                 val galleryFile = galleryFiles.getValue(face.file.id)
                 val galleryPerson = galleryPersons.getValue(face.person.id)
@@ -350,5 +357,16 @@ class RecognizeFaces(var fileExt: FileExt,
                 return
             }
         }
+    }
+
+    companion object {
+        /**
+         * Ключи свойств, в которых персонаж хранит свой путь по сериям.
+         *
+         * Объявлены здесь, а не берутся из контроллера формы персоны: сборка
+         * галереи не должна зависеть от экрана, который их записывает.
+         */
+        const val PERSON_PROPERTY_FIRST_EPISODE = "FirstEpisode"
+        const val PERSON_PROPERTY_LAST_EPISODE = "LastEpisode"
     }
 }
