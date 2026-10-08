@@ -17,7 +17,29 @@ import java.io.File as IOFile
 
 class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Transient var personExt: PersonExt): Comparable<FaceExt> {
 
+    /**
+     * Кадр, с которого начинается трек этого лица, — ключ группировки.
+     *
+     * Без него лица одной персоны из разных треков чередуются по кадрам.
+     * Это заметно на EXTRAS: в одном плане трое разных людей отнесены к
+     * одной служебной персоне, у каждого свой трек, и без группировки их
+     * лица выводятся вперемешку — не разобрать, где кто.
+     *
+     * Трек принадлежит ровно одному плану, поэтому сортировка по этому ключу
+     * даёт нужный порядок целиком: планы по кадрам, внутри плана треки по
+     * кадру начала, внутри трека лица по кадрам.
+     *
+     * Заполняется загрузчиком списка лиц из карты «трек → кадр начала».
+     * Лицо без трека (треки ещё не построены) получает свой собственный
+     * кадр и остаётся на своём месте по времени.
+     */
+    var trackFirstFrameNumber: Int = face.frameNumber
+
     override fun compareTo(other: FaceExt): Int {
+        if (this.face.file.order != other.face.file.order) return this.face.file.order - other.face.file.order
+        if (this.trackFirstFrameNumber != other.trackFirstFrameNumber) {
+            return this.trackFirstFrameNumber - other.trackFirstFrameNumber
+        }
         return this.face.compareTo(other.face)
     }
 

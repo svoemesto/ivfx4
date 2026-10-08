@@ -21,6 +21,24 @@ interface FaceTrackRepo : CrudRepository<FaceTrack, Long> {
     fun findByFileId(fileId: Long): Iterable<FaceTrack>
 
     /**
+     * Треки всего проекта. Нужны, чтобы лицо узнало, с какого кадра
+     * начинается его трек: без этого лица одной персоны из разных треков
+     * чередуются по кадрам, и в одном плане два человека, отнесённые к
+     * EXTRAS, выглядят как один вперемешанный.
+     *
+     * Забирается один раз на загрузку списка лиц, а не на каждое лицо:
+     * `track_id` у лица ленивый, но его идентификатор прокси отдаёт без
+     * запроса.
+     */
+    @Query(
+        value =
+            "select distinct ft.* from tbl_faces_tracks ft " +
+                "inner join tbl_shots as s on ft.shot_id = s.id where s.project_id = ?1",
+        nativeQuery = true,
+    )
+    fun findByProjectId(projectId: Long): Iterable<FaceTrack>
+
+    /**
      * Треки живут внутри сцен, поэтому чистим по сценам файла: сцена может
      * быть пересоздана шагом разделения, и тогда трек перестаёт существовать.
      * Порядок важен — сперва снимаем ссылку с лиц, иначе останется висячий

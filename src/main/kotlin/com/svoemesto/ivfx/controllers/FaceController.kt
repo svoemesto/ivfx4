@@ -241,6 +241,43 @@ class FaceController {
             return listFacesExt
         }
 
+        /**
+         * Карта «трек → кадр, с которого он начинается» по всему проекту.
+         *
+         * Нужна, чтобы лицо узнало свой трек и сортировка списка персоны
+         * группировала лица по трекам. Забирается **один раз на загрузку
+         * списка**, а не на каждое лицо: идентификатор ленивой связи
+         * `Face.track` Hibernate отдаёт из прокси, без запроса к базе.
+         *
+         * Для списка одного файла берётся перегрузка ниже: треки остальных
+         * серий этому списку не нужны, а их в проекте тысячи.
+         */
+        fun getTrackFirstFrameNumbers(projectExt: ProjectExt): Map<Long, Int> =
+            Main.faceTrackRepo
+                .findByProjectId(projectExt.project.id)
+                .map { it.id to it.firstFrameNumber }
+                .toMap()
+
+        /** Карта «трек → кадр начала» по одному файлу. */
+        fun getTrackFirstFrameNumbers(fileExt: FileExt): Map<Long, Int> =
+            Main.faceTrackRepo
+                .findByFileId(fileExt.file.id)
+                .map { it.id to it.firstFrameNumber }
+                .toMap()
+
+        /**
+         * Проставляет лицу ключ группировки по треку. Лицо без трека остаётся
+         * на своём месте по времени.
+         */
+        private fun applyTrackOrder(
+            faceExt: FaceExt,
+            trackFirstFrameNumbers: Map<Long, Int>,
+        ): FaceExt {
+            val trackId = faceExt.face.track?.id
+            faceExt.trackFirstFrameNumber = trackId?.let { trackFirstFrameNumbers[it] } ?: faceExt.frameNumber
+            return faceExt
+        }
+
         fun getListFacesExt(fileExt: FileExt,
                             personExt: PersonExt,
                             loadNotExample: Boolean = true,
@@ -252,10 +289,11 @@ class FaceController {
 
             result = Main.faceRepo.findByFileIdAndPersonId(fileExt.file.id, personExt.person.id, loadNotExample, loadExample, loadNotManual, loadManual).toMutableList()
 
+            val trackFirstFrameNumbers = getTrackFirstFrameNumbers(fileExt)
             return result.map {
                 it.file = fileExt.file
                 it.person = personExt.person
-                FaceExt(it, fileExt, personExt)
+                applyTrackOrder(FaceExt(it, fileExt, personExt), trackFirstFrameNumbers)
             }.toMutableList()
 
         }
@@ -271,6 +309,7 @@ class FaceController {
 
             result = Main.faceRepo.findByShotIdAndPersonId(shotExt.shot.id, personExt.person.id, loadNotExample, loadExample, loadNotManual, loadManual).toMutableList()
 
+            val trackFirstFrameNumbers = getTrackFirstFrameNumbers(shotExt.fileExt)
             val setFilesExt: MutableSet<FileExt> = mutableSetOf()
             return result.mapNotNull { face ->
 
@@ -293,7 +332,7 @@ class FaceController {
                     }
                     face.file = fileExt.file
                     face.person = personExt.person
-                    FaceExt(face, fileExt, personExt)
+                    applyTrackOrder(FaceExt(face, fileExt, personExt), trackFirstFrameNumbers)
                 } else {
                     null
                 }
@@ -312,6 +351,7 @@ class FaceController {
 
             result = Main.faceRepo.findByProjectIdAndPersonId(projectExt.project.id, personExt.person.id, loadNotExample, loadExample, loadNotManual, loadManual).toMutableList()
 
+            val trackFirstFrameNumbers = getTrackFirstFrameNumbers(projectExt)
             val setFilesExt: MutableSet<FileExt> = mutableSetOf()
             return result.mapNotNull { face ->
 
@@ -334,7 +374,7 @@ class FaceController {
                     }
                     face.file = fileExt.file
                     face.person = personExt.person
-                    FaceExt(face, fileExt, personExt)
+                    applyTrackOrder(FaceExt(face, fileExt, personExt), trackFirstFrameNumbers)
                 } else {
                     null
                 }
