@@ -18,13 +18,17 @@ class RunListThreads(
         val autoName = Regex("^Thread-\\d+$")
         listThreads.forEach { if (autoName.matches(it.name)) it.name = it.javaClass.simpleName }
         Trace.start("цепочка из ${listThreads.size} операций: ${listThreads.map { it.name }}")
-        var runningThread: Thread? = null
-        var countStartedThreads = 0
-        while (countStartedThreads != listThreads.size && !currentThread().isInterrupted) {
-            if (runningThread == null) {
-                val next = listThreads[countStartedThreads]
-                runningThread = next
-                countStartedThreads++
+        // Операция, которую ждём прямо сейчас. Нужна для обработки прерывания:
+        // прерывание цепочки обязано дойти и до неё.
+        var running: Thread? = null
+        try {
+            for (next in listThreads) {
+                if (Thread.currentThread().isInterrupted) {
+                    // Прервали между операциями: следующую не запускаем.
+                    Trace.fail("цепочка из ${listThreads.size} операций", "остановлена перед ${next.name}")
+                    return
+                }
+                running = next
                 next.isDaemon = false
                 // Поток, упавший с исключением, выглядит завершившимся, и по
                 // факту смерти потока не отличить успех от аварии. Раньше
@@ -36,38 +40,39 @@ class RunListThreads(
                     }
                 Trace.start("операция ${next.name}")
                 next.start()
+                // Ожидание — одним механизмом, join(). Раньше здесь стоял
+                // join(), а дальше опрос isAlive через sleep(100), то есть два
+                // разных способа ждать одно и то же; различались они только
+                // тем, что прерывание в одном ловилось, а в другом нет.
                 next.join()
-                if (next.state != Thread.State.NEW && !Thread.currentThread().isInterrupted) {
-                    Trace.done("операция ${next.name}")
-                }
-            } else {
-                while (runningThread.isAlive) {
-                    try {
-                        sleep(100)
-                    } catch (e: InterruptedException) {
-                        runningThread.interrupt()
-                        return
-                    }
-                }
-                runningThread = listThreads[countStartedThreads]
-                countStartedThreads++
-                runningThread.isDaemon = false
-                Trace.start("операция ${runningThread.name}")
-                runningThread.start()
-            }
-        }
-        if (runningThread != null) {
-            while (runningThread.isAlive) {
-                try {
-                    sleep(100)
-                } catch (e: InterruptedException) {
-                    runningThread.interrupt()
+                running = null
+                if (Thread.currentThread().isInterrupted) {
+                    Trace.fail("цепочка из ${listThreads.size} операций", "прервано на операции ${next.name}")
                     return
                 }
+                Trace.done("операция ${next.name}")
             }
+            Trace.done("цепочка из ${listThreads.size} операций завершена")
+        } catch (e: InterruptedException) {
+            // Сюда попадает прерывание во время join(). Само по себе оно
+            // ничего не делает: дочерний поток продолжает работать, а его
+            // прерывание никто не отправил. Именно поэтому он упирается в
+            // не-демон и не даёт JVM завершиться после закрытия окна.
+            running?.interrupt()
+            Trace.fail(
+                "цепочка из ${listThreads.size} операций",
+                "прервано на операции ${running?.name ?: "?"}: ${e.message ?: "без сообщения"}",
+            )
+            // Флаг прерывания возвращается: иначе вызывающий код, который
+            // сам нас прервал, не увидит этого и решит, что всё прошло.
+            Thread.currentThread().interrupt()
+        } finally {
+            // Флаг ставится на ЛЮБОМ выходе, включая отмену.
+            //
+            // Его слушают через addListener, и без него интерфейс остаётся
+            // в состоянии ожидания навсегда: прерванная цепочка просто
+            // исчезала, не сообщив об этом ни одной строкой.
+            flagIsDone.set(true)
         }
-
-        Trace.done("цепочка из ${listThreads.size} операций завершена")
-        flagIsDone.set(true)
     }
 }
