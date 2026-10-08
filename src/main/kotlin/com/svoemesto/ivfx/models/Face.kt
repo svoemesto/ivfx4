@@ -36,6 +36,21 @@ class Face: Comparable<Face> {
     @JoinColumn(name = "file_id")
     lateinit var file: File
 
+    /**
+     * Кадр, в котором найдено лицо.
+     *
+     * Раньше связь была выводимой: кадр искался по паре «серия + номер
+     * кадра». Этого хватало, пока серия у лица никто не переписывал.
+     * Авария 2026-10-08 переписала её у 45 136 лиц, и восстановление
+     * держалось на одном файле на диске: указания на то, какому файлу
+     * принадлежит кадр, в самой базе не осталось.
+     *
+     * Теперь ссылка записана и от серии не зависит.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "frame_id")
+    var frame: Frame? = null
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "person_id")
     lateinit var person: Person

@@ -3,6 +3,7 @@ package com.svoemesto.ivfx.controllers
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.models.Face
 import com.svoemesto.ivfx.models.File
+import com.svoemesto.ivfx.models.Frame
 import com.svoemesto.ivfx.models.Person
 import com.svoemesto.ivfx.models.Project
 import com.svoemesto.ivfx.models.Shot
@@ -76,11 +77,14 @@ class FaceController {
                     val existingByKey: Map<Pair<Int, Int>, Face> =
                         Main.faceRepo.findByFileId(itemsOfFile.first().fileId)
                             .associateBy { it.frameNumber to it.faceNumberInFrame }
+                    val framesOfFile = Main.frameRepo.findByFileId(itemsOfFile.first().fileId)
+                    val frameByNumber: Map<Int, Frame> = framesOfFile.associateBy { it.frameNumber }
                     itemsOfFile.forEach { faceExtJson ->
                         createOrUpdate(
                             faceExtJson, fileExt, undefindedPerson, nonPerson, personByName,
                             existingByKey[faceExtJson.frameNumber to faceExtJson.faceNumberInFrame],
                             changed,
+                            frameByNumber[faceExtJson.frameNumber],
                         )
                         applied += 1
                         onFaceApplied(applied, total)
@@ -100,6 +104,7 @@ class FaceController {
             personByName: MutableMap<String, Person> = mutableMapOf(),
             preloadedFace: Face? = null,
             changed: MutableList<Face>? = null,
+            preloadedFrame: Frame? = null,
         ): FaceExt {
 
             // Проект берём один раз: обращение fileExt.projectExt.project
@@ -215,6 +220,13 @@ class FaceController {
                 face.isManual = false
                 face.file = fileExt.file
             }
+
+            // Ссылка на кадр ставится ВСЕГДА, и для найденного тоже. Иначе
+            // она накапливалась бы только у новых лиц, а у существующих
+            // осталась бы незаполненной — то есть ровно на тех, где связь
+            // нужна для разбора. Заполнение делается одним запросом на файл:
+            // пачкой из карты дешевле, чем поиск на каждое лицо.
+            if (face.frame == null && preloadedFrame != null) face.frame = preloadedFrame
 
             if (d > 4) {
                 face.person = nonPerson.person
