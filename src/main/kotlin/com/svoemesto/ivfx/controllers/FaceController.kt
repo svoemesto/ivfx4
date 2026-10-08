@@ -44,6 +44,16 @@ class FaceController {
          * В одной транзакции сессия одна: ленивые чтения бесплатны, а
          * сохранения идут пачкой, а не по одному.
          *
+         * **Лица серии читаются одним запросом и раскладываются в карту.**
+         * Починка границы транзакции дала ×5,4 — с 54 до 9,9 мс на лицо на
+         * прогоне E06, — но эти 9,9 мс складывались уже из двух обращений к
+         * базе на каждое лицо: найти и сохранить. Поиск лица сам по себе
+         * занимает 2,3 мс, и десять таких поисков на лицо и дают десять
+         * миллисекунд.
+         *
+         * Карта строится по ключу «номер кадра + номер лица в кадре» — тому
+         * самому, по которому лицо искалось запросом.
+         *
          * [personByName] — кеш персон по имени в распознавателе. Без него на
          * прогоне E05 выполнялось 400 одинаковых поисков по 71 персоне.
          */
@@ -55,13 +65,29 @@ class FaceController {
             onFaceApplied: (Int, Int) -> Unit,
         ): Int {
             val personByName: MutableMap<String, Person> = mutableMapOf()
+            val changed: MutableList<Face> = mutableListOf()
             var applied = 0
+            val total = facesExtJson.size
             Main.transactionTemplate.executeWithoutResult {
-                facesExtJson.forEachIndexed { i, faceExtJson ->
-                    createOrUpdate(faceExtJson, fileExt, undefindedPerson, nonPerson, personByName)
-                    applied = i + 1
-                    onFaceApplied(i + 1, facesExtJson.size)
+                // Лица группируются по файлу, потому что json может нести
+                // лица нескольких серий, а читать надо лица того файла, к
+                // которому относится запись. На прогоне серии файл один.
+                facesExtJson.groupBy { it.fileId }.forEach { (_, itemsOfFile) ->
+                    val existingByKey: Map<Pair<Int, Int>, Face> =
+                        Main.faceRepo.findByFileId(itemsOfFile.first().fileId)
+                            .associateBy { it.frameNumber to it.faceNumberInFrame }
+                    itemsOfFile.forEach { faceExtJson ->
+                        createOrUpdate(
+                            faceExtJson, fileExt, undefindedPerson, nonPerson, personByName,
+                            existingByKey[faceExtJson.frameNumber to faceExtJson.faceNumberInFrame],
+                            changed,
+                        )
+                        applied += 1
+                        onFaceApplied(applied, total)
+                    }
                 }
+                // Одно сохранение пачкой вместо сохранения на каждое лицо.
+                if (changed.isNotEmpty()) Main.faceRepo.saveAll(changed)
             }
             return applied
         }
@@ -72,6 +98,8 @@ class FaceController {
             undefindedPerson: PersonExt,
             nonPerson: PersonExt,
             personByName: MutableMap<String, Person> = mutableMapOf(),
+            preloadedFace: Face? = null,
+            changed: MutableList<Face>? = null,
         ): FaceExt {
 
             // Проект берём один раз: обращение fileExt.projectExt.project
@@ -82,8 +110,14 @@ class FaceController {
             val h = faceExtJson.endY - faceExtJson.startY
             val d = if(w>h) w/h.toDouble() else h/w.toDouble()
 
+            // Лицо, найденное пакетной загрузкой, не ищется заново: поштучный
+            // поиск — это ровно то обращение к базе, ради устранения которого
+            // существует карта.
             var face = if (faceExtJson.frameId == 0L) {
-                Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame).firstOrNull()
+                preloadedFace
+                    ?: Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(
+                        faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame,
+                    ).firstOrNull()
             } else {
                 if (faceExtJson.faceId == 0L) {
                     null
@@ -169,7 +203,9 @@ class FaceController {
                     faceExt.vector = faceExtJson.vector
                     needToSave = true
                 }
-                if (needToSave) save(face)
+                if (needToSave) {
+                    if (changed != null) changed.add(face) else save(face)
+                }
 
                 return faceExt
 
@@ -217,7 +253,10 @@ class FaceController {
             face.endY = faceExtJson.endY
             face.vectorText = faceExtJson.vector.joinToString(separator = "|", prefix = "", postfix = "")
 
-            save(face)
+            // Новое лицо тоже уходит в общую очередь сохранения, иначе
+            // создание лиц на новой серии по-прежнему писало бы базу по
+            // одному лицу — то есть ровно то, что починка убирала.
+            if (changed != null) changed.add(face) else save(face)
 
             return faceExt
 

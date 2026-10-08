@@ -32,10 +32,16 @@ class CreateFaces(
         // найденные лица серии, а не только распознанные.
         val startedAt = System.currentTimeMillis()
 
-        lbl1.isVisible = true
-        pb1.isVisible = true
-        lbl2.isVisible = true
-        pb2.isVisible = true
+        // Всё, что трогает интерфейс, — только через Platform.runLater.
+        // Прямое обращение из рабочего потока даёт IllegalStateException:
+        // создание лиц всегда обрывалось на этом в самом конце, когда надписи
+        // уже на экране и смена видимости идёт в сцену.
+        Platform.runLater {
+            lbl1.isVisible = true
+            pb1.isVisible = true
+            lbl2.isVisible = true
+            pb2.isVisible = true
+        }
 
         val builder = GsonBuilder()
         val gson = builder.create()
@@ -91,11 +97,13 @@ class CreateFaces(
 //        fileExt.hasCreatedFacesString = "✓"
         table.refresh()
 
-        lbl2.text = "Done, ${finishedAt - startedAt} мс"
-
-        lbl1.isVisible = false
-        lbl2.isVisible = false
-        pb1.isVisible = false
-        pb2.isVisible = false
+        val doneText = "Done, ${finishedAt - startedAt} мс"
+        Platform.runLater {
+            lbl2.text = doneText
+            lbl1.isVisible = false
+            lbl2.isVisible = false
+            pb1.isVisible = false
+            pb2.isVisible = false
+        }
     }
 }

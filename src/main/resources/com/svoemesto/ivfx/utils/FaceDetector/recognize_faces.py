@@ -147,75 +147,101 @@ thin_margin = 0
 best_by_person = {}
 
 recognized_faces = []
-queue_total = sum(1 for face_data in data_of_images
-                  if face_data.get("personType") == "UNDEFINDED")
+
+# Очередь собирается заранее и обрабатывается ПАЧКАМИ.
+#
+# Раньше для каждого лица считалось отдельное умножение матрицы галереи на
+# вектор. Матрица на прогоне E06 — 77 МБ, и она перечитывалась заново на
+# каждое из 13426 лиц: 1,03 ТБ трафика, и на этом уходило всё время шага.
+# Умножение матрицы на матрицу даёт то же самое произведение, но матрица
+# галереи перечитывается один раз на пачку: при пачках по 256 трафик падает
+# с 1034 ГБ до 4 ГБ.
+#
+# Внутри пачки результат считается построчно, то есть ровно так же, как раньше:
+# то же произведение, тот же reduceat, та же сортировка по персонам.
+QUEUE_BATCH = 256
+
+queue_faces = [face_data for face_data in data_of_images
+               if face_data.get("personType") == "UNDEFINDED"]
+queue_total = len(queue_faces)
 queue_done = 0
 progress_every = max(50, queue_total // 50)
 save_progress(0, queue_total)
 
-for face_data in data_of_images:
+for start in range(0, queue_total, QUEUE_BATCH):
 
-    person_type = face_data.get("personType")
-
-    # распознаём только те лица, которые ещё не определены
-    if person_type == "UNDEFINDED":
-
+    chunk = queue_faces[start:start + QUEUE_BATCH]
+    rows = []
+    valid = []
+    for index, face_data in enumerate(chunk):
         vector = np.asarray(face_data["vector"], dtype=np.float32)
         norm = float(np.linalg.norm(vector))
         if norm == 0:
             continue
-        vector = vector / norm
+        valid.append(index)
+        rows.append(vector / norm)
 
-        similarities = gallery_matrix @ vector
+    if rows:
+        chunk_matrix = np.vstack(rows)
+        # Один проход по матрице галереи на всю пачку.
+        chunk_similarities = chunk_matrix @ gallery_matrix.T
 
-        # Сначала лучший вырез каждого персона: у одного человека их
-        # несколько, и иначе он сравнивал бы сам с собой и «запас» всегда
-        # оказывался нулевым. Запас считается между РАЗНЫМИ персонами —
-        # именно он показывает, насколько выдающийся победитель.
-        #
-        # Раньше здесь стоял обход на Python по всем отмеченным лицам: на 8957
-        # проверяемых лиц и 8226 образцов это 73,7 миллиона итераций, и на них
-        # уходило всё время шага — в сотни раз больше, чем на само умножение.
-        # Строки галереи подряд идут по персонам, поэтому максимум по каждой
-        # группе берётся одним вызовом maximum.reduceat.
-        per_person_best = np.maximum.reduceat(similarities, group_starts)
+        for position, index in enumerate(valid):
+            face_data = chunk[index]
+            similarities = chunk_similarities[position]
 
-        # Порядок персон в person_names тот же, что и порядок групп в галерее,
-        # поэтому сортировка со стабильностью при равных сходствах выбирает
-        # того же кандидата, что прежняя сортировка словаря.
-        top = np.argsort(-per_person_best, kind="stable")[:2]
-        similarity = float(per_person_best[top[0]])
-        name = str(person_names[top[0]])
-        second_similarity = float(per_person_best[top[1]]) if len(top) > 1 else 0.0
-        margin = similarity - second_similarity
+            # Сначала лучший вырез каждого персона: у одного человека их
+            # несколько, и иначе он сравнивал бы сам с собой и «запас» всегда
+            # оказывался нулевым. Запас считается между РАЗНЫМИ персонами —
+            # именно он показывает, насколько выдающийся победитель.
+            #
+            # Раньше здесь стоял обход на Python по всем отмеченным лицам: на 8957
+            # проверяемых лиц и 8226 образцов это 73,7 миллиона итераций, и на них
+            # уходило всё время шага — в сотни раз больше, чем на само умножение.
+            # Строки галереи подряд идут по персонам, поэтому максимум по каждой
+            # группе берётся одним вызовом maximum.reduceat.
+            per_person_best = np.maximum.reduceat(similarities, group_starts)
 
-        # Лицо признаётся, только если лучший кандидат и выше порога, и
-        # обгоняет второго на запас. Без проверки запаса на этой серии
-        # медиана разрыва составляла 0,025: больше половины признанного
-        # отличалось от проигравшего на ничто. Причина в том, что
-        # неверно названное лицо попадает в базу и в следующий прогон само
-        # становится образцом — ошибка начинает тиражироваться. Лучше не
-        # признать лицо вовсе, чем признать неверно.
-        if similarity > args["confidence"] and margin >= args["margin"]:
-            face_data['personId'] = 0
-            face_data['personRecognizedName'] = name
-            # Раньше здесь была вероятность predict_proba, теперь это
-            # косинусное сходство: смысл другой, шкала та же. Высокое значение
-            # означает не «уверенность классификатора», а «лицо похоже на
-            # отмеченное», и калибруется порогом выше.
-            face_data['recognizeProbability'] = similarity
-            recognized += 1
-            recognized_faces.append(face_data)
-        elif similarity > args["confidence"]:
-            # Порог взят, но запас не набран: кандидат сомнительный.
-            thin_margin += 1
-        else:
-            rejected += 1
+            # Порядок персон в person_names тот же, что и порядок групп в галерее,
+            # поэтому сортировка со стабильностью при равных сходствах выбирает
+            # того же кандидата, что прежняя сортировка словаря.
+            top = np.argsort(-per_person_best, kind="stable")[:2]
+            similarity = float(per_person_best[top[0]])
+            name = str(person_names[top[0]])
+            second_similarity = float(per_person_best[top[1]]) if len(top) > 1 else 0.0
+            margin = similarity - second_similarity
 
-        best_by_person[name] = max(best_by_person.get(name, 0.0), similarity)
-        queue_done += 1
-        if queue_done % progress_every == 0:
-            save_progress(queue_done, queue_total)
+            # Лицо признаётся, только если лучший кандидат и выше порога, и
+            # обгоняет второго на запас. Без проверки запаса на этой серии
+            # медиана разрыва составляла 0,025: больше половины признанного
+            # отличалось от проигравшего на ничто. Причина в том, что
+            # неверно названное лицо попадает в базу и в следующий прогон само
+            # становится образцом — ошибка начинает тиражироваться. Лучше не
+            # признать лицо вовсе, чем признать неверно.
+            if similarity > args["confidence"] and margin >= args["margin"]:
+                face_data['personId'] = 0
+                face_data['personRecognizedName'] = name
+                # Раньше здесь была вероятность predict_proba, теперь это
+                # косинусное сходство: смысл другой, шкала та же. Высокое значение
+                # означает не «уверенность классификатора», а «лицо похоже на
+                # отмеченное», и калибруется порогом выше.
+                face_data['recognizeProbability'] = similarity
+                recognized += 1
+                recognized_faces.append(face_data)
+            elif similarity > args["confidence"]:
+                # Порог взят, но запас не набран: кандидат сомнительный.
+                thin_margin += 1
+            else:
+                rejected += 1
+
+            best_by_person[name] = max(best_by_person.get(name, 0.0), similarity)
+
+    # Ход считаем по пачкам: нулевые векторы пропускаются, но в общий счётчик
+    # входят, иначе полоса дошла бы не до конца.
+
+    queue_done = start + len(chunk)
+    if queue_done % progress_every < len(chunk) or queue_done == queue_total:
+        save_progress(queue_done, queue_total)
 
 save_progress(queue_done, queue_total)
 save_recognized(recognized_faces)
