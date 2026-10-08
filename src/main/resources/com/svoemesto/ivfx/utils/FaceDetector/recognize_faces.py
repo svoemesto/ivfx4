@@ -37,7 +37,7 @@ args = vars(ap.parse_args())
 
 # Итог в файл: приложение не читает то, что скрипт печатает, и без этого
 # результат распознавания не виден нигде — ни в журнале, ни в форме.
-result_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
+result_file = os.path.sep.join([os.path.dirname(os.path.abspath(args["inputjson"])),
                                 "recognize_faces_result.txt"])
 
 # Результат — в отдельный json, и только распознанные лица.
@@ -52,7 +52,7 @@ result_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
 # разбирают прогон, — а в отдельный файл уходят только те лица очереди,
 # которые преодолели порог и запас. Обычно это единицы процентов от
 # очереди, то есть файл в десятки раз меньше входа.
-result_json_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
+result_json_file = os.path.sep.join([os.path.dirname(os.path.abspath(args["inputjson"])),
                                      "recognize_faces_result.json"])
 
 # Ход работы в отдельный файл: приложение ждёт скрипт, блокируя поток, и
@@ -61,7 +61,7 @@ result_json_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
 # по которому другие операции пайплайна пишут ход в журнал.
 #
 # Пишем редко: перезапись файла на каждом лице сама станет тормозом.
-progress_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
+progress_file = os.path.sep.join([os.path.dirname(os.path.abspath(args["inputjson"])),
                                   "recognize_faces_progress.txt"])
 
 
@@ -79,63 +79,85 @@ def save_recognized(faces):
     with open(result_json_file, "w") as file:
         json.dump(faces, file)
 
-# Загружаем данные об изображениях из json - это список объектов
+# Загружаем три файла вместо одного.
+#
+# Векторы приходят в бинарной матрице .npy, а не в json. На прогоне седьмой
+# серии один json со всеми векторами весил 583 МБ, и РАЗБОР его занимал
+# 10,1 секунды — больше четверти прогона. Здесь эти векторы нужны только
+# чтобы перемножаться, то есть это числа, а не текст: та же матрица в float32
+# занимает 109 МБ и читается мгновенно, без единого json.loads.
+#
+#   inputjson           — очередь без векторов: идентификаторы и кадры,
+#                          чтобы вернуть результат по тем же записям;
+#   recognize_faces_vectors.npy — матрица float32, сначала очередь, потом
+#                          галерея, построчно;
+#   recognize_faces_meta.json  — где кончается очередь и с какой строки
+#                          начинается каждая персона.
 file_json_images = args["inputjson"]
+folder = os.path.dirname(os.path.abspath(args["inputjson"]))
+path_to_npy = os.path.join(folder, "recognize_faces_vectors.npy")
+path_to_meta = os.path.join(folder, "recognize_faces_meta.json")
+
 with open(file_json_images, "rb") as file:
     data_of_images = json.loads(file.read())
 
-# Собираем галерею: все отмеченные лица, сгруппированные по имени.
-# Берём лицо с меткой PERSON и непустым именем — это то, что владелец
-# отметил вручную; остальные типы (массовка, не персонаж) для галереи
-# не годятся.
-gallery = {}
-for face_data in data_of_images:
-    if face_data.get("personType") != "PERSON":
-        continue
-    name = face_data.get("personRecognizedName", "")
-    if not name:
-        continue
-    vector = np.asarray(face_data["vector"], dtype=np.float32)
-    if vector.size == 0:
-        continue
-    gallery.setdefault(name, []).append(vector)
+with open(path_to_meta, "r") as file:
+    meta = json.load(file)
+queue_count = int(meta["queueCount"])
+total_rows = int(meta["rows"])
 
-if not gallery:
+# Матрица читается отображением: numpy не тащит файл в память целиком и не
+# преобразует тип — берёт готовые float32 как есть.
+vectors = np.load(path_to_npy, mmap_mode="r")
+
+# Галерея: строки после очереди, нарезанные по персонам. Нарезка приходит в
+# meta.personStarts, и порядок строк задан приложением — его надо сохранить,
+# иначе лица перемешаются с персонами.
+person_names = list(meta["personStarts"].keys())
+group_starts = np.array([int(meta["personStarts"][name]) for name in person_names], dtype=np.int64)
+
+# Начала обязаны идти строго по возрастанию: с ними работает reduceat, и
+# без проверки неправильный порядок даст не ошибку, а мусор вместо галереи.
+if len(group_starts) > 1 and not bool(np.all(np.diff(group_starts) > 0)):
+    broken = int(np.sum(np.diff(group_starts) <= 0))
+    save_result("ГАЛЕРЕЯ СБИТА: порядок персон в матрице нарушен (" + str(broken) +
+                " раз), признать нельзя. Признаки записаны не по порядку.")
+    save_recognized([])
+    print("[INFO] порядок начал персон нарушен, вхождений: " + str(broken))
+    raise SystemExit(1)
+
+gallery_rows = []
+for index in range(len(group_starts)):
+    start = int(group_starts[index])
+    end = int(group_starts[index + 1]) if index + 1 < len(group_starts) else total_rows
+    gallery_rows.extend(range(start, end))
+
+if not person_names or not gallery_rows:
     save_result("ГАЛЕРЕЯ ПУСТА: нет ни одного отмеченного лица. Распознавать нечего — "
                 "сначала отметьте лица в монтажной.")
     save_recognized([])
-    print("[INFO] галерея пуста: нет ни одного лица, отмеченного как PERSON с именем. "
+    print("[INFO] галерея пуста: ни одного лица, отмеченного как PERSON с именем. "
           "Распознавать нечего — сначала отметьте лица в интерфейсе.")
     raise SystemExit(0)
 
-# Нормализуем вектора один раз: косинус угла для нормализованных векторов
-# считается обычным скалярным произведением, и на 512 значениях это дешевле
-# и точнее, чем каждый раз делить на длины.
-gallery_names = []
-gallery_vectors = []
-# Начало каждой персоны в матрице. Строки идут подряд, персона за персоной,
-# потому что словарь gallery сохраняет порядок добавления, а обход идёт
-# именно по нему. Эти начала нужны, чтобы брать лучшее сходство по персонам
-# одним вызовом maximum.reduceat, без обхода на Python.
-group_starts = []
-person_names = list(gallery.keys())
-for name, vectors in gallery.items():
-    matrix = np.vstack(vectors)
-    norms = np.linalg.norm(matrix, axis=1, keepdims=True)
-    norms[norms == 0] = 1.0
-    matrix = matrix / norms
-    group_starts.append(len(gallery_vectors))
-    for row in matrix:
-        gallery_names.append(name)
-        gallery_vectors.append(row)
+gallery_matrix = np.asarray(vectors[gallery_rows], dtype=np.float32)
+# Начала персон приходят в координатах ВСЕЙ матрицы, а галерея — вырезка из
+# неё со своим отсчётом с нуля. Сдвигаем начала, иначе reduceat выйдет за
+# правый край.
+gallery_starts = group_starts - gallery_rows[0]
 
-gallery_matrix = np.vstack(gallery_vectors)
-gallery_names = np.array(gallery_names)
-group_starts = np.array(group_starts, dtype=np.int64)
+# Нормализуем один раз: косинус угла для нормализованных векторов считается
+# обычным скалярным произведением, и на 512 значениях это дешевле и точнее,
+# чем каждый раз делить на длины.
+norms = np.linalg.norm(gallery_matrix, axis=1, keepdims=True)
+norms[norms == 0] = 1.0
+gallery_matrix = gallery_matrix / norms
+
 person_names = np.array(person_names)
+queue_matrix = np.asarray(vectors[0:queue_count], dtype=np.float32)
 
 print("[INFO] галерея: {} персон, {} отмеченных лиц".format(
-    len(gallery), gallery_matrix.shape[0]))
+    len(person_names), gallery_matrix.shape[0]))
 print("[INFO] порог сходства: {}, запас: {}".format(args["confidence"], args["margin"]))
 
 # У одного человека бывает несколько отмеченных лиц. Берём лучшее совпадение
@@ -163,6 +185,9 @@ QUEUE_BATCH = 256
 
 queue_faces = [face_data for face_data in data_of_images
                if face_data.get("personType") == "UNDEFINDED"]
+# Вектор очереди берётся из матрицы по порядку: очередь в json и в матрице
+# записана одинаково, очередь идёт первой, а faceId в json служит проверкой
+# этого соответствия.
 queue_total = len(queue_faces)
 queue_done = 0
 progress_every = max(50, queue_total // 50)
@@ -174,7 +199,7 @@ for start in range(0, queue_total, QUEUE_BATCH):
     rows = []
     valid = []
     for index, face_data in enumerate(chunk):
-        vector = np.asarray(face_data["vector"], dtype=np.float32)
+        vector = queue_matrix[start + index]
         norm = float(np.linalg.norm(vector))
         if norm == 0:
             continue
@@ -200,7 +225,7 @@ for start in range(0, queue_total, QUEUE_BATCH):
             # уходило всё время шага — в сотни раз больше, чем на само умножение.
             # Строки галереи подряд идут по персонам, поэтому максимум по каждой
             # группе берётся одним вызовом maximum.reduceat.
-            per_person_best = np.maximum.reduceat(similarities, group_starts)
+            per_person_best = np.maximum.reduceat(similarities, gallery_starts)
 
             # Порядок персон в person_names тот же, что и порядок групп в галерее,
             # поэтому сортировка со стабильностью при равных сходствах выбирает
@@ -248,7 +273,7 @@ save_recognized(recognized_faces)
 
 print("[INFO] распознано: {}, отклонено по порогу: {}, отклонено по запасу: {}".format(recognized, rejected, thin_margin))
 save_result("Галерея: {} персон, {} отмеченных лиц. Распознано: {}, отклонено по порогу: {}, отклонено по запасу: {}".format(
-    len(gallery), gallery_matrix.shape[0], recognized, rejected, thin_margin))
+    len(person_names), gallery_matrix.shape[0], recognized, rejected, thin_margin))
 if recognized == 0:
     print("[INFO] ВНИМАНИЕ: ни одно лицо не преодолело порог. Либо галерея собрана "
           "из неудачных вырезов, либо порог {} слишком высок.".format(args["confidence"]))

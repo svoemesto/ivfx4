@@ -3,36 +3,39 @@ package com.svoemesto.ivfx.threads.projectactions
 import com.google.gson.GsonBuilder
 import com.svoemesto.ivfx.Main
 import com.svoemesto.ivfx.controllers.FaceController
-import com.svoemesto.ivfx.controllers.FrameController
 import com.svoemesto.ivfx.controllers.PersonController
 import com.svoemesto.ivfx.enums.PersonType
 import com.svoemesto.ivfx.models.File
 import com.svoemesto.ivfx.models.Person
 import com.svoemesto.ivfx.modelsext.FaceExt
-import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
+import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.threads.RunCmd
 import com.svoemesto.ivfx.utils.FaceDetection
+import com.svoemesto.ivfx.utils.NpyWriter
 import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TableView
 import java.io.FileWriter
 import java.io.IOException
-import java.io.File as IOFile
 import java.util.concurrent.atomic.AtomicBoolean
+import java.io.File as IOFile
 
-class RecognizeFaces(var fileExt: FileExt,
-                     val table: TableView<FileExt>,
-                     val textLbl1: String,
-                     val numCurrentThread: Int,
-                     val countThreads: Int,
-                     var lbl1: Label, var pb1: ProgressBar,
-                     var lbl2: Label, var pb2: ProgressBar): Thread(), Runnable {
-
+class RecognizeFaces(
+    var fileExt: FileExt,
+    val table: TableView<FileExt>,
+    val textLbl1: String,
+    val numCurrentThread: Int,
+    val countThreads: Int,
+    var lbl1: Label,
+    var pb1: ProgressBar,
+    var lbl2: Label,
+    var pb2: ProgressBar,
+) : Thread(),
+    Runnable {
     override fun run() {
-
         // Длительности этапов. Без них на вопрос «сколько заняло
         // распознавание» отвечать нечем: в журнале у прогона не было ни
         // времени, ни единой отметки о ходе.
@@ -47,7 +50,7 @@ class RecognizeFaces(var fileExt: FileExt,
 
         Platform.runLater {
             lbl1.text = textLbl1
-            pb1.progress = (numCurrentThread-1) / countThreads.toDouble()
+            pb1.progress = (numCurrentThread - 1) / countThreads.toDouble()
             lbl2.text = "Recognizing faces..."
             pb2.progress = ProgressBar.INDETERMINATE_PROGRESS
         }
@@ -137,34 +140,43 @@ class RecognizeFaces(var fileExt: FileExt,
         val boundsKey1 = PERSON_PROPERTY_FIRST_EPISODE
         val boundsKey2 = PERSON_PROPERTY_LAST_EPISODE
         val personClassName = Person::class.java.simpleName
-        val galleryFaces = Main.faceRepo
-            .findGalleryByProjectId(projectId, PersonType.PERSON.order, undefinded.id, boundsKey1, boundsKey2, personClassName)
-            .map { face ->
-                val galleryFile = galleryFiles.getValue(face.file.id)
-                val galleryPerson = galleryPersons.getValue(face.person.id)
-                val faceExt = galleryFileExts.getOrPut(galleryFile.id) { FileExt(galleryFile, fileExt.projectExt) }
-                val personExt = galleryPersonExts.getOrPut(galleryPerson.id) { PersonExt(galleryPerson, fileExt.projectExt) }
-                face.file = galleryFile
-                face.person = galleryPerson
-                FaceExt(face, faceExt, personExt)
+        val galleryQuery =
+            Main.faceRepo
+                .findGalleryByProjectId(
+                    projectId,
+                    PersonType.PERSON.order,
+                    undefinded.id,
+                    boundsKey1,
+                    boundsKey2,
+                    personClassName,
+                )
+        // Галерея НЕ оборачивается в FaceExt.
+        //
+        // FaceExt при создании тянет вектор в числа: у него инициализатор
+        // `toSerializeVector = vector`, а тот разбирает строку регуляркой. На
+        // 53 тысячах лиц это 27 миллионов разборов — 9 секунд чистого
+        // времени на галерею, которая в json больше не пишется вовсе.
+        //
+        // Нужны от галереи ровно две вещи: имя персоны, чтобы сгруппировать,
+        // и текст вектора, чтобы положить в матрицу. Обе лежат в самой
+        // сущности лица, и обе достаются без единого разбора.
+        val galleryRows: List<GalleryRow> =
+            galleryQuery.map { face ->
+                GalleryRow(galleryPersons.getValue(face.person.id).nameInRecognizer, face.vectorText)
             }
-            .toMutableList()
-        galleryFaces.forEach {
-            it.personType = PersonType.PERSON.name
-            it.personRecognizedName = it.face.personRecognizedName
-        }
         val galleryReadyAt = System.currentTimeMillis()
-        println("[RecognizeFaces] неопределённых лиц: ${arrFrameFaces.size}, " +
-                "отмеченных для галереи: ${galleryFaces.size}")
+        println("[RecognizeFaces] неопределённых лиц: ${arrFrameFaces.size}, отмеченных для галереи: ${galleryRows.size}")
         println("[RecognizeFaces] сбор галереи: ${galleryReadyAt - startedAt} мс")
 
         // Галерея пуста — сравнивать не с чем. Действие не запускаем: иначе
         // приложение двадцать минут перебирает все неопределённые лица, ни
         // разу ничего не находя, и всё это время надпись сообщает, что идёт
         // распознавание. Похоже на работу, результата ноль.
-        if (galleryFaces.isEmpty()) {
-            println("[RecognizeFaces] ОСТАНОВ: нет ни одного отмеченного лица, " +
-                    "галерея пуста. Распознавать нечего.")
+        if (galleryRows.isEmpty()) {
+            println(
+                "[RecognizeFaces] ОСТАНОВ: нет ни одного отмеченного лица, " +
+                    "галерея пуста. Распознавать нечего.",
+            )
             Platform.runLater {
                 lbl1.isVisible = false
                 lbl2.text = "Нечего распознавать: не отмечено ни одного лица"
@@ -189,8 +201,97 @@ class RecognizeFaces(var fileExt: FileExt,
             return
         }
 
+        // Векторы уходят в бинарной матрице, а не в json.
+        //
+        // На прогоне седьмой серии json с векторами весил 583 МБ, и `json.load`
+        // на нём занимал 10,1 секунды — больше четверти прогона, — а запись
+        // стоила примерно столько же. Векторы нужны скрипту только чтобы
+        // перемножаться, то есть это числа, а не текст. В float32 та же матрица
+        // занимает 109 МБ и читается numpy мгновенно.
+        //
+        // Что и куда пишется:
+        //   recognize_faces_input.json — очередь без векторов: идентификаторы
+        //        и номера кадров, чтобы скрипт вернул результат по тем же
+        //        записям;
+        //   recognize_faces_vectors.npy — матрица float32: сначала очередь,
+        //        потом галерея, построчно;
+        //   recognize_faces_meta.json — где кончается очередь и на какие
+        //        строки приходится каждая персона.
+        val pathToFileNpy = fileExt.folderFramesFull + IOFile.separator + "recognize_faces_vectors.npy"
+        val pathToFileMeta = fileExt.folderFramesFull + IOFile.separator + "recognize_faces_meta.json"
+        val vectorColumns = 512
         try {
-            FileWriter(pathToFileJSON).use { fileWriter -> gson.toJson(arrFrameFaces + galleryFaces, fileWriter) }
+            val queueRows = arrFrameFaces.size
+            val allVectors = FloatArray((queueRows + galleryRows.size) * vectorColumns)
+            //
+            // Счётчик строк идёт ПО ОДНОМУ НА ЛИЦО, а не на количество
+            // чисел в векторе. Раньше здесь стояло `row += appendVector(...)`,
+            // то есть row рос на 512 за лицо, и вторая строка уезжала на
+            // позицию 262 144 вместо 512. Массив кончался на 134-м лице,
+            // и прогон падал с ArrayIndexOutOfBoundsException — то есть
+            // исключение поймало порчу раньше, чем она записалась на диск.
+            // Галерея сортируется по персонам, и это не косметика.
+            //
+            // Скрипт берёт лучшее сходство по персонам через
+            // maximum.reduceat, а тот требует, чтобы строки одной персоны
+            // шли ПОДРЯД. Порядок выдачи запроса не гарантирован нигде, и
+            // когда лицо галереи не сортировались, получилось 42 нарушения
+            // порядка, а с ними — мусор вместо галереи.
+            //
+            // Раньше это делал сам скрипт: он складывал лица в словарь по
+            // имени, и словарь по построению группировал. Стало — группировка
+            // на стороне приложения, где она и должна быть: скрипту она не
+            // нужна, он только получает готовые границы в meta.json.
+            val galleryByPerson = galleryRows.sortedBy { it.personName }
+
+            var row = 0
+            for (faceExt in arrFrameFaces) {
+                val written = NpyWriter.appendVector(faceExt.face.vectorText, allVectors, row * vectorColumns)
+                if (written != vectorColumns) {
+                    throw IllegalStateException(
+                        "вектор лица ${faceExt.face.id} имеет $written значений вместо $vectorColumns",
+                    )
+                }
+                row++
+            }
+
+            // Начало каждой персоны в матрице. Строки галереи идут подряд и
+            // персона за персоной — это и позволяет брать лучшее сходство по
+            // персонам одним вызовом maximum.reduceat, без обхода на Python.
+            val personStarts = ArrayList<String>()
+            var currentName: String? = null
+            for (galleryRow in galleryByPerson) {
+                if (galleryRow.personName != currentName) {
+                    currentName = galleryRow.personName
+                    personStarts.add("\"" + currentName.escapeForJson() + "\": " + row)
+                }
+                val written = NpyWriter.appendVector(galleryRow.vectorText, allVectors, row * vectorColumns)
+                if (written != vectorColumns) {
+                    throw IllegalStateException(
+                        "вектор персоны ${galleryRow.personName} имеет $written значений вместо $vectorColumns",
+                    )
+                }
+                row++
+            }
+
+            FileWriter(pathToFileMeta).use { fw ->
+                fw.write(
+                    "{\"queueCount\": " + queueRows + ", \"columns\": " + vectorColumns +
+                        ", \"rows\": " + row + ", \"personStarts\": {" +
+                        personStarts.joinToString(",") + "}}",
+                )
+            }
+            NpyWriter.write(IOFile(pathToFileNpy), allVectors, row, vectorColumns)
+
+            // Векторы в json больше не пишутся — они уже в матрице. В json
+            // остаются только записи, по которым скрипт вернёт результат.
+            for (faceExt in arrFrameFaces) faceExt.toSerializeVector = DoubleArray(0)
+            // В json уходит ТОЛЬКО очередь. Галерея скрипту из json не нужна:
+            // она приходит матрицей, а json-дубликат был лишь поводом построить
+            // 53 тысячи FaceExt и разобрать 27 миллионов чисел впустую.
+            FileWriter(pathToFileJSON).use { fileWriter ->
+                gson.toJson(arrFrameFaces, fileWriter)
+            }
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -201,9 +302,9 @@ class RecognizeFaces(var fileExt: FileExt,
 
         param.add("cd \"${faceDetectorPath}\"\n")
         param.add(FaceDetection.PYTHON_PATH)
-        param.add("${faceDetectorPath}/recognize_faces.py")
+        param.add("$faceDetectorPath/recognize_faces.py")
         param.add("-i")
-        param.add("${pathToFileJSON}")
+        param.add("$pathToFileJSON")
         // Модели больше не передаются: распознавание идёт сравнением векторов
         // уже найденных лиц с отмеченными, обучать модель не нужно, поэтому
         // ни детектор, ни эмбеддер, ни pickle с SVM в команде не участвуют.
@@ -283,10 +384,10 @@ class RecognizeFaces(var fileExt: FileExt,
             // Применение идёт целиком в одной транзакции: по лицу на
             // транзакцию означало, что каждое ленивое чтение открывало свою
             // сессию. На прогоне E05 это дало 21,5 секунды на 400 лиц.
-            val initProgress1: Double = (numCurrentThread-1) / (countThreads.toDouble())
+            val initProgress1: Double = (numCurrentThread - 1) / (countThreads.toDouble())
             val onePeaceOfProgress: Double = 1 / (countThreads.toDouble())
             FaceController.createOrUpdateAll(facesExtJsonArray.toList(), fileExt, undefindedPerson, nonPerson) { i, total ->
-                val percentage2: Double = if (total == 0) 1.0 else i/total.toDouble()
+                val percentage2: Double = if (total == 0) 1.0 else i / total.toDouble()
                 val percentage1: Double = initProgress1 + (onePeaceOfProgress * percentage2)
                 Platform.runLater {
                     lbl1.text = textLbl1
@@ -359,6 +460,16 @@ class RecognizeFaces(var fileExt: FileExt,
         }
     }
 
+    /**
+     * Строка галереи: кому принадлежит лицо и каким текстом записан его
+     * вектор. Объекта мало и полей два — по построению это дешевле, чем
+     * собирать полноценный FaceExt, который тут больше нигде не нужен.
+     */
+    private data class GalleryRow(
+        val personName: String,
+        val vectorText: String,
+    )
+
     companion object {
         /**
          * Ключи свойств, в которых персонаж хранит свой путь по сериям.
@@ -369,4 +480,7 @@ class RecognizeFaces(var fileExt: FileExt,
         const val PERSON_PROPERTY_FIRST_EPISODE = "FirstEpisode"
         const val PERSON_PROPERTY_LAST_EPISODE = "LastEpisode"
     }
+
+    /** Кавычки и обратные слэши в строке, которая попадёт в json. */
+    private fun String.escapeForJson(): String = replace("\\", "\\\\").replace("\"", "\\\"")
 }
