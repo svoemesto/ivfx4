@@ -174,6 +174,14 @@ class ProjectActionsFXController {
 
     private var mainStage: Stage? = null
 
+    /**
+     * Запущенная цепочка операций.
+     *
+     * Держится именно для прерывания: без ссылки прервать цепочку было
+     * некому, а окно при этом закрывалось и работа продолжалась.
+     */
+    private var runListThreadsOperations: RunListThreads? = null
+
     private var currentFileExt: FileExt? = null
 
     fun actionsProject(
@@ -196,7 +204,29 @@ class ProjectActionsFXController {
             e.printStackTrace()
         }
         println("Завершение работы ProjectActionsFXController.")
+        // Окно закрылось — прерываем работу, если она ещё идёт.
+        //
+        // Раньше здесь не было ничего, и закрытие окна операций ничего не
+        // останавливало: скрипт продолжал работать, а в журнале не
+        // появлялось ни единой строки. Проверено на живом прогоне — окно
+        // закрыли во время DetectFaces, а detect_faces_in_folder.py продолжал.
+        interruptRunningOperations()
         mainStage = null
+    }
+
+    /**
+     * Прерывает цепочку операций, если она запущена.
+     *
+     * Ссылка нужна потому, что цепочка запускается как
+     * `RunListThreads(listThreads).start()` — без сохранения ссылки
+     * обратиться к ней было нельзя, то есть прерывать её было некому.
+     */
+    private fun interruptRunningOperations() {
+        val chain = runListThreadsOperations
+        if (chain != null && chain.isAlive) {
+            println("Окно закрыто, прерываю операцию.")
+            chain.interrupt()
+        }
     }
 
     @FXML
@@ -741,7 +771,9 @@ class ProjectActionsFXController {
             }
         }
 
-        RunListThreads(listThreads).start()
+        val chain = RunListThreads(listThreads)
+        runListThreadsOperations = chain
+        chain.start()
     }
 
     class Embeddings(
