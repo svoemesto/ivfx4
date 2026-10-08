@@ -55,6 +55,20 @@ result_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
 result_json_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
                                      "recognize_faces_result.json"])
 
+# Ход работы в отдельный файл: приложение ждёт скрипт, блокируя поток, и
+# без этого прогон идёт чёрным окном — на реальной серии это десятки секунд,
+# за которые непонятно, работает приложение или зависло. Признак тот же,
+# по которому другие операции пайплайна пишут ход в журнал.
+#
+# Пишем редко: перезапись файла на каждом лице сама станет тормозом.
+progress_file = os.path.sep.join([os.path.dirname(args["inputjson"]),
+                                  "recognize_faces_progress.txt"])
+
+
+def save_progress(done, total):
+    with open(progress_file, "w") as file:
+        file.write("{} {}".format(done, total))
+
 
 def save_result(text):
     with open(result_file, "w") as file:
@@ -133,6 +147,11 @@ thin_margin = 0
 best_by_person = {}
 
 recognized_faces = []
+queue_total = sum(1 for face_data in data_of_images
+                  if face_data.get("personType") == "UNDEFINDED")
+queue_done = 0
+progress_every = max(50, queue_total // 50)
+save_progress(0, queue_total)
 
 for face_data in data_of_images:
 
@@ -194,7 +213,11 @@ for face_data in data_of_images:
             rejected += 1
 
         best_by_person[name] = max(best_by_person.get(name, 0.0), similarity)
+        queue_done += 1
+        if queue_done % progress_every == 0:
+            save_progress(queue_done, queue_total)
 
+save_progress(queue_done, queue_total)
 save_recognized(recognized_faces)
 
 print("[INFO] распознано: {}, отклонено по порогу: {}, отклонено по запасу: {}".format(recognized, rejected, thin_margin))

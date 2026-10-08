@@ -21,6 +21,7 @@ import javafx.scene.control.TableView
 import java.io.FileWriter
 import java.io.IOException
 import java.io.File as IOFile
+import java.util.concurrent.atomic.AtomicBoolean
 
 class RecognizeFaces(var fileExt: FileExt,
                      val table: TableView<FileExt>,
@@ -31,6 +32,11 @@ class RecognizeFaces(var fileExt: FileExt,
                      var lbl2: Label, var pb2: ProgressBar): Thread(), Runnable {
 
     override fun run() {
+
+        // Длительности этапов. Без них на вопрос «сколько заняло
+        // распознавание» отвечать нечем: в журнале у прогона не было ни
+        // времени, ни единой отметки о ходе.
+        val startedAt = System.currentTimeMillis()
 
         Platform.runLater {
             lbl1.isVisible = true
@@ -131,8 +137,10 @@ class RecognizeFaces(var fileExt: FileExt,
             it.personType = PersonType.PERSON.name
             it.personRecognizedName = it.face.personRecognizedName
         }
+        val galleryReadyAt = System.currentTimeMillis()
         println("[RecognizeFaces] неопределённых лиц: ${arrFrameFaces.size}, " +
                 "отмеченных для галереи: ${galleryFaces.size}")
+        println("[RecognizeFaces] сбор галереи: ${galleryReadyAt - startedAt} мс")
 
         // Галерея пуста — сравнивать не с чем. Действие не запускаем: иначе
         // приложение двадцать минут перебирает все неопределённые лица, ни
@@ -196,8 +204,22 @@ class RecognizeFaces(var fileExt: FileExt,
 
         println(cmdText)
 
+        // Пока идёт скрипт, приложение читает ход его работы из отдельного
+        // файла. Раньше здесь было чёрное окно на десятки секунд: полоса
+        // стояла в неопределённом состоянии, и непонятно было, работает
+        // приложение или зависло. Скрипт отдаёт ход файлом, потому что его
+        // вывод на консоль приложение не читает — читает только код
+        // возврата, и то лишь для того, чтобы напечатать его при ошибке.
+        val progressFile = IOFile(fileExt.folderFramesFull + IOFile.separator + "recognize_faces_progress.txt")
+        val stopWatching = AtomicBoolean(false)
+        val progressWatcher = Runnable({ watchProgress(progressFile, stopWatching, pb2, lbl2) })
+        val watcher = Thread(progressWatcher, "RecognizeFaces-progress")
         val runCmd = RunCmd(cmdText)
+        val scriptStartedAt = System.currentTimeMillis()
         runCmd.run()
+        val scriptFinishedAt = System.currentTimeMillis()
+        stopWatching.set(true)
+        progressFile.delete()
 
         // Приложение не читает вывод скрипта, поэтому результат
         // распознавания без этого остаётся невидимым: ни в журнале, ни в
@@ -263,11 +285,61 @@ class RecognizeFaces(var fileExt: FileExt,
 
         fileExt.hasRecognizedFaces = true
 
+        val finishedAt = System.currentTimeMillis()
+        val timings =
+            "[RecognizeFaces] скрипт: ${scriptFinishedAt - scriptStartedAt} мс, " +
+                "применение: ${finishedAt - scriptFinishedAt} мс, " +
+                "прогон целиком: ${finishedAt - startedAt} мс"
+        println(timings)
+
         Platform.runLater {
             table.refresh()
             lbl1.isVisible = false
-            lbl2.text = "Done"
+            lbl2.text = "Done, ${finishedAt - startedAt} мс"
         }
+    }
 
+    /**
+     * Следит за ходом скрипта, пока он работает.
+     *
+     * Отдельный метод, а не лямбда внутри Thread(...): лямбда в аргументе
+     * заставляет ktlint переформатировать всё её тело, и файл начинает
+     * отличаться от своего же стиля в двадцати местах.
+     *
+     * Ошибки чтения проглатываются намеренно: надпись и полоса — не повод
+     * уронить прогон, следующая проверка прочитает файл целиком.
+     */
+    private fun watchProgress(
+        progressFile: IOFile,
+        stop: AtomicBoolean,
+        pb: ProgressBar,
+        lbl: Label,
+    ) {
+        while (!stop.get()) {
+            try {
+                if (progressFile.exists()) {
+                    val raw = progressFile.readText()
+                    val parts = raw.trim().split(" ", "\n", "\r").filter { it.isNotBlank() }
+                    if (parts.size >= 2) {
+                        val done = parts[0].toInt()
+                        val total = parts[1].toInt()
+                        if (total > 0) {
+                            val percentage = done.toDouble() / total
+                            Platform.runLater {
+                                lbl.text = "Recognize face [$done/$total]"
+                                pb.progress = percentage
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            try {
+                Thread.sleep(300)
+            } catch (e: InterruptedException) {
+                return
+            }
+        }
     }
 }
