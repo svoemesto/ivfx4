@@ -40,7 +40,6 @@ import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForProject
 import com.svoemesto.ivfx.threads.loadlists.LoadListPersonsExtForShot
 import com.svoemesto.ivfx.threads.loadlists.LoadListScenesExt
 import com.svoemesto.ivfx.threads.loadlists.LoadListShotsExt
-import com.svoemesto.ivfx.threads.updatelists.UpdateListFramesExt
 import com.svoemesto.ivfx.utils.ConvertToFxImage
 import com.svoemesto.ivfx.utils.OverlayImage
 import com.svoemesto.ivfx.utils.Trace
@@ -523,7 +522,6 @@ class ShotsEditFXController {
     private val isDoneLoadListScenesExt = SimpleBooleanProperty(false)
     private val isDoneLoadListShotsExt = SimpleBooleanProperty(false)
     private val isDoneUpdateListFilesExt = SimpleBooleanProperty(false)
-    private val isDoneUpdateListFramesExt = SimpleBooleanProperty(false)
 
     private var listMatrixPageFrames: ObservableList<MatrixPageFrames> = FXCollections.observableArrayList()
     private var listMatrixPageFaces: ObservableList<MatrixPageFaces> = FXCollections.observableArrayList()
@@ -552,6 +550,10 @@ class ShotsEditFXController {
 
     private var currentMatrixPageFrames: MatrixPageFrames? = null
     private var currentMatrixPageFaces: MatrixPageFaces? = null
+
+    /** Страница кадров, сейчас нарисованная на пэне. Её картинки живут,
+     * пока она на экране; ушедшая страница отпускается в showMatrixPageFrames. */
+    private var shownMatrixPageFrames: MatrixPageFrames? = null
     private var currentMatrixFrame: MatrixFrame? = null
     private var currentMatrixFace: MatrixFace? = null
     private var currentShotExt: ShotExt? = null
@@ -897,7 +899,13 @@ class ShotsEditFXController {
                         Main.PREVIEW_FRAME_H,
                     )
                 tblPagesFrames!!.items = listMatrixPageFrames
-                UpdateListFramesExt(currentFileExt!!.framesExt, currentFileExt!!, pb, lblPb, isDoneUpdateListFramesExt).start()
+                // Раньше здесь запускалась предзагрузка: она касалась
+                // labelSmall у КАЖДОГО кадра файла, то есть читала с диска и
+                // держала в куче все 75 тысяч картинок серии. На экране при
+                // этом одна страница. Операция не имела и потребителя: флаг
+                // завершения никто не ждал.
+                // ОС кэширует сами файлы кадров, поэтому листание страниц и
+                // так идёт быстро — держать их в куче JVM незачем.
 
                 LoadListShotsExt(currentFileExt!!.shotsExt, currentFileExt!!, pbShots, null, isDoneLoadListShotsExt).start()
                 LoadListScenesExt(currentFileExt!!.scenesExt, currentFileExt!!, pbScenes, null, isDoneLoadListScenesExt).start()
@@ -2289,6 +2297,24 @@ class ShotsEditFXController {
         val heightPadding = 10 // по высоте двойной отступ
         val widthPadding = 10 // по ширине двойной отступ
         val pane: Pane = paneFrames!!
+
+        // Ушедшая страница отпускает свои картинки.
+        //
+        // Раньше кадры держали загруженными все, кого показывали, и никто их
+        // не отпускал: картинка маленького кадра кэшируется в самом кадре,
+        // то есть живёт, пока жив объект. На шестой серии это 75 688 кадров —
+        // 75 939 картинок и 82 тысячи надписей, 5,7 ГБ живой кучи на
+        // редактор планов, который показывает одну страницу.
+        //
+        // Отпускается только та страница, которая ушла с экрана: текущая
+        // разбирается заново, и её картинки нужны прямо сейчас.
+        if (shownMatrixPageFrames != null && shownMatrixPageFrames !== matrixPageFrames) {
+            for (goneMatrixFrame in shownMatrixPageFrames!!.matrixFrames) {
+                goneMatrixFrame.frameExt?.resetPreviewSmall()
+            }
+        }
+        shownMatrixPageFrames = matrixPageFrames
+
         pane.children.clear() // очищаем пэйн от старых лейблов
         for (matrixFrame in matrixPageFrames.matrixFrames) {
             val lbl: Label = matrixFrame.frameExt?.labelSmall!!
