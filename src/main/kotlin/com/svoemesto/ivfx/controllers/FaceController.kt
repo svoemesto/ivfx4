@@ -82,7 +82,7 @@ class FaceController {
                     itemsOfFile.forEach { faceExtJson ->
                         createOrUpdate(
                             faceExtJson, fileExt, undefindedPerson, nonPerson, personByName,
-                            existingByKey[faceExtJson.frameNumber to faceExtJson.faceNumberInFrame],
+                            existingByKey,
                             changed,
                             frameByNumber[faceExtJson.frameNumber],
                         )
@@ -102,7 +102,7 @@ class FaceController {
             undefindedPerson: PersonExt,
             nonPerson: PersonExt,
             personByName: MutableMap<String, Person> = mutableMapOf(),
-            preloadedFace: Face? = null,
+            existingByKey: Map<Pair<Int, Int>, Face>? = null,
             changed: MutableList<Face>? = null,
             preloadedFrame: Frame? = null,
         ): FaceExt {
@@ -115,14 +115,23 @@ class FaceController {
             val h = faceExtJson.endY - faceExtJson.startY
             val d = if(w>h) w/h.toDouble() else h/w.toDouble()
 
-            // Лицо, найденное пакетной загрузкой, не ищется заново: поштучный
-            // поиск — это ровно то обращение к базе, ради устранения которого
-            // существует карта.
-            var face = if (faceExtJson.frameId == 0L) {
-                preloadedFace
-                    ?: Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(
-                        faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame,
-                    ).firstOrNull()
+            // Лицо ищется ТОЛЬКО через карту, если она передана, и промах в
+            // карте означает «такого лица нет».
+            //
+            // Раньше здесь было `preloadedFace ?: поиск по базе`, и на новой
+            // серии это давало катастрофу: карта пуста по построению — лиц
+            // ещё нет, — поэтому КАЖДОЕ лицо уходило в базу. А каждый запрос
+            // Hibernate перед собой сбрасывает накопленное, и сброс каскадит по
+            // всем новым лицам серии. Итог — 120 мс на лицо вместо 0,7, то
+            // есть рост в семьдесят пять раз и двадцать семь минут вместо
+            // десяти секунд. На седьмой серии этого не было видно: там лица уже
+            // существовали, карта попадала, и запросов в цикле не было.
+            var face = if (existingByKey != null) {
+                existingByKey[faceExtJson.frameNumber to faceExtJson.faceNumberInFrame]
+            } else if (faceExtJson.frameId == 0L) {
+                Main.faceRepo.findByFileIdAndFrameNumberAndFaceNumberInFrame(
+                    faceExtJson.fileId, faceExtJson.frameNumber, faceExtJson.faceNumberInFrame,
+                ).firstOrNull()
             } else {
                 if (faceExtJson.faceId == 0L) {
                     null
@@ -204,7 +213,11 @@ class FaceController {
                     face.endY = faceExtJson.endY
                     needToSave = true
                 }
-                if (!faceExt.vector.contentEquals(faceExtJson.vector)) {
+                // Пустой вектор в json — это «не прислали», а не «обнули».
+                // Скрипт возвращает те же записи, что получил, поэтому вместе
+                // с результатом распознавания приходит и пустой вектор, если
+                // приложение отдало json без них.
+                if (faceExtJson.vector.isNotEmpty() && !faceExt.vector.contentEquals(faceExtJson.vector)) {
                     faceExt.vector = faceExtJson.vector
                     needToSave = true
                 }

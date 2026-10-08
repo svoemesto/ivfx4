@@ -111,6 +111,7 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
 
     var vector: DoubleArray
         get() {
+            if (face.vectorText.isEmpty()) return DoubleArray(0)
             val textVector: Array<String> = face.vectorText.split("\\|".toRegex()).toTypedArray()
             val result = DoubleArray(textVector.size)
             for (i in textVector.indices) {
@@ -119,6 +120,16 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
             return result
         }
         set(value) {
+            // Пустой вектор означает «данных нет», а не «стереть имеющееся».
+            //
+            // Сюда попадает результат распознавания, а в нём вектора может не
+            // быть вовсе: приложение отдаёт скрипту json без векторов, скрипт
+            // возвращает те же записи, и запись без вектора приходила сюда
+            // пустым массивом. Прежний код писал из него пустую строку —
+            // и лицо теряло эмбеддинг навсегда, а редактор затем падал на
+            // разборе пустой строки. Замечено 2026-10-08 на восьмой серии:
+            // обнулилось ровно столько лиц, сколько распознала машина.
+            if (value.isEmpty()) return
             face.vectorText = value.joinToString(separator = "|", prefix = "", postfix = "")
             FaceController.save(face)
         }
