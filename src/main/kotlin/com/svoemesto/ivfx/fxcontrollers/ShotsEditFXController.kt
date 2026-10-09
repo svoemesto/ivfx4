@@ -3428,7 +3428,21 @@ class ShotsEditFXController {
         tblTrackPages?.selectionModel?.selectedItemProperty()?.addListener { _, _, newValue ->
             val page = newValue ?: return@addListener
             currentMatrixPageTrackFaces = page
-            Platform.runLater { showTrackPageFaces(page) }
+            // Номер поколения ловится ДО постановки в очередь, иначе
+            // отложенная перерисовка успела бы перерисовать уже не ту
+            // страницу. Именно это и происходило: выбрана страница треков
+            // одного плана, пользователь щёлкает план без треков, страница
+            // очищается — а задача от первого плана выполняется следом и
+            // добавляет детей обратно в только что очищенную панель.
+            //
+            // JavaFX на этом падает с IndexOutOfBounds: удалённый, но
+            // помеченный грязным узел даёт в dirtyChildren индекс -1, и
+            // разметка лезет за пределы списка.
+            val generation = ++tracksRebuildGeneration
+            Platform.runLater {
+                if (generation != tracksRebuildGeneration) return@runLater
+                showTrackPageFaces(page)
+            }
         }
 
         tblTracks?.selectionModel?.selectedItemProperty()?.addListener { _, _, newValue ->
@@ -3942,7 +3956,22 @@ class ShotsEditFXController {
     /** План, для которого список строк уже собран. */
     private var lastLoadedShotId: Long = -1L
 
+    /**
+     * Поколение перерисовки панели треков.
+     *
+     * Растёт при каждой очистке и при каждой постановке перерисовки в очередь.
+     * Отложенная задача выполняется, только если её поколение ещё актуально, —
+     * иначе она перерисовала бы страницу уже другого плана, поверх только что
+     * очищенной панели.
+     */
+    private var tracksRebuildGeneration: Long = 0
+
     private fun showFirstTrackRowOrClear(keepTrackId: Long? = null) {
+        // Панель очищается здесь, а не в reloadTracks: там своя ветка «план
+        // не найден» тоже вызывает очистку, и при одном переключении плана
+        // панель чистилась дважды. Второй вызов попадал уже в разогнанную
+        // разметку — лишняя работа и лишний шанс поймать гонку со списком
+        // детей.
         clearTrackFaces()
         val tabOpen = tabpaneShotsEdit?.selectionModel?.selectedItem?.text == "Tracks"
         if (!tabOpen) return
@@ -4310,6 +4339,10 @@ class ShotsEditFXController {
      * панели, страницы и подпись.
      */
     private fun clearTrackFaces() {
+        // Любая очистка панели обесценивает всё, что ещё стоит в очереди на
+        // перерисовку: поколение растёт здесь, и отложенные задачи от
+        // предыдущей страницы увидят несовпадение и уйдут.
+        tracksRebuildGeneration++
         trackExtToShow = null
         currentMatrixPageTrackFaces = null
         selectedTrackFaces.clear()
