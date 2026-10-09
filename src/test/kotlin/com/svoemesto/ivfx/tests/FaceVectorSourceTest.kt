@@ -1,10 +1,9 @@
 package com.svoemesto.ivfx.tests
 
 import com.svoemesto.ivfx.models.Face
-import com.svoemesto.ivfx.utils.NpyWriter
 import com.svoemesto.ivfx.utils.VectorBinary
-import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -13,170 +12,149 @@ import org.junit.jupiter.api.Test
 import java.util.Random
 
 /**
- * Выбор источника вектора лица (задача #268).
+ * Вектор лица после удаления текстовой колонки (задача #268).
  *
- * Проверяется ровно то, что ломается тихо: если вместо двоичного вектора
- * молча взять нули, лицо уедет из своей персоны, и нигде не будет ошибки.
+ * Проверяется то, что ломается тихо: если вместо вектора подставить нули,
+ * лицо уедет из своей персоны, и нигде не будет ошибки.
  */
-@DisplayName("Источник вектора лица")
+@DisplayName("Вектор лица без текстовой колонки")
 class FaceVectorSourceTest {
-    private fun vectorText(components: Int = VectorBinary.COMPONENTS): String {
-        val random = Random(4242L)
-        val parts = ArrayList<String>(components)
-        for (i in 0 until components) {
-            parts.add(String.format(java.util.Locale.ROOT, "%.17g", random.nextDouble() * 2 - 1))
-        }
-        return parts.joinToString("|")
-    }
-
-    @Test
-    fun `лицо без двоичного вектора читается по тексту`() {
-        val face = Face()
-        face.vectorText = "1.5|-2.25|3.0"
-
-        assertNull(face.vectorFloats(), "двоичной колонки нет — значит и чисел из неё быть не должно")
-        assertArrayEquals(doubleArrayOf(1.5, -2.25, 3.0), face.vector)
-    }
-
-    @Test
-    fun `двоичный вектор побеждает текст`() {
-        val text = vectorText()
-        val face = Face()
-        face.vectorText = "0.0"
-        face.vectorBinary = VectorBinary.toBytes(text)
-
-        val floats = face.vectorFloats()
-        assertNotNull(floats)
-
-        val reference = FloatArray(VectorBinary.COMPONENTS)
-        NpyWriter.appendVector(text, reference, 0)
-        for (i in reference.indices) {
-            assertEquals(
-                java.lang.Float.floatToRawIntBits(reference[i]),
-                java.lang.Float.floatToRawIntBits(floats!![i]),
-                "число $i разошлось: взято не то, что лежит в двоичной колонке",
-            )
-        }
-    }
-
-    @Test
-    fun `полный вектор возвращает те же числа, что лежат в базе`() {
-        val text = vectorText()
-        val face = Face()
-        face.vectorText = "текст-заглушка, который не должен читаться"
-        face.vectorBinary = VectorBinary.toBytes(text)
-
-        val fromFace = face.vector
-        assertEquals(VectorBinary.COMPONENTS, fromFace.size)
-        val reference = face.vectorFloats()!!
-        for (i in reference.indices) {
-            assertEquals(reference[i].toDouble(), fromFace[i], "значение $i разошлось")
-        }
+    /**
+     * Вектор из значений, **представимых в float32**.
+     *
+     * Именно таких, потому что формат — 512 float32, и сужение до них есть
+     * суть хранения. Значение `double`, не представимое в float32, при
+     * обратном чтении закономерно изменится, и требовать тут точного
+     * совпадения нельзя: это проверка не того.
+     */
+    private fun fullVector(seed: Long): DoubleArray {
+        val random = Random(seed)
+        val values = DoubleArray(VectorBinary.COMPONENTS)
+        for (i in values.indices) values[i] = (random.nextDouble() * 2 - 1).toFloat().toDouble()
+        return values
     }
 
     /**
-     * Обрезанный двоичный вектор читать нельзя: из 2044 байт 512 значений не
-     * получится, а дописать нули — значит тихо испортить сходство. Поэтому
-     * берётся текст.
+     * Сужение до float32 — часть формата, а не потеря.
+     *
+     * Значение, которое в float32 не представимо, читается обратно чуть иначе;
+     * это ожидаемо, и проверяется явно, чтобы никто не принял это за порчу.
      */
     @Test
-    fun `обрезанный двоичный вектор не читается, берётся текст`() {
+    fun `значение, не представимое в float, сужается закономерно`() {
         val face = Face()
-        face.vectorText = "1.0|2.0|3.0"
-        face.vectorBinary = ByteArray(2044)
+        val wide = 0.41445744410093566
+        assertFalse(wide.toFloat().toDouble() == wide, "исходное значение должно быть не представимо в float32")
 
-        assertNull(face.vectorFloats(), "неполный двоичный вектор обязан считаться отсутствующим")
-        assertArrayEquals(doubleArrayOf(1.0, 2.0, 3.0), face.vector)
+        face.vector = DoubleArray(VectorBinary.COMPONENTS) { wide }
+
+        assertEquals(wide.toFloat().toDouble(), face.vector[0])
     }
 
     @Test
-    fun `запись полного вектора заполняет обе колонки одинаково`() {
+    fun `лицо без вектора отдаёт пусто, а не нули`() {
         val face = Face()
-        val values = DoubleArray(VectorBinary.COMPONENTS)
-        val random = Random(99L)
-        for (i in values.indices) values[i] = random.nextDouble() * 2 - 1
+        assertFalse(face.hasVector())
+        assertNull(face.vectorFloats(), "нет данных — значит null, а не 512 нулей")
+        assertEquals(0, face.vector.size)
+    }
 
-        face.vector = values
-
-        assertNotNull(face.vectorBinary, "полный вектор обязан попасть в двоичную колонку")
-        assertEquals(VectorBinary.BYTES, face.vectorBinary!!.size)
+    @Test
+    fun `двоичный вектор читается в числа`() {
+        val values = fullVector(4242L)
+        val face = Face()
+        face.vectorBinary = VectorBinary.toBytes(values.joinToString("|"))
+        assertTrue(face.hasVector())
+        val floats = face.vectorFloats()
+        assertNotNull(floats)
         for (i in values.indices) {
             assertEquals(
                 java.lang.Float.floatToRawIntBits(values[i].toFloat()),
-                java.lang.Float.floatToRawIntBits(face.vectorFloats()!![i]),
-                "значение $i разошлось между текстом и двоичной колонкой",
+                java.lang.Float.floatToRawIntBits(floats!![i]),
+                "число $i разошлось",
+            )
+        }
+    }
+
+    @Test
+    fun `обрезанный вектор не считается за вектор`() {
+        val face = Face()
+        face.vectorBinary = ByteArray(2044)
+        assertFalse(face.hasVector())
+        assertNull(face.vectorFloats())
+        assertEquals(0, face.vector.size)
+    }
+
+    @Test
+    fun `запись полного вектора заполняет двоичную колонку`() {
+        val face = Face()
+        val values = fullVector(99L)
+        face.vector = values
+        assertNotNull(face.vectorBinary)
+        assertEquals(VectorBinary.BYTES, face.vectorBinary!!.size)
+        val read = face.vectorFloats()!!
+        for (i in values.indices) {
+            assertEquals(
+                java.lang.Float.floatToRawIntBits(values[i].toFloat()),
+                java.lang.Float.floatToRawIntBits(read[i]),
+                "значение $i разошлось между записью и чтением",
             )
         }
     }
 
     /**
-     * Неполный вектор в двоичную колонку **не пишется**.
+     * Неполный вектор в базу не попадает.
      *
-     * Иначе получился бы нулевой хвост, неотличимый от настоящих нулей, и
-     * лицо ушло бы в другую персону без единой ошибки в журнале.
+     * Иначе получился бы нулевой хвост, неотличимый от настоящих нулей: лицо
+     * ушло бы в другую персону, и в журнале не было бы ни одной ошибки.
      */
     @Test
-    fun `неполный вектор в двоичную колонку не пишется`() {
+    fun `неполный вектор не пишется вовсе`() {
         val face = Face()
-
         face.vector = DoubleArray(300) { 0.5 }
-
-        assertNull(face.vectorBinary, "неполный вектор обязан остаться только в тексте")
-        assertEquals(300, face.vector.size)
-        assertEquals(300, face.vectorText.split("|").size)
+        assertNull(face.vectorBinary, "неполный вектор обязан остаться незаписанным")
+        assertFalse(face.hasVector())
     }
 
     @Test
-    fun `пустой вектор не ломает ни одну из колонок`() {
+    fun `пустой вектор не ломает лицо`() {
         val face = Face()
-
         face.vector = DoubleArray(0)
-
-        assertEquals("", face.vectorText)
         assertNull(face.vectorBinary)
+        assertEquals(0, face.vector.size)
     }
 
-    /**
-     * Круг «записать → прочитать» не должен терять разрядность.
-     *
-     * Значение, не представимое точно в `double`, обязано остаться тем же в
-     * `float`: сужение до float32 — суть формата, и тест фиксирует именно
-     * его, а не случайное округление.
-     */
     @Test
-    fun `круг записи и чтения не теряет и не добавляет значений`() {
+    fun `круг записи и чтения ничего не меняет`() {
         val face = Face()
-        val values = DoubleArray(VectorBinary.COMPONENTS)
-        val random = Random(777L)
-        for (i in values.indices) values[i] = (random.nextDouble() * 2 - 1).toFloat().toDouble()
-
+        val values = fullVector(777L)
         face.vector = values
         val read = face.vector
-
         assertEquals(values.size, read.size)
         for (i in values.indices) {
             assertEquals(values[i], read[i], "значение $i изменилось по дороге")
         }
-        assertTrue(face.vectorText.isNotEmpty())
     }
 
     @Test
-    fun `разбор текста матрицы совпадает с чтением двоичного вектора`() {
-        val text = vectorText()
+    fun `перезапись двоичного вектора заменяет прежний`() {
         val face = Face()
-        face.vectorText = text
-        face.vectorBinary = VectorBinary.toBytes(text)
+        face.vector = DoubleArray(VectorBinary.COMPONENTS) { 0.25 }
+        val first = face.vectorBinary!!.copyOf()
+        face.vector = DoubleArray(VectorBinary.COMPONENTS) { -0.75 }
+        val same = first.contentEquals(face.vectorBinary!!)
+        assertFalse(same, "прежний вектор должен был замениться, а не остаться")
+        assertEquals(-0.75f, face.vectorFloats()!![0])
+    }
 
-        val viaMatrix = FloatArray(VectorBinary.COMPONENTS)
-        NpyWriter.appendVector(face.vectorText, viaMatrix, 0)
-        val viaEntity = face.vectorFloats()!!
-
-        for (i in viaMatrix.indices) {
-            assertEquals(
-                java.lang.Float.floatToRawIntBits(viaMatrix[i]),
-                java.lang.Float.floatToRawIntBits(viaEntity[i]),
-                "число $i разошлось между путями",
-            )
+    @Test
+    fun `значения, точные в float, переживают круг без потерь`() {
+        val face = Face()
+        val values = DoubleArray(VectorBinary.COMPONENTS) { (it % 3).toDouble() }
+        face.vector = values
+        val read = face.vector
+        for (i in values.indices) {
+            assertEquals(values[i], read[i], "значение $i изменилось, а было точным")
         }
     }
 }

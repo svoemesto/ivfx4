@@ -262,7 +262,11 @@ class RecognizeFaces(
 
             var row = 0
             for (faceExt in arrFrameFaces) {
-                val written = NpyWriter.appendVector(faceExt.face.vectorText, allVectors, row * vectorColumns)
+                // Числами, а не разбором текста: текстовой колонки больше
+                // нет, а обратная склейка в строку съела бы весь выигрыш.
+                val floats = faceExt.face.vectorFloats()
+                val written =
+                    if (floats == null) 0 else NpyWriter.appendFloats(floats, allVectors, row * vectorColumns)
                 if (written != vectorColumns) {
                     throw IllegalStateException(
                         "вектор лица ${faceExt.face.id} имеет $written значений вместо $vectorColumns",
@@ -530,37 +534,23 @@ class RecognizeFaces(
     }
 
     /**
-     * Строка галереи: кому принадлежит лицо и каким текстом записан его
-     * вектор. Объекта мало и полей два — по построению это дешевле, чем
-     * собирать полноценный FaceExt, который тут больше нигде не нужен.
-     *
      * Вектор лица галереи из строки нативного запроса.
      *
-     * Запрос отдаёт двоичный вектор (`vector_bin`) и текст рядом. Двоичный
-     * выбирается, **только если он ровно 2048 байт**: усечённый хвост
-     * читать нельзя, а дополнять нулями — можно, и это молчаливый хвост,
-     * который портит сходство. Такая строка берёт текст.
+     * Текстовой колонки больше нет, и запасного пути нет — это осознанно.
+     * Пока текст существовал, он попадал в `SELECT` целиком и перекачивался
+     * на каждом прогоне: оба столбца — 2 991 мс против 1 123 мс на одних
+     * двоичных. Запасной путь в списке столбцов стоил дороже оптимизации.
      *
-     * Двоичный в JDBC приходит как `byte[]`; если драйвер отдал что-то
-     * другое, строка просто пойдёт по текстовому пути, а не упадёт.
+     * Двоичный вектор принимается, **только если он ровно 2048 байт**:
+     * усечённый хвост читать нельзя, а дополнять нулями можно, и это
+     * молчаливый хвост, который портит сходство. Такая строка даёт пустой
+     * вектор, и операция падает ниже на проверке длины — а не строит матрицу
+     * из мусора.
      */
     private fun galleryVector(row: Array<Any>): FloatArray {
-        val binary = row.getOrNull(1) as? ByteArray
-        val text = row.getOrNull(2) as? String
-        if (binary != null && binary.size == VectorBinary.BYTES) {
-            return VectorBinary.toFloats(binary)
-        }
-        return parseVectorText(text ?: "")
-    }
-
-    /** Разбор текстового вектора — запасной путь, для строк без двоичного. */
-    private fun parseVectorText(text: String): FloatArray {
-        val values = FloatArray(VectorBinary.COMPONENTS)
-        val written = NpyWriter.appendVector(text, values, 0)
-        if (written != VectorBinary.COMPONENTS) {
-            return values.copyOf(written)
-        }
-        return values
+        val binary = row.getOrNull(1) as? ByteArray ?: return FloatArray(0)
+        if (binary.size != VectorBinary.BYTES) return FloatArray(0)
+        return VectorBinary.toFloats(binary)
     }
 
     /**

@@ -93,74 +93,60 @@ class Face: Comparable<Face> {
     @Column(name = "is_manual", columnDefinition = "boolean default false")
     var isManual: Boolean = false
 
-    @Column(name = "vector", columnDefinition = "text")
-    var vectorText: String = "0.0"
-
     /**
-     * Тот же вектор двоично: 512 float32 little-endian подряд (задача #268).
+     * Вектор лица: 512 float32 little-endian подряд, ровно 2048 байт.
      *
-     * Заполняется миграцией и новыми записями. Если его нет или он не
-     * полный, читается [vectorText] — так устроены [vector] и [vectorFloats].
+     * Текстовая колонка `vector` **удалена 2026-10-09** (задача #268). Она
+     * занимала 1 116 МБ против 227 МБ здесь и была источником самого
+     * дорогого разбора в проекте: 512 `toDouble` на лицо регуляркой.
+     *
+     * Значение `null` означает «вектора нет» — так и должно быть у лица,
+     * которому эмбеддинг не достался. Подставлять вместо него нули нельзя:
+     * нулевой вектор неотличим от настоящего и тихо портит сходство.
      */
     @Column(name = "vector_bin")
     var vectorBinary: ByteArray? = null
 
+    /** Есть ли вектор у лица. */
+    fun hasVector(): Boolean = vectorBinary?.size == VectorBinary.BYTES
+
     /**
-     * Вектор из двоичной колонки, либо `null`, если её ещё нет.
+     * Вектор числами, либо `null`, если его нет.
      *
-     * Возвращается именно `null`, а не текстовый разбор: вызывающий сам
-     * решает, откуда брать значения. Молчаливая подмена одного источника
-     * другим — это то, из-за чего стёрли векторы у 7 597 лиц.
+     * `null`, а не пустой массив: «нет данных» и «512 нулей» — разные вещи,
+     * и путать их нельзя.
      */
     fun vectorFloats(): FloatArray? {
         val binary = vectorBinary ?: return null
-        if (binary.size < VectorBinary.BYTES) return null
+        if (binary.size != VectorBinary.BYTES) return null
         return VectorBinary.toFloats(binary)
     }
 
-    /**
-     * Вектор лица: двоичная колонка, если она есть, иначе текст.
-     *
-     * Двоичный источник берётся **только когда он пригоден целиком** — ровно
-     * 2048 байт. Меньше или больше: возврат к тексту, а не усечение. Дополнять
-     * нулями нельзя: такой хвост ничем не отличается от настоящих нулей в
-     * векторе, сходство поедет, и заметить это будет негде.
-     */
+    /** Вектор числами `Double`; пустой массив, если вектора нет. */
     var vector: DoubleArray
         get() {
-            val floats = vectorFloats()
-            if (floats != null) {
-                val widened = DoubleArray(floats.size)
-                for (i in floats.indices) {
-                    widened[i] = floats[i].toDouble()
-                }
-                return widened
+            val floats = vectorFloats() ?: return DoubleArray(0)
+            val widened = DoubleArray(floats.size)
+            for (i in floats.indices) {
+                widened[i] = floats[i].toDouble()
             }
-            val textVector: Array<String> = vectorText.split("\\|".toRegex()).toTypedArray()
-            val result = DoubleArray(textVector.size)
-            for (i in textVector.indices) {
-                result[i] = textVector[i].toDouble()
-            }
-            return result
+            return widened
         }
         set(value) {
-            vectorText = if (value.isEmpty()) "" else value.joinToString("|")
             vectorBinary = packBinary(value)
         }
 
     /**
-     * Двоичное представление вектора, либо `null`, если он неполный.
+     * Двоичное представление вектора, либо `null`.
      *
-     * Двоичная колонка заполняется **только для полного вектора**. Иначе она
-     * была бы нулевым хвостом, а `null` честнее: читатель возьмёт текст, и
-     * неполнота данных видна.
+     * Только для полного вектора: неполный остаётся `null`, и это видно, а не
+     * выглядит как настоящие нули.
      */
     private fun packBinary(value: DoubleArray): ByteArray? {
         if (value.size != VectorBinary.COMPONENTS) return null
         val asText = value.joinToString("|")
-        if (VectorBinary.encode(asText, ByteArray(VectorBinary.BYTES), 0) != VectorBinary.COMPONENTS) {
-            return null
-        }
+        val probe = ByteArray(VectorBinary.BYTES)
+        if (VectorBinary.encode(asText, probe, 0) != VectorBinary.COMPONENTS) return null
         val packed = ByteArray(VectorBinary.BYTES)
         VectorBinary.encode(asText, packed, 0)
         return packed

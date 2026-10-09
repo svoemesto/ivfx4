@@ -231,7 +231,7 @@ class RecheckFaces(var fileExt: FileExt,
                     face.startY = faceExtJson.startY
                     face.endX = faceExtJson.endX
                     face.endY = faceExtJson.endY
-                    face.vectorText = faceExtJson.vector.joinToString(separator = "|", prefix = "", postfix = "")
+                    face.vector = faceExtJson.vector
 
                     FaceController.save(face)
                     existing.add(key)

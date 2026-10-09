@@ -111,13 +111,8 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
 
     var vector: DoubleArray
         get() {
-            if (face.vectorText.isEmpty()) return DoubleArray(0)
-            val textVector: Array<String> = face.vectorText.split("\\|".toRegex()).toTypedArray()
-            val result = DoubleArray(textVector.size)
-            for (i in textVector.indices) {
-                result[i] = textVector[i].toDouble()
-            }
-            return result
+            if (!face.hasVector()) return DoubleArray(0)
+            return face.vector
         }
         set(value) {
             // Пустой вектор означает «данных нет», а не «стереть имеющееся».
@@ -130,7 +125,7 @@ class FaceExt(@Transient var face: Face, @Transient var fileExt: FileExt, @Trans
             // разборе пустой строки. Замечено 2026-10-08 на восьмой серии:
             // обнулилось ровно столько лиц, сколько распознала машина.
             if (value.isEmpty()) return
-            face.vectorText = value.joinToString(separator = "|", prefix = "", postfix = "")
+            face.vector = value
             FaceController.save(face)
         }
     @SerializedName("vector")

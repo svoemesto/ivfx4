@@ -276,7 +276,7 @@ class FaceController {
             face.startY = faceExtJson.startY
             face.endX = faceExtJson.endX
             face.endY = faceExtJson.endY
-            face.vectorText = faceExtJson.vector.joinToString(separator = "|", prefix = "", postfix = "")
+            face.vector = faceExtJson.vector
 
             // Новое лицо тоже уходит в общую очередь сохранения, иначе
             // создание лиц на новой серии по-прежнему писало бы базу по
