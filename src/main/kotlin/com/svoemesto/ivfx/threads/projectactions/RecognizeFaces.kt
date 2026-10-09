@@ -12,6 +12,7 @@ import com.svoemesto.ivfx.modelsext.FaceExtJson
 import com.svoemesto.ivfx.modelsext.FileExt
 import com.svoemesto.ivfx.modelsext.PersonExt
 import com.svoemesto.ivfx.threads.RunCmd
+import com.svoemesto.ivfx.utils.VectorBinary
 import com.svoemesto.ivfx.utils.FaceDetection
 import com.svoemesto.ivfx.utils.NpyWriter
 import javafx.application.Platform
@@ -174,7 +175,10 @@ class RecognizeFaces(
                 // person_id приходит из нативного запроса как Long; приводим
                 // через Number, чтобы не зависеть от того, чем именно его
                 // отдал драйвер.
-                GalleryRow(galleryPersons.getValue((row[0] as Number).toLong()).nameInRecognizer, row[1] as String)
+                GalleryRow(
+                    galleryPersons.getValue((row[0] as Number).toLong()).nameInRecognizer,
+                    galleryVector(row),
+                )
             }
         val galleryReadyAt = System.currentTimeMillis()
         println("[RecognizeFaces] неопределённых лиц: ${arrFrameFaces.size}, отмеченных для галереи: ${galleryRows.size}")
@@ -277,7 +281,7 @@ class RecognizeFaces(
                     currentName = galleryRow.personName
                     personStarts.add("\"" + currentName.escapeForJson() + "\": " + row)
                 }
-                val written = NpyWriter.appendVector(galleryRow.vectorText, allVectors, row * vectorColumns)
+                val written = NpyWriter.appendFloats(galleryRow.vector, allVectors, row * vectorColumns)
                 if (written != vectorColumns) {
                     throw IllegalStateException(
                         "вектор персоны ${galleryRow.personName} имеет $written значений вместо $vectorColumns",
@@ -529,10 +533,45 @@ class RecognizeFaces(
      * Строка галереи: кому принадлежит лицо и каким текстом записан его
      * вектор. Объекта мало и полей два — по построению это дешевле, чем
      * собирать полноценный FaceExt, который тут больше нигде не нужен.
+     *
+     * Вектор лица галереи из строки нативного запроса.
+     *
+     * Запрос отдаёт двоичный вектор (`vector_bin`) и текст рядом. Двоичный
+     * выбирается, **только если он ровно 2048 байт**: усечённый хвост
+     * читать нельзя, а дополнять нулями — можно, и это молчаливый хвост,
+     * который портит сходство. Такая строка берёт текст.
+     *
+     * Двоичный в JDBC приходит как `byte[]`; если драйвер отдал что-то
+     * другое, строка просто пойдёт по текстовому пути, а не упадёт.
+     */
+    private fun galleryVector(row: Array<Any>): FloatArray {
+        val binary = row.getOrNull(1) as? ByteArray
+        val text = row.getOrNull(2) as? String
+        if (binary != null && binary.size == VectorBinary.BYTES) {
+            return VectorBinary.toFloats(binary)
+        }
+        return parseVectorText(text ?: "")
+    }
+
+    /** Разбор текстового вектора — запасной путь, для строк без двоичного. */
+    private fun parseVectorText(text: String): FloatArray {
+        val values = FloatArray(VectorBinary.COMPONENTS)
+        val written = NpyWriter.appendVector(text, values, 0)
+        if (written != VectorBinary.COMPONENTS) {
+            return values.copyOf(written)
+        }
+        return values
+    }
+
+    /**
+     * Строка галереи: имя персоны и её вектор **числами**.
+     *
+     * Числами, а не строкой: строку пришлось бы разбирать заново, и весь
+     * выигрыш от двоичного хранения ушёл бы на обратную склейку.
      */
     private data class GalleryRow(
         val personName: String,
-        val vectorText: String,
+        val vector: FloatArray,
     )
 
     companion object {

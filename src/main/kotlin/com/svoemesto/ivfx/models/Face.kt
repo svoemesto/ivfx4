@@ -1,5 +1,6 @@
 package com.svoemesto.ivfx.models
 
+import com.svoemesto.ivfx.utils.VectorBinary
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import javax.persistence.Column
@@ -98,10 +99,8 @@ class Face: Comparable<Face> {
     /**
      * Тот же вектор двоично: 512 float32 little-endian подряд (задача #268).
      *
-     * Заполняется миграцией, до неё остаётся `null`, и тогда читается
-     * [vectorText]. **Читателей переключать только после проверки
-     * перезаписанных данных**: правило 2.11 выросло как раз из того, что
-     * оптимизацию проверили на том объёме, на котором её не гоняли.
+     * Заполняется миграцией и новыми записями. Если его нет или он не
+     * полный, читается [vectorText] — так устроены [vector] и [vectorFloats].
      */
     @Column(name = "vector_bin")
     var vectorBinary: ByteArray? = null
@@ -109,19 +108,34 @@ class Face: Comparable<Face> {
     /**
      * Вектор из двоичной колонки, либо `null`, если её ещё нет.
      *
-     * Возвращается именно `null`, а не текстовый разбор: вызывающий должен
-     * сам решить, откуда брать значения. Подмена одного источника другим
-     * молча — это то, из-за чего вчера стёрли векторы у 7 597 лиц.
+     * Возвращается именно `null`, а не текстовый разбор: вызывающий сам
+     * решает, откуда брать значения. Молчаливая подмена одного источника
+     * другим — это то, из-за чего стёрли векторы у 7 597 лиц.
      */
     fun vectorFloats(): FloatArray? {
         val binary = vectorBinary ?: return null
-        if (binary.size < com.svoemesto.ivfx.utils.VectorBinary.BYTES) return null
-        return com.svoemesto.ivfx.utils.VectorBinary
-            .toFloats(binary)
+        if (binary.size < VectorBinary.BYTES) return null
+        return VectorBinary.toFloats(binary)
     }
 
+    /**
+     * Вектор лица: двоичная колонка, если она есть, иначе текст.
+     *
+     * Двоичный источник берётся **только когда он пригоден целиком** — ровно
+     * 2048 байт. Меньше или больше: возврат к тексту, а не усечение. Дополнять
+     * нулями нельзя: такой хвост ничем не отличается от настоящих нулей в
+     * векторе, сходство поедет, и заметить это будет негде.
+     */
     var vector: DoubleArray
         get() {
+            val floats = vectorFloats()
+            if (floats != null) {
+                val widened = DoubleArray(floats.size)
+                for (i in floats.indices) {
+                    widened[i] = floats[i].toDouble()
+                }
+                return widened
+            }
             val textVector: Array<String> = vectorText.split("\\|".toRegex()).toTypedArray()
             val result = DoubleArray(textVector.size)
             for (i in textVector.indices) {
@@ -130,8 +144,25 @@ class Face: Comparable<Face> {
             return result
         }
         set(value) {
-            vectorText = if (vector.isEmpty()) "" else value.joinToString(separator = "|", prefix = "", postfix = "")
-            }
+            vectorText = if (value.isEmpty()) "" else value.joinToString("|")
+            vectorBinary = packBinary(value)
+        }
 
-
+    /**
+     * Двоичное представление вектора, либо `null`, если он неполный.
+     *
+     * Двоичная колонка заполняется **только для полного вектора**. Иначе она
+     * была бы нулевым хвостом, а `null` честнее: читатель возьмёт текст, и
+     * неполнота данных видна.
+     */
+    private fun packBinary(value: DoubleArray): ByteArray? {
+        if (value.size != VectorBinary.COMPONENTS) return null
+        val asText = value.joinToString("|")
+        if (VectorBinary.encode(asText, ByteArray(VectorBinary.BYTES), 0) != VectorBinary.COMPONENTS) {
+            return null
+        }
+        val packed = ByteArray(VectorBinary.BYTES)
+        VectorBinary.encode(asText, packed, 0)
+        return packed
+    }
 }

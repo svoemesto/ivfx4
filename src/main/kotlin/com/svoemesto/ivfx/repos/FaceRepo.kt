@@ -199,10 +199,15 @@ interface FaceRepo : CrudRepository<Face, Long> {
      *
      * Порядок по person_id из базы не гарантирован — сортировка по персоне
      * делается на стороне вызова (см. RecognizeFaces).
+     *
+     * Третий столбец — двоичный вектор (задача #268). Он в 4,9 раза короче
+     * текста, и на 116 тысячах строк это разница между гигабайтом и его
+     * четвертью. Текст остаётся в запросе запасным путём: строка без
+     * двоичного вектора берётся из него, а не превращается в нули.
      */
     @Query(
         value =
-            "SELECT f.person_id, f.vector FROM tbl_faces f " +
+            "SELECT f.person_id, f.vector_bin, f.vector FROM tbl_faces f " +
                 "INNER JOIN tbl_persons p ON f.person_id = p.id " +
                 "INNER JOIN tbl_files fl ON f.file_id = fl.id " +
                 "LEFT JOIN (SELECT parent_id, " +

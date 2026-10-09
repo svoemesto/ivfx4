@@ -119,7 +119,25 @@ object NpyWriter {
      * к float в конце даёт то же значение, что и Float.parseFloat.
      *
      * Возвращает количество записанных чисел.
+     *
+     * Копирует готовые значения в матрицу, минуя разбор текста.
+     *
+     * Нужен там, где значения уже пришли числами: двоичный вектор из базы
+     * не должен сначала превращаться в строку, а потом обратно разбираться.
+     * Возвращает число записанных значений — ровно [values].size.
      */
+    fun appendFloats(
+        values: FloatArray,
+        dest: FloatArray,
+        offset: Int,
+    ): Int {
+        require(offset >= 0 && offset + values.size <= dest.size) {
+            "значения не влезают: нужно ${offset + values.size}, а в массиве ${dest.size}"
+        }
+        System.arraycopy(values, 0, dest, offset, values.size)
+        return values.size
+    }
+
     fun appendVector(
         text: String,
         dest: FloatArray,
